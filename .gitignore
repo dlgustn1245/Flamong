@@ -104,3 +104,9 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Server (Node.js)
+/Server/node_modules/
+/Server/*.db
+/Server/*.db-*
+/Server/.env
