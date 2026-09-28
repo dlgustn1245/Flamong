@@ -71,13 +71,13 @@ public class LoginScene : MonoBehaviour
         if (response.body.available)
         {
             ShowResult(
-                $"「{checkedNickName}」\n사용할 수 있는 닉네임이에요.\n이 닉네임으로 할까요?",
+                $"[{checkedNickName}]\n사용할 수 있는 닉네임이에요.\n이 닉네임으로 할까요?",
                 true);
         }
         else
         {
             ShowResult(
-                $"「{checkedNickName}」\n이미 사용 중이거나\n쓸 수 없는 글자가 있어요.", 
+                $"[{checkedNickName}]\n이미 사용 중이거나\n쓸 수 없는 글자가 있어요.", 
                 false);
         }
     }
@@ -132,7 +132,7 @@ public class LoginScene : MonoBehaviour
         if (response.statusCode == 200)
         {
             print($"Player ID: {response.body.playerId}");
-            print("Load Scene");
+            SceneLoader.Load(SceneName.EggSelectScene);
         }
         else
         {
