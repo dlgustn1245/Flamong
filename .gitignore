@@ -110,3 +110,4 @@ InitTestScene*.unity*
 /Server/*.db
 /Server/*.db-*
 /Server/.env
+/Server/*.http
