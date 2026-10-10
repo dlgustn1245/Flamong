@@ -7,6 +7,8 @@ public static class SceneName
 	public static string IntroScene = "Intro";
 	public static string LoginScene = "Login";
 	public static string EggSelectScene = "EggSelect";
+	public static string HatchScene = "Hatch";
+	public static string MainScene = "Main";
 }
 
 public static class SceneLoader

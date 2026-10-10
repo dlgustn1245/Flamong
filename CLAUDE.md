@@ -21,6 +21,11 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
 
 -   **Unity MCP 연결됨**: `Unity_RunCommand`로 에디터 안에서 C# 실행, `Unity_GetConsoleLogs`로 콘솔 확인.
     씬·프리팹·에셋 수정은 파일을 직접 고치지 말고 MCP로 에디터를 통해 한다.
+    -   `AssetDatabase.DeleteAsset`·`MoveAsset`은 에디터 확인창 때문에 MCP에서 실패한다. 파일과 `.meta`를 함께 직접 옮기거나 지운 뒤 `AssetDatabase.Refresh()`.
+    -   MCP 코드는 래퍼 네임스페이스 안에서 돈다. `Image`·`Button`은 이름이 겹치므로 `using UImage = UnityEngine.UI.Image;`처럼 별칭을 쓴다. `System.Reflection`·`Regex`는 쓸 수 없다.
+    -   꺼진 오브젝트의 Canvas `overrideSorting`·`sortingOrder`는 프로퍼티로 넣으면 저장되지 않는다. `SerializedObject`로 넣는다.
+    -   스크립트를 고치면 재컴파일 동안 MCP 연결이 잠시 끊긴다. 확인은 컴파일이 끝난 뒤에 한다.
+    -   확인용으로 씬을 바꿨다면 저장하지 말고 `EditorSceneManager.OpenScene`으로 다시 열어 버린다.
 -   빌드: File → Build Profiles → Web. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
 -   서버: `Server/`에서 `npm start` (실행) · `npm test` (node:test). 패키지 추가는 사용자 확인 후.
 
@@ -31,6 +36,7 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
 -   **필드 노출**: `[SerializeField] private` 대신 **`public` 필드**를 사용한다.
 -   **필드명**: 언더바(`_`) 접두사 사용 **금지**. `camelCase` 그대로 사용.
 -   **네임스페이스**: 전역 네임스페이스. 폴더명과 같은 네임스페이스를 만들지 않는다.
+-   **Unity 오브젝트 null 검사**: `UnityEngine.Object`에는 `??`·`?.`·`is null`을 쓰지 않는다. 파괴된 오브젝트를 null로 보지 못한다. `== null` 또는 `if (obj)`.
 -   **주석**: 한국어, WHY가 비자명할 때만 작성.
 -   **서버 통신**: `UnityWebRequest` + JSON만. WebSocket·gRPC·서드파티 HTTP 라이브러리 금지.
 -   **서버(Node.js)**: ESM(`import`), `async/await`, 플레인 JS + JSDoc 타입 주석. TypeScript·ORM·Express 미들웨어 생태계 도입 금지.
@@ -83,6 +89,16 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 2.  씬 로드 직후 `Resources.UnloadUnusedAssets()` → `GC.Collect()` 순서로 1회 호출. 그 외 위치에서 `GC.Collect()` 금지.
 3.  씬 간 데이터는 `static` POCO 1개(`Session`)로만 전달. 씬 오브젝트 참조를 static에 담지 않는다.
 4.  씬 진입 시 필요한 에셋만 로드. 12개 씬 배경을 한 아틀라스에 넣지 않는다 (씬별 아틀라스).
+
+## UI 캔버스 규칙
+
+-   **매 프레임 움직이는 UI**(스크롤 목록, 회전)는 `Canvas - Dynamic`(그리기 순서 1)에 따로 둔다. 캔버스 안의 하나가 바뀌면 그 캔버스 전체가 다시 그려지기 때문이다.
+-   **팝업**은 `Canvas - Main` 아래 하위 Canvas(Override Sorting, 순서 2) + GraphicRaycaster로 만들고 기본은 꺼 둔다. GraphicRaycaster가 없으면 버튼이 눌리지 않는다.
+-   누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다. 장식 이미지·글자는 Raycast Target을 끈다.
+-   스크롤 뷰포트는 Mask 대신 RectMask2D. 가장자리 페이드는 RectMask2D Softness로 한다.
+-   UI에 Animator를 붙이지 않는다. 값이 그대로여도 매 프레임 UI를 다시 그리게 만든다. 움직임은 코루틴이나 `Update`로 직접 준다.
+-   레이아웃 그룹은 바뀔 때만 계산되므로 정적 목록에는 써도 된다. 중첩은 하지 않는다.
+-   구성 현황은 README 「UI 캔버스 구성」.
 
 ## 검증 (기능 하나 끝날 때마다)
 
