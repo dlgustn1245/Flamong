@@ -21,21 +21,26 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
                                                           └─ 11 꽃밭 (탭: 꽃밭 | 소식)
 ```
 
-| # | 씬 | 하는 일 | 서버 호출 | 버전 |
-|---|---|---|---|---|
-| 1 | Title | 타이틀. 탭하면 다음 | - | 1.0 |
-| 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs | - | 1.0 |
-| 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 | `POST /players`, `GET /players/check` | 1.0 |
-| 4 | EggSelect | 알 4종 중 선택 | - | 1.0 |
-| 5 | Hatch | 서버가 뽑은 캐릭터 공개 연출 | `POST /characters` | 1.0 |
-| 6 | Main | 캐릭터 · 하트 탭 · 애정도 게이지 · Lv. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임 | `GET /me`, `POST /tap` | 1.0 |
-| 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 |
-| 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 |
-| 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 |
-| 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 |
-| 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 |
+| # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
+|---|---|---|---|---|---|
+| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 Login | - | 1.0 | 구현. NetworkManager 싱글톤이 이 씬에 있음 |
+| 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro` | - | 1.0 | 구현 |
+| 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. **`player_id` 저장은 아직** (콘솔 출력만) |
+| 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
+| 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
+| 6 | Main | 캐릭터 · 하트 탭 · 애정도 게이지 · Lv. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임 | `GET /me`, `POST /tap` | 1.0 | 빈 씬 |
+| 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 빈 씬 |
+| 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
+| 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
+| 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
+| 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 | 빈 씬 |
 
-씬 1개 = 화면 1개, `LoadSceneMode.Single`. 씬 간 데이터는 `Session`(static POCO) 하나로만 전달.
+씬 1개 = 화면 1개, `LoadSceneMode.Single`. 씬 간 데이터는 `Session`(static POCO) 하나로만 전달한다. **`Session`은 아직 만들지 않았다.**
+
+### 화면 레이아웃 기준
+- 시안은 566px 폭의 세로가 긴 폰 기준이다. 1080 캔버스로 옮길 때 1.908배 한다.
+- 세로 위치는 화면 중앙 기준으로 둔다. 시안 그대로면 16:9에서 잘리는 화면(Hatch)은 전체를 아래로 150 내렸다.
+- EggSelect는 스크롤 영역 높이에 맞춰 알 크기와 간격이 비례한다. 칸 높이의 70%가 알이고, 화면비와 상관없이 한 화면에 4개가 보인다.
 
 ---
 
@@ -54,9 +59,22 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 수치는 서버 `rules/growth.js` 상수 1곳. 클라이언트에 하드코딩하지 않는다.
 
 ### 캐릭터
-- 알 이미지 **8종** (`Common/03_Art/Egg/`): 선택 가능 4종(핑크 · 퍼플 · 블루 · 그린) + 부화 연출·도감용 4종(그레이 · 오렌지 · 라벤더 · 크림).
-- 캐릭터는 선택 4종 × 3 = **12종**. 알이 색 계열을 정하고, 3종 중 서버가 균등 랜덤. 클라이언트 랜덤 금지(새로고침 리롤 방지).
+- 알 이미지 **8종** (`Common/03_Art/Egg/`). EggSelect에서 **8종 모두 고를 수 있게** 배치했다.
+- `eggId`는 EggSelect 목록 순서다. 순서를 바꾸면 서버 값도 바뀐다.
+
+  | eggId | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+  |---|---|---|---|---|---|---|---|---|
+  | 알 | 핑크 | 퍼플 | 블루 | 그린 | 그레이 | 오렌지 | 라벤더 | 크림 |
+
+- Hatch의 원형 배치는 시안 순서(12시부터 시계 방향: 핑크 · 그레이 · 오렌지 · 라벤더 · 크림 · 그린 · 퍼플 · 블루)라 `eggId` 순서와 다르다.
+- 알이 색 계열을 정하고, 그 안에서 서버가 균등 랜덤으로 캐릭터를 뽑는다. 클라이언트 랜덤 금지(새로고침 리롤 방지).
+- 처음에는 선택 가능한 알 4종 × 3 = 12종으로 정했다. 8종 모두 고를 수 있게 되면서 캐릭터 수는 다시 정해야 한다(「미정」 참고).
 - 도감은 내 알 계열 3종만. Lv5 완성한 캐릭터만 해금, 나머지 `?`.
+
+### 닉네임
+- 1~12자. 허용 글자는 **KS X 1001 완성형 한글 2350자 + ASCII**다. 꾸불림체 폰트 아틀라스와 같은 범위라서, 아틀라스 밖 글자가 □로 보이는 일을 막는다.
+- 서버 `rules/nickname.js`가 검사한다. 범위 밖 글자는 400 `nickname_charset`, 중복은 409 `nickname_taken`.
+- 자모 단독(ㅋㅋ), 「뷁」 같은 완성형 밖 글자, 이모지, 전각 문자는 쓸 수 없다. Login 입력칸도 12자로 제한했다.
 
 ### 캐릭터 새로 키우기 (리셋)
 - 새 `character` 행 생성, 이전 행은 `ended_at` 기록 후 보관. 유저 삭제 아님.
@@ -106,12 +124,15 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
 에러는 `body: { error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 
+**구현된 것은 players 4개뿐이다** (`Server/routes/players.js`, `npm test` 4개 통과). 나머지는 설계만 있다.
+수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
+
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
 |---|---|---|---|---|
-| GET | `/players/check?nickname=` | - | `{ available }` | 1.0 |
-| POST | `/players` | `{ team, name, nickname }` | `{ playerId }` | 1.0 |
-| PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` | 1.0 |
-| DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 | 1.0 |
+| GET | `/players/check?nickname=` | - | `{ available }` · 중복이거나 허용 글자 밖이면 false **(구현)** | 1.0 |
+| POST | `/players` | `{ team, name, nickname }` | `{ playerId }` · 중복 409 · 글자 400 **(구현)** | 1.0 |
+| PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
+| DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
 | GET | `/me` | - | `{ player, character: { speciesId, affection, level, tapsToday } }` | 1.0 |
 | POST | `/characters` | `{ eggId }` | `{ speciesId }` | 1.0 |
 | POST | `/characters/reset` | - | `{ ok }` | 1.0 |
@@ -131,19 +152,46 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 ```
 Assets/Content/<씬>/
   01_Scenes/<씬>.unity
-  02_Scripts/                   씬 컨트롤러 1개. 다른 씬 폴더 참조 금지
+  02_Scripts/                   씬 컨트롤러(<씬>Scene.cs) + 그 씬에서만 쓰는 컴포넌트. 다른 씬 폴더 참조 금지
+                                두 씬 이상에서 쓰게 되면 Common/02_Scripts 로 옮긴다
   03_Art/                       씬별 텍스처·오디오 (씬별 아틀라스)
 Assets/Content/Common/
-  02_Scripts/                   Session · ApiClient · DTO · ObjectPool
-  03_Art/                       공용 버튼·아이콘·폰트
+  02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤) · ServerData(요청·응답 DTO)
+  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton
+  03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
-  index.js                      Fastify 조립 · now() 주입
-  db.js  schema.sql
-  routes/<기능>.js              라우트 + JSON 스키마
-  rules/<기능>.js               순수 함수 (DB · HTTP 모름)
-  test/*.test.js                node:test
+  index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
+  db.js  schema.sql             node:sqlite · logEvent
+  routes/players.js             라우트 + JSON 스키마
+  rules/nickname.js             순수 함수 (DB · HTTP 모름)
+  test/players.test.js          node:test
+  requests.http                 수동 테스트 (gitignore, 로컬 전용)
 ```
+
+`Session`과 오브젝트 풀은 아직 없다. 필요해질 때 `Common/02_Scripts`에 만든다.
+
+### UI 캔버스 구성
+| 캔버스 | 그리기 순서 | 담는 것 |
+|---|---|---|
+| Canvas - Main | 0 | 배경 · 제목 · 고정 버튼 |
+| Canvas - Dynamic | 1 | 스크롤 목록, 회전하는 알처럼 매 프레임 움직이는 것만 |
+| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 확인 팝업. 기본 꺼짐. GraphicRaycaster 필수 |
+
+움직이는 UI를 따로 두면 그것이 움직여도 배경과 버튼까지 다시 그려지지 않는다. 누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다.
+
+---
+
+## 아트 리소스
+
+- **지금 이미지는 대부분 시안에서 잘라낸 저해상도 플레이스홀더다.** 원본이 약 100px 안팎이라 확대하면 흐리다. 디자이너 원본이 오면 같은 파일명으로 덮어쓴다.
+- 물결 밑줄(`line_wavy`), 노란 라벨 글로우(`label_glow_yellow`), 흰 박스 버튼(`btn_box_white`), 노란 타원 버튼(`btn_oval_yellow`), 크림색 라벨(`label_glow`)은 시안을 보고 새로 그렸다.
+- 9-slice로 쓰는 것: `frame_card`, `line_wavy`, `label_glow_yellow`, `btn_box_white`.
+- **게이지**는 이미지 두 장으로 세 겹을 만든다.
+  - `gauge_fill`은 흰색 모양이다. Image Color로 칠해 빈 바탕(`#D7DBDC`)과 채움(`#FFFEB1`, Filled · Horizontal)에 한 번씩 쓴다.
+  - 맨 위에 `gauge_frame`(파란 테두리 + 눈금)을 올린다.
+- 공통 색: 글자·외곽선 파랑 `#2F60F6`, 노란 버튼 `#EEFD88`, 스크롤 막대 `#F6EF8C`.
+- **폰트**: 배달의민족 꾸불림체(`BMKkubulimTTF SDF`). 2048² 정적 아틀라스이고, 문자 목록은 `Font/CharSet_KSX1001.txt`(ASCII 95 + 완성형 2350 + 기호 24)다.
 
 ---
 
@@ -175,11 +223,14 @@ Server/
 
 ## 미정 (확인 필요)
 
-- 캐릭터 12종 · 진화 5단계 = 이미지 60장. 디자인 리소스 확보 여부.
-- 손글씨 폰트 파일과 라이선스.
-- 서버 호스팅 위치 (사내 서버 / Fly.io / Railway).
+- **캐릭터 수.** 알 8종을 모두 고를 수 있게 되었으므로 8종 × 3 = 24종인지, 다른 구성인지. 진화 5단계면 이미지는 그 5배다.
+- 디자이너 원본 이미지 확보 여부. 지금은 시안에서 잘라낸 플레이스홀더다.
+- 시안 12장 보관 위치. 세션 임시 폴더에서 지워졌으니 `Docs/Mockups/` 같은 곳에 두는 것을 권한다.
+- 꾸불림체 라이선스 원문 확인과 보관.
+- **Hatch 룰렛 정지 규칙.** 포인터 위에 멈춘 알과 서버가 뽑은 결과를 어떻게 맞출지.
+- 서버 호스팅 위치. AWS Lightsail $5 플랜(신규 계정 6개월 크레딧)을 검토했다. 미확정.
 - 임직원 명단 없이 아무나 가입 가능한 상태를 1.0에서 허용할지.
-- 연출용 알 4종(그레이 · 오렌지 · 라벤더 · 크림)에도 캐릭터가 있는지. 있으면 캐릭터 24종.
+- 앱 시작 시 서버 헬스체크(`GET /health`) 추가 여부. WebGL은 앱을 종료할 수 없어서, 실패하면 「다시 시도」 화면을 띄우는 방식을 검토했다.
 
 ---
 
