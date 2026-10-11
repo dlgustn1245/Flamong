@@ -3048,6 +3048,7 @@ MonoBehaviour:
   heartButton: {fileID: 2055289944}
   heartFill: {fileID: 1611403063}
   touchCountText: {fileID: 572663066}
+  heartHintText: {fileID: 52333375}
   gaugeFill: {fileID: 1779499376}
   loveLevelText: {fileID: 1026066891}
   heartParticles: {fileID: 1742471346}

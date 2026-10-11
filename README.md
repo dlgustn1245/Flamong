@@ -28,7 +28,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고, 앱 시작 때 불러온다. **`X-Player-Id` 헤더 전송은 아직** |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
-| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림). 오늘의 감정 · 레벨업/완성 팝업 · `/me` 실패 안내 · 쓰다 만 터치 수 저장은 아직 |
+| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
 | 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 빈 씬 |
 | 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
