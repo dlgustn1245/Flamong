@@ -20,6 +20,7 @@ public class EggSelectScene : MonoBehaviour
         print($"Select Egg index: {idx}");
         confirmPanel.SetActive(true);
         eggImage.sprite = eggSlots[idx].image.sprite;
+        SessionState.Instance.eggIdx = idx;
     }
 
     void BindButtonEvents()

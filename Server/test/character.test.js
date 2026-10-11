@@ -75,7 +75,10 @@ test('가입 → 알 고르기 → 첫날 하트 5개로 Lv2 → 하트 소진 �
   const hatch = await call(app, 'POST', '/characters', h, { eggId: 2 });
   assert.ok(hatch.body.speciesId >= 6 && hatch.body.speciesId <= 8);
   assert.equal((await call(app, 'GET', '/me', h)).body.speciesId, hatch.body.speciesId);
-  assert.equal((await call(app, 'POST', '/characters', h, { eggId: 3 })).body.error, 'character_exists');
+  // 다시 보내면(재시도) 새로 뽑지 않고 같은 캐릭터를 돌려준다
+  assert.deepEqual(await call(app, 'POST', '/characters', h, { eggId: 3 }), { code: 200, body: { speciesId: hatch.body.speciesId } });
+  assert.equal(db.prepare('SELECT count(*) n FROM character').get().n, 1);
+  assert.equal(db.prepare("SELECT count(*) n FROM event WHERE type = 'hatch'").get().n, 1);
   assert.equal((await call(app, 'POST', '/characters', h, { eggId: 8 })).code, 400);
 
   for (let i = 0; i < 4; i++) assert.equal((await call(app, 'POST', '/tap', h, {})).body.levelUp, false);

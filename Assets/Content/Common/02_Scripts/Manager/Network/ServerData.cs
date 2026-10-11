@@ -32,6 +32,23 @@ namespace ServerData
 	{
 		public string playerId;
 	}
+
+	public class PostCharacterRequestBody
+	{
+		public int eggId;
+	}
+
+	public class PostCharacterResponse
+	{
+		public int statusCode;
+		public PostCharacterResponseBody body;
+	}
+
+	[Serializable]
+	public class PostCharacterResponseBody
+	{
+		public int speciesId;
+	}
 	
 	// 두 응답이 같이 쓰는 성장 상태. 화면 갱신은 이것 하나로 한다
 	[Serializable]

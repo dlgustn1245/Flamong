@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS character (
   started_at TEXT NOT NULL,
   ended_at   TEXT                     -- NULL 인 행이 활성 캐릭터
 );
--- 활성 캐릭터는 플레이어당 1개. 알을 두 번 고르면 이 제약으로 409
+-- 활성 캐릭터는 플레이어당 1개. POST /characters 는 이미 있으면 기존 캐릭터를 돌려주고, 이 제약은 마지막 안전장치
 CREATE UNIQUE INDEX IF NOT EXISTS one_active_character ON character(player_id) WHERE ended_at IS NULL;
 
 CREATE TABLE IF NOT EXISTS emotion_log (

@@ -147,7 +147,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 ### 닉네임
 - 1~12자. 허용 글자는 **KS X 1001 완성형 한글 2350자 + ASCII**다. 꾸불림체 폰트 아틀라스와 같은 범위라서, 아틀라스 밖 글자가 □로 보이는 일을 막는다.
 - 서버 `rules/nickname.js`가 검사한다. 범위 밖 글자는 400 `nickname_charset`, 중복은 409 `nickname_taken`.
-- 자모 단독(ㅋㅋ), 「뷁」 같은 완성형 밖 글자, 이모지, 전각 문자는 쓸 수 없다. Login 입력칸도 12자로 제한했다.
+- 자모 단독(ㅋㅋ), 「뷁」 같은 완성형 밖 글자, 이모지, 전각 문자는 쓸 수 없다. 자모는 입력 중 표시용으로 폰트 폴백에 있지만 닉네임에는 허용하지 않는다. Login 입력칸도 12자로 제한했다.
 
 ### 캐릭터 새로 키우기 (리셋)
 - 새 `character` 행 생성, 이전 행은 `ended_at` 기록 후 보관. 유저 삭제 아님.
@@ -216,7 +216,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
 | GET | `/me` | - | `{ nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1 **(구현)** | 1.0 |
-| POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 있으면 409 `character_exists` **(구현)** | 1.0 |
+| POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
 | POST | `/characters/reset` | - | `{ ok }` | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
 | POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
@@ -309,11 +309,13 @@ Server/
 - **지금 이미지는 대부분 시안에서 잘라낸 저해상도 플레이스홀더다.** 원본이 약 100px 안팎이라 확대하면 흐리다. 디자이너 원본이 오면 같은 파일명으로 덮어쓴다.
 - 물결 밑줄(`line_wavy`), 노란 라벨 글로우(`label_glow_yellow`), 흰 박스 버튼(`btn_box_white`), 노란 타원 버튼(`btn_oval_yellow`), 크림색 라벨(`label_glow`)은 시안을 보고 새로 그렸다.
 - 9-slice로 쓰는 것: `frame_card`, `line_wavy`, `label_glow_yellow`, `btn_box_white`.
+- **캐릭터**: `Character/char_{speciesId 두 자리}_lv{레벨}.png` (예: `char_07_lv1`). 지금은 Lv1 24장뿐이다. 시안의 `char_mint_lv2`를 알 색으로 다시 칠한 플레이스홀더이고, 같은 알 안의 3종은 몸통 톤(기본 · 밝게 · 진하게)과 지느러미 색(연두 · 하늘 · 분홍)으로 구분한다. 256², 단일 스프라이트.
 - **게이지**는 이미지 두 장으로 세 겹을 만든다.
   - `gauge_fill`은 흰색 모양이다. Image Color로 칠해 빈 바탕(`#D7DBDC`)과 채움(`#FFFEB1`, Filled · Horizontal)에 한 번씩 쓴다.
   - 맨 위에 `gauge_frame`(파란 테두리 + 눈금)을 올린다.
 - 공통 색: 글자·외곽선 파랑 `#2F60F6`, 노란 버튼 `#EEFD88`, 스크롤 막대 `#F6EF8C`.
 - **폰트**: 배달의민족 꾸불림체(`BMKkubulimTTF SDF`). 2048² 정적 아틀라스이고, 문자 목록은 `Font/CharSet_KSX1001.txt`(ASCII 95 + 완성형 2350 + 기호 24)다.
+  - 폴백 `BMKkubulimTTF Jamo SDF`: 단독 자모 ㄱ~ㅣ 51자, 512×256 정적 아틀라스. 입력 중인 「ㄱ」 같은 글자가 □로 보이지 않게 한다. 본 아틀라스와 같은 35pt · 여백 5로 구워 글자 크기가 같다.
 
 ---
 
@@ -353,6 +355,7 @@ Server/
 - 디자이너 원본 이미지 확보 여부. 지금은 시안에서 잘라낸 플레이스홀더다.
 - 시안 12장 보관 위치. 세션 임시 폴더에서 지워졌으니 `Docs/Mockups/` 같은 곳에 두는 것을 권한다.
 - 꾸불림체 라이선스 원문 확인과 보관.
+- **한글 동적 폰트 폴백.** 아틀라스 밖 한글 8,822자(「슽」, 입력 중의 「잏」 등)가 □로 보인다. TTF(2.9MB)를 동적 폴백으로 넣을지 첫 빌드 크기를 보고 정한다. 넣으면 닉네임 허용 범위를 넓힐지도 함께 정한다.
 - **Hatch 룰렛 정지 규칙.** 포인터 위에 멈춘 알과 서버가 뽑은 결과를 어떻게 맞출지.
 - 오늘의 감정 팝업 디자인과 감정 아이콘 5종 이미지. 시안에 없다.
 - Main 상단 홈 아이콘의 동작. 이미 홈이라 의미가 겹친다(숨김 또는 새로고침 제안).

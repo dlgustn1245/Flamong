@@ -56,14 +56,14 @@ export default async function character(app, { db, now }) {
   }, (req, reply) => {
     const p = playerOf(req, reply);
     if (!p) return reply;
+    // 이미 있으면 새로 뽑지 않고 그 캐릭터를 돌려준다.
+    // 응답을 못 받은(시간 초과) 클라이언트가 재시도해도 같은 결과가 오고, 다시 뽑기도 막힌다
+    const existing = getActive.get(p.id);
+    if (existing) return { speciesId: existing.species_id };
+
     const { eggId } = req.body;
     const speciesId = pickSpecies(eggId);
-    try {
-      insertCharacter.run(p.id, speciesId, now().toISOString());
-    } catch (e) {
-      if (String(e.message).includes('UNIQUE')) return reply.code(409).send({ error: 'character_exists' });
-      throw e;
-    }
+    insertCharacter.run(p.id, speciesId, now().toISOString());
     logEvent(db, p.id, 'hatch', { eggId, speciesId }, now);
     return { speciesId };
   });
