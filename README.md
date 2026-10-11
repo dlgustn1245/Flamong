@@ -28,7 +28,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고, 앱 시작 때 불러온다. **`X-Player-Id` 헤더 전송은 아직** |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
-| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클(`HeartParticles`) 구현. 성장은 임시 로직(`FakeMe`/`FakeTap`)으로 동작. 서버 연결은 아직 |
+| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림). 오늘의 감정 · 레벨업/완성 팝업 · `/me` 실패 안내 · 쓰다 만 터치 수 저장은 아직 |
 | 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 빈 씬 |
 | 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
@@ -276,8 +276,9 @@ Assets/Content/<씬>/
 Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장, 싱글톤)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤) · ServerData(요청·응답 DTO)
-  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton
+  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel
   03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
+  04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
   index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
@@ -298,7 +299,7 @@ Server/
 |---|---|---|
 | Canvas - Main | 0 | 배경 · 제목 · 고정 버튼 |
 | Canvas - Dynamic | 1 | 스크롤 목록, 회전하는 알처럼 매 프레임 움직이는 것만 |
-| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 확인 팝업. 기본 꺼짐. GraphicRaycaster 필수 |
+| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 확인 팝업. 기본 꺼짐. GraphicRaycaster 필수. 서버 오류 창은 공통 프리팹 `Panel - Error`를 놓는다(Hatch · Main) |
 
 움직이는 UI를 따로 두면 그것이 움직여도 배경과 버튼까지 다시 그려지지 않는다. 누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다.
 

@@ -15,13 +15,11 @@ public class HatchScene : MonoBehaviour
     public Sprite[] characterSprites; 
     public Button okButton;
     
-    public GameObject errorPanel;
-    public Button retryButton;
+    public ErrorPanel errorPanel;
 
     void Start()
     {
         startButton.onClick.AddListener(Request);
-        retryButton.onClick.AddListener(Request);
         okButton.onClick.AddListener(() =>
         {
             SceneLoader.Load(SceneName.MainScene);
@@ -31,7 +29,6 @@ public class HatchScene : MonoBehaviour
     void Request()
     {
         startButton.interactable = false;
-        errorPanel.SetActive(false);
         StartCoroutine(PostCharacter());
     }
 
@@ -66,13 +63,12 @@ public class HatchScene : MonoBehaviour
     void OnFailPostCharacter(string error)
     {
         print("Server Error");
-        errorPanel.SetActive(true);
+        errorPanel.Show(Request);
     }
 
     void OnDestroy()
     {
         startButton.onClick.RemoveAllListeners();
-        retryButton.onClick.RemoveAllListeners();
         okButton.onClick.RemoveAllListeners();
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -5,6 +7,8 @@ using UnityEngine.UI;
 
 public class MainScene : MonoBehaviour
 {
+    readonly string baseUrl = "http://localhost:3000";
+    
     public Button heartButton;
     public Image heartFill;
     public TextMeshProUGUI touchCountText;
@@ -14,44 +18,57 @@ public class MainScene : MonoBehaviour
 
     public HeartParticles heartParticles;
 
-    int heartTaps;
+    public Image characterImage;
+    public Sprite[] characterSprites;
     
-    // ── 임시: 서버 GET /me · POST /tap 이 생기면 여기부터 아래 Fake 코드 전부 삭제 ──
-    // 각 레벨이 시작되는 누적 애정도. 마지막 값은 완성 (Lv5 게이지 끝)
-    static readonly int[] LEVEL_AT = { 0, 5, 30, 65, 115, 175 };
-    const int FAKE_HEARTS_MAX = 15;
+    public ErrorPanel errorPanel;
 
-    int fakeHearts = 5;     // 가입 직후 하트 5개
-    int fakeAffection = 0;      // 누적 애정도
+    int heartTaps;
+
+    Dictionary<string, string> header;
+
+    bool isSending;
 
     void Start()
     {
+        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
+        heartButton.interactable = false;
+        characterImage.enabled = false;   // /me 응답 전에 씬의 기본 그림이 잠깐 보이지 않게
         Init();
         heartButton.onClick.AddListener(OnClickHeartButton);
     }
-
-    void OnClickHeartButton()
+    
+    void Init()
     {
-        heartFill.fillAmount = ++heartTaps / 10f;
-        heartParticles.Emit(1);
-        if (heartTaps >= 10)
+        StartCoroutine(NetworkManager.Instance.GetRequest<MeResponse>(
+            $"{baseUrl}/me", OnSuccessGetMe, OnFailGetMe, header));
+    }
+
+    void OnSuccessGetMe(MeResponse response)
+    {
+        if (response.statusCode == 200)
         {
-            heartTaps = 0;
-            var tap = FakeTap();
-            Apply(tap.growth);
-            heartParticles.Emit(5);
-            if (tap.levelUp || tap.growth.completed)
-            {
-                heartParticles.Emit(10);
-            }
+            ShowCharacter(response.body.speciesId);
+            Apply(response.body.growth);
         }
     }
 
-    void Init()
+    // 서버 종 수가 늘었는데 그림이 아직 없으면 씬에 놓인 기본 그림을 그대로 쓴다
+    void ShowCharacter(int speciesId)
     {
-        Apply(FakeMe());
+        if (speciesId >= 0 && speciesId < characterSprites.Length)
+        {
+            characterImage.sprite = characterSprites[speciesId];
+        }
+        characterImage.enabled = true;
     }
 
+    void OnFailGetMe(string error)
+    {
+        print($"Get Me Failed: {error}");
+        errorPanel.Show(Init);
+    }
+    
     void Apply(Growth growth)
     {
         touchCountText.SetText("남은 하트: {0}", growth.hearts);
@@ -64,43 +81,44 @@ public class MainScene : MonoBehaviour
         }
     }
 
-    Growth FakeMe()
+    void OnClickHeartButton()
     {
-        int level = 1;
-        while (level < LEVEL_AT.Length - 1 && fakeAffection >= LEVEL_AT[level])
+        if (isSending)
         {
-            level++;
+            return;
         }
-
-        int progress = fakeAffection - LEVEL_AT[level - 1];
-        int need = LEVEL_AT[level] - LEVEL_AT[level - 1];
-
-        return new Growth
+        
+        heartFill.fillAmount = ++heartTaps / 10f;
+        heartParticles.Emit(1);
+        if (heartTaps >= 10)
         {
-            hearts = fakeHearts,
-            heartsMax = FAKE_HEARTS_MAX,
-            affection = fakeAffection,
-            level = level,
-            levelProgress = progress,
-            levelNeed = need,
-            completed = fakeAffection >= LEVEL_AT[LEVEL_AT.Length - 1],
-        };
+            StartCoroutine(PostTap());
+        }
     }
 
-    TapBody FakeTap()
+    IEnumerator PostTap()
     {
-        var now = FakeMe();
+        isSending = true;
+        yield return NetworkManager.Instance.PostRequest<EmptyBody, TapResponse>(
+            $"{baseUrl}/tap", new EmptyBody(), OnSuccessTap, OnFailTap, header);
+        isSending = false;
+    }
 
-        if (now.hearts <= 0 || now.completed)
+    void OnSuccessTap(TapResponse response)
+    {
+        heartTaps = 0;
+        Apply(response.body.growth);
+        heartParticles.Emit(5);
+        if (response.body.levelUp || response.body.growth.completed)
         {
-            return new TapBody { levelUp = false, growth = now };
+            heartParticles.Emit(10);
         }
-        
-        --fakeHearts;
-        fakeAffection = Mathf.Min(fakeAffection + 1, LEVEL_AT[LEVEL_AT.Length - 1]);
-        
-        var after = FakeMe();
-        return new TapBody { levelUp = after.level > now.level, growth = after };
+    }
+
+    void OnFailTap(string error)
+    {
+        print($"Tap Failed: {error}");
+        Init();
     }
 
     void OnDestroy()

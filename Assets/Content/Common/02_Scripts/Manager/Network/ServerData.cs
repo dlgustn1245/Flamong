@@ -74,7 +74,11 @@ namespace ServerData
 	}
 
 	// GET /me
-	public class MeResponse { public int statusCode; public MeBody body; }
+	public class MeResponse
+	{
+		public int statusCode; 
+		public MeBody body;
+	}
 
 	[Serializable]
 	public class MeBody
@@ -84,4 +88,7 @@ namespace ServerData
 		public bool emotionToday;
 		public Growth growth;
 	}
+	
+	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)
+	public class EmptyBody { }
 }
