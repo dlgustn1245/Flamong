@@ -36,7 +36,7 @@ description: 구현 — Unity 클라이언트와 Node.js(Fastify) 서버 코드�
 
 ### Phase 3: 클라이언트
 1. **씬 하나 = 화면 하나.** 씬 안의 루트 오브젝트에 그 화면의 컨트롤러 스크립트 1개.
-2. 스크립트 작성 순서: 데이터(Session/DTO) → API 호출 → UI 바인딩.
+2. 스크립트 작성 순서: 데이터(SessionState/DTO) → API 호출 → UI 바인딩.
 3. `Awake`에서 참조 캐시. `Update`에 할당 없음. `OnDestroy`에 `-=`·`StopAllCoroutines`·런타임 Object `Destroy`.
 4. 서버 통신은 `UnityWebRequest` + `JsonUtility`. `using`으로 감싼다.
 5. 에셋 임포트 설정: 압축 · Read/Write 끔 · UI Mipmap 끔 · 크기 상한(CLAUDE.md 예산표).

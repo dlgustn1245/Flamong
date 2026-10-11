@@ -1,6 +1,6 @@
 ---
 name: arch-review
-description: 구조 검토 — 씬 단위 분리·Session 데이터 흐름·클라/서버 책임 경계·리소스 정리를 실제 코드와 대조합니다. 구조를 바꾸기 전에 사용합니다.
+description: 구조 검토 — 씬 단위 분리·SessionState 데이터 흐름·클라/서버 책임 경계·리소스 정리를 실제 코드와 대조합니다. 구조를 바꾸기 전에 사용합니다.
 ---
 
 # /arch-review - 구조 검토
@@ -17,7 +17,7 @@ description: 구조 검토 — 씬 단위 분리·Session 데이터 흐름·클�
 Assets/Content/<씬>/01_Scenes/    씬 1개 = 화면 1개, Single 로드
 Assets/Content/<씬>/02_Scripts/   그 씬의 컨트롤러 (다른 씬 폴더에서 참조 금지)
 Assets/Content/<씬>/03_Art/       씬별 텍스처·오디오
-Assets/Content/Common/02_Scripts/ Session(static POCO, 아직 없음) · Manager/Network(NetworkManager · ServerData DTO) · Util(SceneLoader · SceneFader · Singleton)
+Assets/Content/Common/02_Scripts/ Manager(SessionState 싱글톤) · Manager/Network(NetworkManager 싱글톤 · ServerData DTO) · Util(SceneLoader · SceneFader · Singleton)
 Assets/Content/Common/03_Art/     공용 UI 에셋
 Server/
   index.js                        Fastify 앱 조립 · 포트 · now() 주입 (진입점)
@@ -37,7 +37,7 @@ Server/
 
 ### Phase 2: 씬 경계
 1. 씬 A의 스크립트가 씬 B의 타입을 참조하는가.
-2. `DontDestroyOnLoad`가 NetworkManager(Singleton) 외에 있는가.
+2. `DontDestroyOnLoad`가 NetworkManager · SessionState(Singleton) 외에 있는가. SessionState에 씬 오브젝트 참조가 담겼는가.
 3. static 필드에 `GameObject`·`Component`·`Texture` 참조가 있는가 (씬 언로드 후 누수).
 4. `Additive` 로드가 있는가.
 
@@ -48,7 +48,7 @@ Server/
 
 ### Phase 4: 리소스 흐름
 ```
-서버 → UnityWebRequest → DTO → Session → 씬 컨트롤러 → UI
+서버 → UnityWebRequest → DTO → SessionState → 씬 컨트롤러 → UI
                           ↑ Dispose      ↑ 씬 언로드 시 참조 소멸
 ```
 1. 위 흐름에서 생성된 것이 어디서 해제되는지 추적. 해제 지점이 없는 생성이 있으면 지적.

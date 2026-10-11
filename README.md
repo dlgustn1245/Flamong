@@ -23,9 +23,9 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 | # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
 |---|---|---|---|---|---|
-| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 Login | - | 1.0 | 구현. NetworkManager 싱글톤이 이 씬에 있음 |
+| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 Login | - | 1.0 | 구현. NetworkManager · SessionState 싱글톤이 이 씬에 있음 |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro` | - | 1.0 | 구현 |
-| 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. **`player_id` 저장은 아직** (콘솔 출력만) |
+| 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고, 앱 시작 때 불러온다. **`X-Player-Id` 헤더 전송은 아직** |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI 구현. 하트 터치 시 파티클(`HeartParticles`) 구현. 애정도 · 하트 수 로직은 아직 |
@@ -35,7 +35,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
 | 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 | 빈 씬 |
 
-씬 1개 = 화면 1개, `LoadSceneMode.Single`. 씬 간 데이터는 `Session`(static POCO) 하나로만 전달한다. **`Session`은 아직 만들지 않았다.**
+씬 1개 = 화면 1개, `LoadSceneMode.Single`. 씬 간 데이터는 `SessionState`(싱글톤, Title 씬) 하나로만 전달한다. 중간 씬을 에디터에서 바로 플레이하면 싱글톤이 없으니 Title부터 플레이한다.
 
 ### 화면 레이아웃 기준
 - 시안은 566px 폭의 세로가 긴 폰 기준이다. 1080 캔버스로 옮길 때 1.908배 한다.
@@ -270,6 +270,7 @@ Assets/Content/<씬>/
                                 두 씬 이상에서 쓰게 되면 Common/02_Scripts 로 옮긴다
   03_Art/                       씬별 텍스처·오디오 (씬별 아틀라스)
 Assets/Content/Common/
+  02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장, 싱글톤)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton
   03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
@@ -283,7 +284,7 @@ Server/
   requests.http                 수동 테스트 (gitignore, 로컬 전용)
 ```
 
-`Session`과 오브젝트 풀은 아직 없다. 필요해질 때 `Common/02_Scripts`에 만든다.
+공용 오브젝트 풀은 아직 없다(Main 하트는 `HeartParticles`가 자체 풀을 쓴다). 두 씬 이상에서 필요해질 때 `Common/02_Scripts`에 만든다.
 
 ### UI 캔버스 구성
 | 캔버스 | 그리기 순서 | 담는 것 |

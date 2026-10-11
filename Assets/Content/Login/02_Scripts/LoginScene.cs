@@ -132,6 +132,8 @@ public class LoginScene : MonoBehaviour
         if (response.statusCode == 200)
         {
             print($"Player ID: {response.body.playerId}");
+            SessionState.Instance.playerId = response.body.playerId;
+            SessionState.Instance.SavePlayerId();
             SceneLoader.Load(SceneName.EggSelectScene);
         }
         else

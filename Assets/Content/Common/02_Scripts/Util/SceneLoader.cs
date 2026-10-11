@@ -1,14 +1,15 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public static class SceneName
 {
-	public static string TitleScene = "Title";
-	public static string IntroScene = "Intro";
-	public static string LoginScene = "Login";
-	public static string EggSelectScene = "EggSelect";
-	public static string HatchScene = "Hatch";
-	public static string MainScene = "Main";
+	public const string TitleScene = "Title";
+	public const string IntroScene = "Intro";
+	public const string LoginScene = "Login";
+	public const string EggSelectScene = "EggSelect";
+	public const string HatchScene = "Hatch";
+	public const string MainScene = "Main";
 }
 
 public static class SceneLoader
@@ -29,8 +30,13 @@ public static class SceneLoader
 			isLoading = false;
 			return;
 		}
-    
-		Debug.Log($"Scene: {sceneName} loaded");
-		loadScene.completed += _ => isLoading = false;
+		
+		loadScene.completed += _ =>
+		{
+			isLoading = false;
+			Debug.Log($"Scene: {sceneName} loaded");
+			Resources.UnloadUnusedAssets();
+			GC.Collect();
+		};
 	}
 }

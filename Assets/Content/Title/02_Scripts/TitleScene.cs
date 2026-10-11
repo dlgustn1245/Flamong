@@ -8,7 +8,14 @@ public class TitleScene : MonoBehaviour
         {
             if (PlayerPrefs.GetInt("NeverShowIntro", 0) == 1)
             {
-                SceneLoader.Load(SceneName.LoginScene);
+                if (string.IsNullOrEmpty(SessionState.Instance.playerId))
+                {
+                    SceneLoader.Load(SceneName.LoginScene);
+                }
+                else
+                {
+                    SceneLoader.Load(SceneName.MainScene);
+                }
             }
             else
             {

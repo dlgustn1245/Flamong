@@ -37,7 +37,7 @@ description: 코드 리뷰 — 변경분을 메모리·WebGL 제약·서버 신�
 - `UnityWebRequest`가 `using` 안에 있는가. `DownloadHandlerTexture` 결과를 `Destroy`하는가
 - 코루틴·트윈을 `OnDestroy`에서 멈추는가
 - `Instantiate`/`Destroy` 반복이 풀 없이 있는가
-- `DontDestroyOnLoad`가 NetworkManager(Singleton) 외에 붙었는가
+- `DontDestroyOnLoad`가 NetworkManager · SessionState(Singleton) 외에 붙었는가
 - static 필드에 씬 오브젝트 참조를 담았는가
 - 새 씬이 `LoadSceneMode.Additive`인가. 씬 진입 후 `UnloadUnusedAssets` 외 위치에 `GC.Collect`가 있는가
 

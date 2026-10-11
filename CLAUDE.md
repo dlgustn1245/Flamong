@@ -68,7 +68,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 -   **`Texture2D.isReadable = true`**: CPU·GPU 양쪽에 복사본이 생겨 메모리 2배. 임포트 설정에서 Read/Write 끈다.
 -   **`Resources.Load` 남용**: `Resources/` 폴더는 전부 빌드에 포함되어 다운로드 크기를 늘린다. 씬 참조 또는 Addressables.
 -   **비압축 텍스처**: 임포트 시 반드시 압축(WebGL 빌드 설정 Texture Compression = ASTC, Fallback DXT). UI는 Mipmap 끈다.
--   **`DontDestroyOnLoad` 남용**: 서버 클라이언트·세션 1개만 허용. 화면 오브젝트는 씬과 함께 죽는다.
+-   **`DontDestroyOnLoad` 남용**: `Singleton<T>`인 `NetworkManager` · `SessionState` 2개만 허용. 둘 다 Title 씬에 둔다. 화면 오브젝트는 씬과 함께 죽는다.
 -   **`Instantiate`/`Destroy` 반복**: 하트·파티클 같은 반복 생성물은 **오브젝트 풀**. 풀 크기는 상한을 두고 초과 시 재사용.
 -   **예외 지원 Full**: `webGLExceptionSupport`는 1(명시적 throw만) 유지. Full은 코드 크기 30% 증가.
 
@@ -87,7 +87,8 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 1.  화면마다 **씬 1개**, `Assets/Content/<씬>/01_Scenes/<씬>.unity`. `LoadSceneMode.Single`만 사용. Additive 금지.
     씬 스크립트는 자기 `02_Scripts/`와 `Common/02_Scripts/`만 참조한다. 폴더 이름에 `Resources`를 쓰지 않는다.
 2.  씬 로드 직후 `Resources.UnloadUnusedAssets()` → `GC.Collect()` 순서로 1회 호출. 그 외 위치에서 `GC.Collect()` 금지.
-3.  씬 간 데이터는 `static` POCO 1개(`Session`)로만 전달. 씬 오브젝트 참조를 static에 담지 않는다.
+3.  씬 간 데이터는 `SessionState`(싱글톤) 하나로만 전달. 값(문자열 · 숫자 · DTO)만 담고 씬 오브젝트 참조는 담지 않는다.
+    싱글톤이 Title 씬에 있으므로, 중간 씬을 에디터에서 바로 플레이하면 `Instance`가 null이다. Title부터 플레이한다.
 4.  씬 진입 시 필요한 에셋만 로드. 12개 씬 배경을 한 아틀라스에 넣지 않는다 (씬별 아틀라스).
 
 ## UI 캔버스 규칙

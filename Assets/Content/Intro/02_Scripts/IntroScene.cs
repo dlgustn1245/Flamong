@@ -18,12 +18,27 @@ public class IntroScene : MonoBehaviour
         {
             PlayerPrefs.SetInt("NeverShowIntro", 1);
             PlayerPrefs.Save();
-            SceneLoader.Load(SceneName.LoginScene);
+            LoadNextScene();
         });
         
-        nextButton.onClick.AddListener(() =>
+        nextButton.onClick.AddListener(LoadNextScene);
+    }
+
+    void LoadNextScene()
+    {
+        if (string.IsNullOrEmpty(SessionState.Instance.playerId))
         {
             SceneLoader.Load(SceneName.LoginScene);
-        });
+        }
+        else
+        {
+            SceneLoader.Load(SceneName.MainScene);
+        }
+    }
+
+    void OnDestroy()
+    {
+        neverShowButton.onClick.RemoveAllListeners();
+        nextButton.onClick.RemoveAllListeners();
     }
 }
