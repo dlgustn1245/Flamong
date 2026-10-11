@@ -24,7 +24,6 @@ public class MainScene : MonoBehaviour
     public Sprite[] characterSprites;
     
     public ErrorPanel errorPanel;
-
     
     int heartTaps;   // 쓰다 만 터치 수. 규칙과 무관한 표시용 값이라 기기에만 저장 (README)
 
