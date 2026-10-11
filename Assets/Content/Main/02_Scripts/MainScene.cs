@@ -17,8 +17,8 @@ public class MainScene : MonoBehaviour
     int heartTaps;
     
     // ── 임시: 서버 GET /me · POST /tap 이 생기면 여기부터 아래 Fake 코드 전부 삭제 ──
-    // 각 레벨이 시작되는 누적 애정도. README 「성장 밸런스」와 같게 (Lv1 0 · Lv2 5 · Lv3 30 · Lv4 80 · Lv5 160)
-    static readonly int[] LEVEL_AT = { 0, 5, 30, 80, 160 };
+    // 각 레벨이 시작되는 누적 애정도. 마지막 값은 완성 (Lv5 게이지 끝)
+    static readonly int[] LEVEL_AT = { 0, 5, 30, 65, 115, 175 };
     const int FAKE_HEARTS_MAX = 15;
 
     int fakeHearts = 5;     // 가입 직후 하트 5개
@@ -40,7 +40,7 @@ public class MainScene : MonoBehaviour
             var tap = FakeTap();
             Apply(tap.growth);
             heartParticles.Emit(5);
-            if (tap.levelUp)
+            if (tap.levelUp || tap.growth.completed)
             {
                 heartParticles.Emit(10);
             }
@@ -57,7 +57,7 @@ public class MainScene : MonoBehaviour
         touchCountText.SetText("남은 하트: {0}", growth.hearts);
         loveLevelText.SetText("Lv {0}", growth.level);
         gaugeFill.fillAmount = (float)growth.levelProgress / growth.levelNeed;
-        heartButton.interactable = growth.hearts > 0 && growth.level < LEVEL_AT.Length;
+        heartButton.interactable = growth.hearts > 0 && !growth.completed;
         if (!heartButton.interactable)
         {
             heartFill.fillAmount = 0;
@@ -67,23 +67,13 @@ public class MainScene : MonoBehaviour
     Growth FakeMe()
     {
         int level = 1;
-        while (level < LEVEL_AT.Length && fakeAffection >= LEVEL_AT[level])
+        while (level < LEVEL_AT.Length - 1 && fakeAffection >= LEVEL_AT[level])
         {
             level++;
         }
 
-        int progress, need;
-        if (level == LEVEL_AT.Length)
-        {
-            // 완성: 1/1 로 보내 게이지를 가득 채운다 (0 으로 나누지 않게)
-            progress = 1;
-            need = 1;
-        }
-        else
-        {
-            progress = fakeAffection - LEVEL_AT[level - 1];
-            need = LEVEL_AT[level] - LEVEL_AT[level - 1];
-        }
+        int progress = fakeAffection - LEVEL_AT[level - 1];
+        int need = LEVEL_AT[level] - LEVEL_AT[level - 1];
 
         return new Growth
         {
@@ -93,6 +83,7 @@ public class MainScene : MonoBehaviour
             level = level,
             levelProgress = progress,
             levelNeed = need,
+            completed = fakeAffection >= LEVEL_AT[LEVEL_AT.Length - 1],
         };
     }
 
@@ -100,7 +91,7 @@ public class MainScene : MonoBehaviour
     {
         var now = FakeMe();
 
-        if (now.hearts <= 0 || now.level >= LEVEL_AT.Length)
+        if (now.hearts <= 0 || now.completed)
         {
             return new TapBody { levelUp = false, growth = now };
         }

@@ -8,10 +8,10 @@ public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
 	{
 		get
 		{
-			if (instance is null)
+			if (instance == null)
 			{
 				instance = FindAnyObjectByType<T>();
-				if (instance is not null)
+				if (instance != null)
 				{
 					DontDestroyOnLoad(instance.gameObject);
 				}
