@@ -23,7 +23,7 @@ description: 검증 — 서버는 node:test, 클라이언트 순수 로직은 Un
 1. `Server/test/` · `Assets/Content/Common/Tests/` 존재 여부와 기존 테스트 목록을 직접 스캔한다. 박제하지 않는다.
 
 ### Phase 2: 서버 테스트 (규칙이 바뀌었을 때)
-대상: 탭 상한(하루 5회) · 레벨 경계값(15/40/80/150) · 월 키 랭킹 · UNIQUE 제약 위반 시 409.
+대상: 하트 충전·저장 상한(하루 +5, 최대 15, 날짜 경계) · 레벨 경계값(5/30/80/160, Lv5에서 멈춤) · 오늘의 감정 하루 1회 · 월 키 랭킹 · UNIQUE 제약 위반 시 409. 수치는 README 「성장 밸런스」 기준.
 1. `new Database(':memory:')`로 인메모리 SQLite + `schema.sql` 적용. HTTP 없이 라우트 핸들러가 부르는 함수 단위로 테스트. 라우트 자체는 `app.inject()`로 1~2개만.
 2. 날짜는 `now()` 주입. `Date.now()`·`new Date()` 직접 호출이 규칙 코드에 있으면 먼저 지적.
 3. `npm test` (`node --test`) 실행.

@@ -28,7 +28,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. **`player_id` 저장은 아직** (콘솔 출력만) |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
-| 6 | Main | 캐릭터 · 하트 탭 · 애정도 게이지 · Lv. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임 | `GET /me`, `POST /tap` | 1.0 | 빈 씬 |
+| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI 구현. 하트 터치 시 파티클(`HeartParticles`) 구현. 애정도 · 하트 수 로직은 아직 |
 | 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 빈 씬 |
 | 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
@@ -46,17 +46,84 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ## 규칙 (전부 서버 계산 · 클라이언트는 표시만)
 
-### 성장
-| 항목 | 값 |
-|---|---|
-| 하트 탭 | 1회 = 애정도 +1. **하루 5회** (KST 00:00 리셋) |
-| 레벨 | Lv1 0 · Lv2 15 · Lv3 40 · Lv4 80 · **Lv5 150 (완성)** |
-| 미니게임 | 하루 첫 플레이 시 애정도 +2 |
-| 묘약 | 1회 +20. 미션 1개로 시작 (7일 연속 접속) |
-| 진화 이미지 | 캐릭터마다 Lv1~5 = 5장 |
+### 성장 밸런스
 
-매일 5탭만 하면 Lv2 3일 · Lv3 8일 · Lv4 16일 · Lv5 30일.
-수치는 서버 `rules/growth.js` 상수 1곳. 클라이언트에 하드코딩하지 않는다.
+**설계 목표**
+- 하루 한 번, 30초 안팎이면 끝나는 짧은 일과.
+- 가입한 날 바로 첫 진화(Lv2)를 본다. 첫인상이 다음 날 재방문을 만든다.
+- 매일 하면 약 3주, 주 3회만 와도 한 달 안에 완성된다. 월간 미니게임 · 랭킹 주기와 맞물린다.
+- 못 온 날의 손해를 줄이고 애정도는 깎지 않는다. 바쁜 직장인에게 숙제가 되지 않게 한다.
+- 「감정을 먹고 자란다」는 컨셉을 규칙으로 만든다(오늘의 감정).
+
+**애정도를 얻는 방법**
+
+| 방법 | 애정도 | 제한 | 버전 |
+|---|---|---|---|
+| 하트 | 1개당 +1. 하트 버튼을 **10번** 누르면 1개 전달 | 매일 KST 0시에 **5개 충전, 최대 15개까지 저장** | 1.0 |
+| 오늘의 감정 | +2 | 하루 1회 | 1.0 |
+| 미니게임 | +2 | 하루 첫 플레이 | 1.1 |
+| 묘약 | +10 | 7일 연속 방문마다 1개(반복) + 히든 미션(1회성) | 1.2 |
+
+하루 최대는 1.0 기준 7, 1.1 이후 9(묘약 제외)다.
+
+**레벨**
+
+| 레벨 | 누적 애정도 | 이 단계에 머무는 기간 (하트 + 감정, 매일) |
+|---|---|---|
+| Lv1 | 0 | 첫날 안에 끝 |
+| Lv2 | 5 | 약 4일 |
+| Lv3 | 30 | 약 7일 |
+| Lv4 | 80 | 약 11일 |
+| **Lv5 (완성)** | **160** | - |
+
+뒤로 갈수록 구간이 길어진다(5 → 25 → 50 → 80). 초반은 빠르게 보상하고, 완성에는 무게를 둔다.
+
+**완성까지 걸리는 기간** (시뮬레이션 값)
+
+| 플레이 방식 | Lv2 | Lv3 | Lv4 | Lv5 |
+|---|---|---|---|---|
+| 매일 · 하트만 | 1일 | 6일 | 16일 | 32일 |
+| 매일 · 하트 + 감정 (1.0 기본) | 1일 | 5일 | 12일 | **23일** |
+| 매일 · + 7일 연속 묘약 | 1일 | 5일 | 10일 | 20일 |
+| 매일 · + 미니게임 (1.1) | 1일 | 4일 | 8일 | 16일 |
+| 주 3회(월·수·금) · 하트 + 감정 | 1일 | 5일 | 15일 | **29일** |
+| 주 1회 · 하트 + 감정 | 1일 | 15일 | 36일 | 64일 |
+
+주 3회 방문자가 매일 방문자와 거의 같은 속도인 이유는 하트 저장(최대 3일치) 때문이다. 주 1회는 저장 상한에 걸려 느려진다. 완전히 손을 놓은 사람을 따라잡게 하지는 않는다.
+
+**세부 규칙**
+- 가입 직후 하트 5개로 시작한다. 터치 50번이면 첫날 Lv2가 된다.
+- 하트는 **플레이어 소유**다. 「새로 키우기」를 해도 남은 하트는 유지된다.
+- 터치 10번은 클라이언트 연출이다. 서버는 「하트 1개 사용」 요청만 받고 저장량만 검사한다. 터치 수를 조작해도 저장량 이상은 얻을 수 없다.
+- 만들다 만 터치 수(예: 7/10)는 기기에 저장한다. 규칙과 무관한 표시용 값이다.
+- **애정도는 줄지 않는다.**
+- **Lv5에서 160으로 멈춘다.** 하트 버튼은 연출만 나오고 하트를 쓰지 않는다. 도감에 등록하고 「새로 키우기」를 안내한다.
+- 수치는 서버 `rules/growth.js` 한 곳에 둔다. 서버는 누적 애정도 하나만 저장하고, 응답 때 레벨 안 진행값(`levelProgress` / `levelNeed`)을 계산해 내려준다. 클라이언트에 레벨 경계값을 하드코딩하지 않는다.
+- 진화 이미지는 캐릭터마다 Lv1~5, 5장.
+
+### 홈화면 (Main)
+
+**오늘의 감정**
+- 그날 처음 Main에 들어오면 팝업으로 묻는다. 보기: 피로 · 스트레스 · 성취감 · 몰입 · 평온(기획서의 「감정연료」 예시).
+- 고르면 애정도 +2. 닫으면 그날은 다시 묻지 않는다.
+- 개인 응답은 본인 외에는 보지 않는다. 2.0 대시보드는 **5명 이상 모인 묶음만** 익명 집계로 보여준다. 작은 팀에서 개인이 드러나지 않게 하기 위해서다.
+
+**하트 버튼**
+
+| 상황 | 화면 |
+|---|---|
+| 매 터치 | 버튼이 살짝 눌렸다 돌아오고 작은 하트 1개가 떠오름. 하트 안쪽이 10분의 1씩 차오름 |
+| 10번째 터치 | 하트 4~6개가 터지듯 떠오르고 「+1」. 게이지가 늘고 남은 하트 수가 줄어듦 |
+| 레벨업 | 캐릭터 이미지가 다음 단계로 바뀌고 「Lv 3이 되었어요!」 팝업 |
+| 남은 하트 0 | 버튼이 회색. 「내일 0시에 하트 5개가 채워져요」 |
+| Lv5 완성 | 「다 자랐어요! 도감에 등록됐어요」 팝업과 「새로 키우기」 안내 |
+| 전송 실패 | 하트를 줄이지 않고 찬 상태로 둠. 다음 터치 때 다시 보냄 |
+
+- 「횟수: N」은 **지금 쓸 수 있는 하트 수**다(최대 15).
+- 레벨은 게이지 옆 「Lv」 하나로만 보여준다. 시안의 왼쪽 위 「Lv」는 중복이라 뺐다.
+- 게이지는 **현재 레벨 안에서의 진행률** `levelProgress ÷ levelNeed`다. 레벨이 오르면 0에서 다시 시작한다. 눈금 3개는 25 · 50 · 75% 장식이다.
+- 도감 · 묘약 · 게임 · 꽃밭 버튼은 해당 버전 전까지 「준비 중이에요」 안내만 띄운다.
+- 하트 파티클은 Main의 **20개 풀**을 돌려 쓴다. 터치마다 1개, 하트 전달 때 5개, 레벨업 때 10개를 더 띄운다. 초당 4번 연타 중 레벨업해도 떠 있던 4개 + 16개 = 20개로 딱 맞는다. 더 빠르게 누르면 가장 오래된(거의 사라진) 하트부터 다시 쓴다.
 
 ### 캐릭터
 - 알 이미지 **8종** (`Common/03_Art/Egg/`). EggSelect에서 **8종 모두 고를 수 있게** 배치했다.
@@ -78,7 +145,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ### 캐릭터 새로 키우기 (리셋)
 - 새 `character` 행 생성, 이전 행은 `ended_at` 기록 후 보관. 유저 삭제 아님.
-- 유지: 도감 해금 · 랭킹 · 로그 · 프로필. 초기화: 애정도 · 레벨 · 묘약.
+- 유지: 도감 해금 · 랭킹 · 로그 · 프로필 · **남은 하트**. 초기화: 애정도 · 레벨.
 - Lv5 전 리셋은 도감에 남지 않음. 경고 팝업 1회.
 
 ### 미니게임 · 랭킹
@@ -93,7 +160,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ### 로그
 - 모든 쓰기 API가 `event(player_id, type, ts, payload)` 한 줄. 클라이언트 별도 로그 전송 없음.
-- type: `login · tap · game_play · game_score · potion · reset · post · news · delete`.
+- type: `login · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
 - 탈퇴(`DELETE /players/me`) 시에도 `event`는 지우지 않는다. 탈퇴자 포함 활동 통계가 대시보드 목적이고, `player` 행이 사라지면 이름·팀과 더 이상 연결되지 않는다.
 
 ### 인증 (추후)
@@ -104,16 +171,23 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ## 데이터 모델 (`Server/schema.sql`)
 
+아래는 목표 모델이다. 지금 `schema.sql`에는 `daily_tap`이 남아 있고 `hearts` · `emotion_log`는 없다. 1.0 성장 API를 만들 때 바꾼다.
+
 ```sql
-player     (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at)
-character  (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
-            started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
-daily_tap  (player_id, date, count INT,            UNIQUE(player_id, date))
-score      (player_id, month, best_score INT,      UNIQUE(player_id, month))
+player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
+             hearts INT DEFAULT 5, hearts_date TEXT)  -- 저장된 하트, 마지막 충전일(KST)
+character   (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
+             started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
+emotion_log (player_id, date, emotion,              UNIQUE(player_id, date))   -- 오늘의 감정, 하루 1회
+visit       (player_id, date,                       UNIQUE(player_id, date))   -- 1.2: 연속 방문 묘약용
+score       (player_id, month, best_score INT,      UNIQUE(player_id, month))
 post       (id INTEGER PK, player_id, date, kind, body,  UNIQUE(player_id, date, kind))
 potion     (player_id, mission_id, claimed_at,     UNIQUE(player_id, mission_id))
 event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 ```
+
+- 하트 충전은 따로 스케줄러를 두지 않는다. 요청이 올 때 `hearts = min(15, hearts + 5 × 지난 일수)`로 계산하고 `hearts_date`를 오늘로 바꾼다.
+- `daily_tap`은 하트 저장 방식으로 바뀌면서 필요 없어진다.
 
 ---
 
@@ -133,17 +207,50 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/players` | `{ team, name, nickname }` | `{ playerId }` · 중복 409 · 글자 400 **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
-| GET | `/me` | - | `{ player, character: { speciesId, affection, level, tapsToday } }` | 1.0 |
+| GET | `/me` | - | `{ nickname, speciesId, emotionToday, growth }` · 부를 때 하트 충전 | 1.0 |
 | POST | `/characters` | `{ eggId }` | `{ speciesId }` | 1.0 |
 | POST | `/characters/reset` | - | `{ ok }` | 1.0 |
-| POST | `/tap` | - | `{ affection, level, tapsToday }` · 6번째는 409 | 1.0 |
+| POST | `/tap` | - | `{ levelUp, growth }` · 하트 1개 사용. 하트 0이면 409 `no_hearts`, Lv5면 409 `max_level` | 1.0 |
+| POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 | 1.0 |
 | GET | `/collection` | - | `{ eggId, species: [{ id, unlocked }] }` | 1.1 |
-| POST | `/scores` | `{ score }` | `{ best, rank, affectionBonus }` | 1.1 |
+| POST | `/scores` | `{ score }` | `{ best, rank, levelUp, growth }` · 하루 첫 플레이면 애정도 +2 반영 | 1.1 |
 | GET | `/rankings?month=YYYY-MM` | - | `[{ nickname, best }]` 상위 20 | 1.1 |
 | GET | `/missions` | - | `[{ id, done, claimed }]` | 1.2 |
-| POST | `/potions/claim` | `{ missionId }` | `{ affection, level }` | 1.2 |
+| POST | `/potions/claim` | `{ missionId }` | `{ levelUp, growth }` | 1.2 |
 | GET | `/posts?kind=&date=` | - | `[{ body, nickname? }]` | 1.2 |
 | POST | `/posts` | `{ kind, body }` | `{ ok }` · 중복은 409 | 1.2 |
+
+### `growth` (성장 상태)
+
+애정도나 하트가 바뀌는 응답은 모두 이 묶음을 담는다. 클라이언트는 이것 하나로 「횟수」 · 게이지 · 「Lv」를 갱신한다. C# 정의는 `ServerData.cs`의 `Growth`.
+
+| 필드 | 뜻 |
+|---|---|
+| `hearts` | 지금 쓸 수 있는 하트 (0~15) |
+| `heartsMax` | 저장 상한 (15) |
+| `affection` | 누적 애정도 (0~160). 참고용 |
+| `level` | 1~5 |
+| `levelProgress` | 이 레벨이 된 뒤 모은 애정도 |
+| `levelNeed` | 이 레벨을 다 채우는 데 필요한 양 |
+
+| 누적 애정도 | `level` | `levelProgress` / `levelNeed` | 게이지 |
+|---|---|---|---|
+| 0 | 1 | 0 / 5 | 0% |
+| 4 | 1 | 4 / 5 | 80% |
+| 5 | 2 | 0 / 25 | 0% (레벨업 직후) |
+| 20 | 2 | 15 / 25 | 60% |
+| 30 | 3 | 0 / 50 | 0% |
+| 160 | 5 | **1 / 1** | 100% |
+
+- 게이지는 `levelProgress ÷ levelNeed`. Lv5는 1/1로 보내 가득 차게 하고, 0으로 나누는 일을 없앤다.
+- 서버는 누적 애정도만 저장한다. 레벨과 진행값은 응답을 만들 때 계산한다. 그래서 한 번에 2 이상 올라 넘친 양은 자동으로 다음 레벨로 이월된다.
+
+```json
+{ "statusCode": 200,
+  "body": { "levelUp": false,
+            "growth": { "hearts": 4, "heartsMax": 15, "affection": 1,
+                        "level": 1, "levelProgress": 1, "levelNeed": 5 } } }
+```
 
 ---
 
@@ -199,7 +306,7 @@ Server/
 
 | 버전 | 내용 |
 |---|---|
-| **1.0** | 씬 1~7. 서버: players · characters · tap · me. WebGL 빌드 → QR 배포 |
+| **1.0** | 씬 1~7. 서버: players · characters · me · tap(하트 저장) · emotions(오늘의 감정). WebGL 빌드 → QR 배포 |
 | 1.1 | 도감 · 미니게임 1개 · 월별 랭킹 |
 | 1.2 | 묘약(미션 1개) · 꽃밭(꽃밭 · 소식 탭) |
 | 2.0 | Android 빌드 + **Unity Ads**(WebGL 미지원이라 필요) · 대시보드(event 테이블 쿼리) · 인증 |
@@ -218,6 +325,8 @@ Server/
 | 묘약 · 꽃밭 · 소식 시안 없음 | 1.2로 미룸 | 시안 나오면 진행 |
 | Main 하단 메뉴 「기록」 | 「묘약」 | 「기록」 정의가 없음. 상단 꽃 아이콘이 꽃밭 진입점 |
 | 소식 씬 별도 | 꽃밭 씬의 탭 | 데이터·화면이 같고 Main에 진입점이 없음. 필요하면 나중에 분리 |
+| (없음) | 오늘의 감정 체크인 추가 | 안내문의 「하루에 한 번, 고른 감정 하나가」와 「감정연료」 컨셉을 규칙으로 옮김. 2.0 대시보드의 핵심 데이터 |
+| 하루 고정 횟수 | 하트 하루 5개 충전, 최대 15개 저장 | 못 온 날 손해를 줄여 주 3회 방문자도 한 달 안에 완성 |
 
 ---
 
@@ -228,6 +337,8 @@ Server/
 - 시안 12장 보관 위치. 세션 임시 폴더에서 지워졌으니 `Docs/Mockups/` 같은 곳에 두는 것을 권한다.
 - 꾸불림체 라이선스 원문 확인과 보관.
 - **Hatch 룰렛 정지 규칙.** 포인터 위에 멈춘 알과 서버가 뽑은 결과를 어떻게 맞출지.
+- 오늘의 감정 팝업 디자인과 감정 아이콘 5종 이미지. 시안에 없다.
+- Main 상단 홈 아이콘의 동작. 이미 홈이라 의미가 겹친다(숨김 또는 새로고침 제안).
 - 서버 호스팅 위치. AWS Lightsail $5 플랜(신규 계정 6개월 크레딧)을 검토했다. 미확정.
 - 임직원 명단 없이 아무나 가입 가능한 상태를 1.0에서 허용할지.
 - 앱 시작 시 서버 헬스체크(`GET /health`) 추가 여부. WebGL은 앱을 종료할 수 없어서, 실패하면 「다시 시도」 화면을 띄우는 방식을 검토했다.
