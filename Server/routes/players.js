@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { logEvent } from '../db.js';
 import { isValidNickname, NICKNAME_MAX } from '../rules/nickname.js';
+import { HEARTS_START, kstDate } from '../rules/growth.js';
 
 /**
  * @param {import('fastify').FastifyInstance} app
@@ -38,8 +39,8 @@ export default async function players(app, { db, now }) {
     if (!isValidNickname(nickname)) return reply.code(400).send({ error: 'nickname_charset' });
     const id = randomUUID();
     try {
-      db.prepare('INSERT INTO player (id, team, name, nickname, created_at) VALUES (?, ?, ?, ?, ?)')
-        .run(id, team, name, nickname, now().toISOString());
+      db.prepare('INSERT INTO player (id, team, name, nickname, created_at, hearts, hearts_date) VALUES (?, ?, ?, ?, ?, ?, ?)')
+        .run(id, team, name, nickname, now().toISOString(), HEARTS_START, kstDate(now()));
     } catch (e) {
       if (String(e.message).includes('UNIQUE')) return reply.code(409).send({ error: 'nickname_taken' });
       throw e;
@@ -75,7 +76,7 @@ export default async function players(app, { db, now }) {
     if (!db.prepare('SELECT 1 FROM player WHERE id = ?').get(id)) return reply.code(404).send({ error: 'not_found' });
     db.exec('BEGIN');
     try {
-      for (const t of ['character', 'daily_tap', 'score', 'post', 'potion']) {
+      for (const t of ['character', 'emotion_log', 'score', 'post', 'potion']) {
         db.prepare(`DELETE FROM ${t} WHERE player_id = ?`).run(id);
       }
       db.prepare('DELETE FROM player WHERE id = ?').run(id);

@@ -5,7 +5,9 @@ CREATE TABLE IF NOT EXISTS player (
   name          TEXT NOT NULL,
   nickname      TEXT NOT NULL UNIQUE,
   can_post_news INTEGER NOT NULL DEFAULT 0,
-  created_at    TEXT NOT NULL
+  created_at    TEXT NOT NULL,
+  hearts        INTEGER NOT NULL,       -- 저장된 하트. 시작값 · 충전량 · 상한은 rules/growth.js
+  hearts_date   TEXT NOT NULL           -- hearts 가 기준으로 삼는 날 (KST YYYY-MM-DD). 충전은 이 날부터 계산
 );
 
 CREATE TABLE IF NOT EXISTS character (
@@ -16,12 +18,14 @@ CREATE TABLE IF NOT EXISTS character (
   started_at TEXT NOT NULL,
   ended_at   TEXT                     -- NULL 인 행이 활성 캐릭터
 );
+-- 활성 캐릭터는 플레이어당 1개. 알을 두 번 고르면 이 제약으로 409
+CREATE UNIQUE INDEX IF NOT EXISTS one_active_character ON character(player_id) WHERE ended_at IS NULL;
 
-CREATE TABLE IF NOT EXISTS daily_tap (
+CREATE TABLE IF NOT EXISTS emotion_log (
   player_id TEXT NOT NULL,
   date      TEXT NOT NULL,            -- KST YYYY-MM-DD
-  count     INTEGER NOT NULL DEFAULT 0,
-  UNIQUE(player_id, date)
+  emotion   TEXT NOT NULL,            -- rules/growth.js EMOTIONS
+  UNIQUE(player_id, date)             -- 오늘의 감정은 하루 1회
 );
 
 CREATE TABLE IF NOT EXISTS score (
@@ -50,7 +54,7 @@ CREATE TABLE IF NOT EXISTS potion (
 CREATE TABLE IF NOT EXISTS event (
   id        INTEGER PRIMARY KEY,
   player_id TEXT,
-  type      TEXT NOT NULL,            -- login tap game_play game_score potion reset post news
+  type      TEXT NOT NULL,            -- login hatch tap emotion game_play game_score potion reset post news delete
   ts        TEXT NOT NULL,
   payload   TEXT
 );

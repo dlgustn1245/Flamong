@@ -28,7 +28,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고, 앱 시작 때 불러온다. **`X-Player-Id` 헤더 전송은 아직** |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
-| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI 구현. 하트 터치 시 파티클(`HeartParticles`) 구현. 애정도 · 하트 수 로직은 아직 |
+| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클(`HeartParticles`) 구현. 성장은 임시 로직(`FakeMe`/`FakeTap`)으로 동작. 서버 연결은 아직 |
 | 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 빈 씬 |
 | 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
@@ -108,7 +108,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 ### 홈화면 (Main)
 
 **오늘의 감정**
-- 그날 처음 Main에 들어오면 팝업으로 묻는다. 보기: 피로 · 스트레스 · 성취감 · 몰입 · 평온(기획서의 「감정연료」 예시).
+- 그날 처음 Main에 들어오면(`/me`의 `emotionToday`가 false) 팝업으로 묻는다. 보기는 기획서의 「감정연료」 예시 5개다. 괄호는 API 값.
+  피로(`tired`) · 스트레스(`stress`) · 성취감(`achievement`) · 몰입(`focus`) · 평온(`calm`)
 - 고르면 애정도 +2. 닫으면 그날은 다시 묻지 않는다.
 - 개인 응답은 본인 외에는 보지 않는다. 2.0 대시보드는 **5명 이상 모인 묶음만** 익명 집계로 보여준다. 작은 팀에서 개인이 드러나지 않게 하기 위해서다.
 
@@ -139,6 +140,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 - Hatch의 원형 배치는 시안 순서(12시부터 시계 방향: 핑크 · 그레이 · 오렌지 · 라벤더 · 크림 · 그린 · 퍼플 · 블루)라 `eggId` 순서와 다르다.
 - 알이 색 계열을 정하고, 그 안에서 서버가 균등 랜덤으로 캐릭터를 뽑는다. 클라이언트 랜덤 금지(새로고침 리롤 방지).
+- `speciesId = eggId × 3 + (0~2)`. 알당 3종은 임시값이고 `rules/species.js`의 숫자 하나로 바뀐다(「미정」 캐릭터 수).
 - 처음에는 선택 가능한 알 4종 × 3 = 12종으로 정했다. 8종 모두 고를 수 있게 되면서 캐릭터 수는 다시 정해야 한다(「미정」 참고).
 - 도감은 내 알 계열 3종만. 완성(Lv5 게이지 가득)한 캐릭터만 해금, 나머지 `?`.
 
@@ -164,7 +166,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ### 로그
 - 모든 쓰기 API가 `event(player_id, type, ts, payload)` 한 줄. 클라이언트 별도 로그 전송 없음.
-- type: `login · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
+- type: `login · hatch · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
 - 탈퇴(`DELETE /players/me`) 시에도 `event`는 지우지 않는다. 탈퇴자 포함 활동 통계가 대시보드 목적이고, `player` 행이 사라지면 이름·팀과 더 이상 연결되지 않는다.
 
 ### 인증 (추후)
@@ -175,34 +177,36 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ## 데이터 모델 (`Server/schema.sql`)
 
-아래는 목표 모델이다. 지금 `schema.sql`에는 `daily_tap`이 남아 있고 `hearts` · `emotion_log`는 없다. 1.0 성장 API를 만들 때 바꾼다.
+`visit`만 1.2 목표이고 나머지는 `schema.sql`에 있다.
 
 ```sql
 player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
-             hearts INT DEFAULT 5, hearts_date TEXT)  -- 저장된 하트, 마지막 충전일(KST)
+             hearts INT, hearts_date TEXT)           -- 저장된 하트와 그 기준일(KST). 가입 때 5개 · 가입일
 character   (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
              started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
+             UNIQUE INDEX one_active_character (player_id) WHERE ended_at IS NULL  -- 활성은 1개
 emotion_log (player_id, date, emotion,              UNIQUE(player_id, date))   -- 오늘의 감정, 하루 1회
-visit       (player_id, date,                       UNIQUE(player_id, date))   -- 1.2: 연속 방문 묘약용
+visit       (player_id, date,                       UNIQUE(player_id, date))   -- 1.2: 연속 방문 묘약용 (아직 없음)
 score       (player_id, month, best_score INT,      UNIQUE(player_id, month))
 post       (id INTEGER PK, player_id, date, kind, body,  UNIQUE(player_id, date, kind))
 potion     (player_id, mission_id, claimed_at,     UNIQUE(player_id, mission_id))
 event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 ```
 
-- 하트 충전은 따로 스케줄러를 두지 않는다. 요청이 올 때 `hearts = min(15, hearts + 5 × 지난 일수)`로 계산하고 `hearts_date`를 오늘로 바꾼다.
-- `daily_tap`은 하트 저장 방식으로 바뀌면서 필요 없어진다.
+- 하트 충전은 스케줄러 없이 `min(15, hearts + 5 × (오늘 − hearts_date))`로 계산한다(`rules/growth.js` `rechargeHearts`). 언제 계산해도 같은 값이라 `GET /me`는 계산만 하고 저장하지 않는다. 하트를 쓰는 `POST /tap`이 (계산값 − 1, 오늘)을 함께 저장한다.
+- 스키마를 바꾼 뒤에는 기존 `Server/flamong.db*`를 지우고 서버를 다시 켠다. `CREATE TABLE IF NOT EXISTS`는 이미 있는 테이블에 열을 더하지 않는다. 마이그레이션 도구는 두지 않는다(실사용자 생기기 전까지).
 
 ---
 
 ## API
 
-모든 요청: `X-Player-Id` 헤더 (players 생성 제외). 규칙 위반은 409, 검증 실패 400.
+모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 404 `not_found`. 규칙 위반은 409, 검증 실패 400.
+본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
 모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
 에러는 `body: { error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 
-**구현된 것은 players 4개뿐이다** (`Server/routes/players.js`, `npm test` 4개 통과). 나머지는 설계만 있다.
+**1.0 서버 API 중 `/characters/reset`을 뺀 8개가 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 11개 통과). 1.1 이후는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -211,11 +215,11 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/players` | `{ team, name, nickname }` | `{ playerId }` · 중복 409 · 글자 400 **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
-| GET | `/me` | - | `{ nickname, speciesId, emotionToday, growth }` · 부를 때 하트 충전 | 1.0 |
-| POST | `/characters` | `{ eggId }` | `{ speciesId }` | 1.0 |
+| GET | `/me` | - | `{ nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1 **(구현)** | 1.0 |
+| POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 있으면 409 `character_exists` **(구현)** | 1.0 |
 | POST | `/characters/reset` | - | `{ ok }` | 1.0 |
-| POST | `/tap` | - | `{ levelUp, growth }` · 하트 1개 사용. 하트 0이면 409 `no_hearts`, 완성이면 409 `completed` | 1.0 |
-| POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 | 1.0 |
+| POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
+| POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
 | GET | `/collection` | - | `{ eggId, species: [{ id, unlocked }] }` | 1.1 |
 | POST | `/scores` | `{ score }` | `{ best, rank, levelUp, growth }` · 하루 첫 플레이면 애정도 +2 반영 | 1.1 |
 | GET | `/rankings?month=YYYY-MM` | - | `[{ nickname, best }]` 상위 20 | 1.1 |
@@ -277,10 +281,13 @@ Assets/Content/Common/
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
   index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
-  db.js  schema.sql             node:sqlite · logEvent
-  routes/players.js             라우트 + JSON 스키마
+  db.js  schema.sql             node:sqlite · logEvent · tx(트랜잭션)
+  routes/players.js             가입 · 닉네임 확인 · 수정 · 탈퇴 (라우트 + JSON 스키마)
+  routes/character.js           /me · /characters · /tap · /emotions
   rules/nickname.js             순수 함수 (DB · HTTP 모름)
-  test/players.test.js          node:test
+  rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜
+  rules/species.js              알 → 캐릭터 뽑기
+  test/*.test.js                node:test
   requests.http                 수동 테스트 (gitignore, 로컬 전용)
 ```
 

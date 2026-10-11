@@ -24,3 +24,22 @@ export function logEvent(db, playerId, type, payload, now) {
   db.prepare('INSERT INTO event (player_id, type, ts, payload) VALUES (?, ?, ?, ?)')
     .run(playerId, type, now().toISOString(), payload ? JSON.stringify(payload) : null);
 }
+
+/**
+ * fn 의 쓰기를 한 트랜잭션으로 묶는다. fn 이 던지면 ROLLBACK 후 다시 던진다.
+ * @template T
+ * @param {DatabaseSync} db
+ * @param {() => T} fn
+ * @returns {T}
+ */
+export function tx(db, fn) {
+  db.exec('BEGIN');
+  try {
+    const result = fn();
+    db.exec('COMMIT');
+    return result;
+  } catch (e) {
+    db.exec('ROLLBACK');
+    throw e;
+  }
+}
