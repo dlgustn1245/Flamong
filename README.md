@@ -25,11 +25,11 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 |---|---|---|---|---|---|
 | 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState 싱글톤이 이 씬에 있음 |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro`. 다음 → 들어갈 곳으로 | `GET /me` | 1.0 | 구현 |
-| 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 가입 구현, 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 탭 · 비밀번호 · 로그인 화면은 UI만 (코드 연결 아직) |
-| 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
-| 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
+| 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내 |
+| 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
+| 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 결과 창(캐릭터 그림) · 오류 창 구현. **룰렛이 멈추는 연출은 아직**(정지 규칙 미정, 지금은 누르면 바로 결과) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
-| 7 | Settings | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 빈 씬 |
+| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 구현. 각 기능 연결은 아직. `/characters/reset` 서버도 아직 |
 | 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
@@ -42,7 +42,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 기기에 저장된 `playerId` 없음 | Login |
 | `/me` 200, `speciesId` -1 (가입만 하고 알을 안 고름) | EggSelect |
 | `/me` 200 | Main (팀 · 이름 · 닉네임 · `speciesId`를 `SessionState`에) |
-| `/me` 404 (서버에 없는 계정: DB 초기화 · 탈퇴) | 저장된 `playerId`를 지우고 Login |
+| `/me` 401 (서버가 모르는 계정: DB 초기화 · 탈퇴) | 저장된 `playerId`를 지우고 Login. Main · Hatch에서 요청이 401이어도 같다(`EntryRouter.GoToLogin`) |
+| `/me` 404 (없는 주소: `BASE_URL` 실수 등) | 오류 창 → 다시 시도. 계정 문제가 아니므로 `playerId`는 지우지 않는다 |
 | 서버에 닿지 못함 (응답 코드 0 등) | 오류 창 → 다시 시도. **`playerId`는 지우지 않는다**(서버가 잠깐 꺼졌을 뿐일 수 있음) |
 
 씬 1개 = 화면 1개, `LoadSceneMode.Single`. 씬 간 데이터는 `SessionState`(싱글톤, Title 씬) 하나로만 전달한다. 중간 씬을 에디터에서 바로 플레이하면 싱글톤이 없으니 Title부터 플레이한다.
@@ -216,7 +217,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 
 ## API
 
-모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 404 `not_found`. 규칙 위반은 409, 검증 실패 400.
+모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400.
 본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
 모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
@@ -232,7 +233,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
-| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1. 가입 여부 확인(404면 미가입)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
+| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1. 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
 | POST | `/characters/reset` | - | `{ ok }` | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |

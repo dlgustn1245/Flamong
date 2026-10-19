@@ -23,15 +23,15 @@ test('가입 → 같은 닉네임 재가입은 409 → check 는 available false
   assert.equal(check.json().body.available, false);
 });
 
-test('삭제 → 수정은 404 → 같은 닉네임 재가입 200 · event 는 남음', async () => {
+test('삭제 → 수정은 401 → 같은 닉네임 재가입 200 · event 는 남음', async () => {
   const db = openDb(':memory:');
   const app = buildApp({ db, now: fixed });
   const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json().body;
   const headers = { 'x-player-id': playerId };
 
   assert.equal((await app.inject({ method: 'DELETE', url: '/players/me', headers })).statusCode, 200);
-  assert.equal((await app.inject({ method: 'DELETE', url: '/players/me', headers })).statusCode, 404);
-  assert.equal((await app.inject({ method: 'PATCH', url: '/players/me', headers, payload: { team: 'x' } })).statusCode, 404);
+  assert.equal((await app.inject({ method: 'DELETE', url: '/players/me', headers })).statusCode, 401);
+  assert.equal((await app.inject({ method: 'PATCH', url: '/players/me', headers, payload: { team: 'x' } })).statusCode, 401);
   assert.equal((await app.inject({ method: 'POST', url: '/players', payload: body })).statusCode, 200);
   assert.equal(db.prepare("SELECT count(*) n FROM event WHERE type = 'delete'").get().n, 1);
 });

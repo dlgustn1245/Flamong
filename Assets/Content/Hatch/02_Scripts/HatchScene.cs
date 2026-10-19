@@ -61,6 +61,11 @@ public class HatchScene : MonoBehaviour
     void OnFailPostCharacter(long code, string error)
     {
         print("Server Error");
+        if (code == 401)   // 서버가 모르는 계정
+        {
+            EntryRouter.GoToLogin();
+            return;
+        }
         errorPanel.Show(Request);
     }
 
@@ -68,5 +73,6 @@ public class HatchScene : MonoBehaviour
     {
         startButton.onClick.RemoveAllListeners();
         okButton.onClick.RemoveAllListeners();
+        StopAllCoroutines();
     }
 }

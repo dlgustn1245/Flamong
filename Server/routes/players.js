@@ -101,7 +101,7 @@ export default async function players(app, { db, now }) {
     const id = req.headers['x-player-id'];
     if (!id) return reply.code(401).send({ error: 'no_player' });
     const cur = db.prepare('SELECT team, name FROM player WHERE id = ?').get(id);
-    if (!cur) return reply.code(404).send({ error: 'not_found' });
+    if (!cur) return reply.code(401).send({ error: 'unknown_player' });
     db.prepare('UPDATE player SET team = ?, name = ? WHERE id = ?')
       .run(req.body.team ?? cur.team, req.body.name ?? cur.name, id);
     return { ok: true };
@@ -111,7 +111,7 @@ export default async function players(app, { db, now }) {
   app.delete('/players/me', (req, reply) => {
     const id = req.headers['x-player-id'];
     if (!id) return reply.code(401).send({ error: 'no_player' });
-    if (!db.prepare('SELECT 1 FROM player WHERE id = ?').get(id)) return reply.code(404).send({ error: 'not_found' });
+    if (!db.prepare('SELECT 1 FROM player WHERE id = ?').get(id)) return reply.code(401).send({ error: 'unknown_player' });
     db.exec('BEGIN');
     try {
       for (const t of ['character', 'emotion_log', 'score', 'post', 'potion']) {

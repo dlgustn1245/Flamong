@@ -10,7 +10,10 @@ public class TitleScene : MonoBehaviour
 
     void Update()
     {
-        if (isEntering || !Input.GetMouseButtonDown(0)) return;
+        if (isEntering || !Input.GetMouseButtonDown(0))
+        {
+            return;
+        }
 
         if (PlayerPrefs.GetInt("NeverShowIntro", 0) == 1)
         {

@@ -29,7 +29,10 @@ public class IntroScene : MonoBehaviour
 
     void LoadNextScene()
     {
-        if (isEntering) return;
+        if (isEntering)
+        {
+            return;
+        }
         isEntering = true;
         EntryRouter.Enter(this, errorPanel);
     }
@@ -38,5 +41,6 @@ public class IntroScene : MonoBehaviour
     {
         neverShowButton.onClick.RemoveAllListeners();
         nextButton.onClick.RemoveAllListeners();
+        StopAllCoroutines();
     }
 }

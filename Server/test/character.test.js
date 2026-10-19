@@ -56,10 +56,13 @@ test('pickSpecies: 고른 알 계열 안에서만 뽑는다', () => {
   assert.equal(pickSpecies(2, () => 0.9999), 8);
 });
 
-test('X-Player-Id 가 없으면 401, 모르는 id 면 404', async () => {
+test('X-Player-Id 가 없거나 모르는 id 면 401 · 404 는 없는 주소에만', async () => {
   const { app } = setup();
-  assert.equal((await call(app, 'GET', '/me')).code, 401);
-  assert.equal((await call(app, 'GET', '/me', { 'x-player-id': 'nope' })).code, 404);
+  assert.deepEqual(await call(app, 'GET', '/me'), { code: 401, body: { error: 'no_player' } });
+  assert.deepEqual(await call(app, 'GET', '/me', { 'x-player-id': 'nope' }), { code: 401, body: { error: 'unknown_player' } });
+  assert.equal((await call(app, 'POST', '/tap', { 'x-player-id': 'nope' }, {})).code, 401);
+  assert.equal((await call(app, 'POST', '/characters', { 'x-player-id': 'nope' }, { eggId: 0 })).code, 401);
+  assert.equal((await call(app, 'GET', '/nope')).code, 404);
 });
 
 test('가입 → 알 고르기 → 첫날 하트 5개로 Lv2 → 하트 소진 → 다음 날 충전', async () => {

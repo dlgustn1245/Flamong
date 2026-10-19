@@ -37,6 +37,7 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
 -   **필드명**: 언더바(`_`) 접두사 사용 **금지**. `camelCase` 그대로 사용.
 -   **네임스페이스**: 전역 네임스페이스. 폴더명과 같은 네임스페이스를 만들지 않는다.
 -   **Unity 오브젝트 null 검사**: `UnityEngine.Object`에는 `??`·`?.`·`is null`을 쓰지 않는다. 파괴된 오브젝트를 null로 보지 못한다. `== null` 또는 `if (obj)`.
+-   **중괄호**: `if` · `else` · `for` · `foreach` · `while`은 본문이 한 줄이어도 항상 중괄호로 감싼다. `if (x) return;`처럼 한 줄로 쓰지 않는다.
 -   **주석**: 한국어, WHY가 비자명할 때만 작성.
 -   **서버 통신**: `UnityWebRequest` + JSON만. WebSocket·gRPC·서드파티 HTTP 라이브러리 금지.
 -   **서버(Node.js)**: ESM(`import`), `async/await`, 플레인 JS + JSDoc 타입 주석. TypeScript·ORM·Express 미들웨어 생태계 도입 금지.

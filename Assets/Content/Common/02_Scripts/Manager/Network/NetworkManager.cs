@@ -36,7 +36,10 @@ public class NetworkManager : Singleton<NetworkManager>
 		{
 			try
 			{
+#if UNITY_EDITOR
+				// 응답에는 playerId(사실상 로그인 열쇠)가 들어 있어 빌드의 브라우저 콘솔에는 남기지 않는다
 				print($"Response: {request.downloadHandler.text}");
+#endif
 				var result = JsonUtility.FromJson<TResponse>(request.downloadHandler.text);
 				onSuccess?.Invoke(result);
 			}
@@ -64,7 +67,8 @@ public class NetworkManager : Singleton<NetworkManager>
 		string jsonString = JsonUtility.ToJson(jsonData);
 		byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
         
-		print($"POST [ url : {url} json : {jsonString} ]");
+		// 본문은 찍지 않는다. 가입 · 로그인 요청에 비밀번호가 원문으로 들어 있고, 웹 빌드에서는 브라우저 콘솔에 그대로 남는다
+		print($"POST [ url : {url} ]");
 
 		var request = new UnityWebRequest(url, "POST");
 		request.uploadHandler = new UploadHandlerRaw(jsonBytes);
@@ -86,7 +90,10 @@ public class NetworkManager : Singleton<NetworkManager>
 		{
 			try
 			{
+#if UNITY_EDITOR
+				// 응답에는 playerId(사실상 로그인 열쇠)가 들어 있어 빌드의 브라우저 콘솔에는 남기지 않는다
 				print($"Response: {request.downloadHandler.text}");
+#endif
 				TResponse result = JsonUtility.FromJson<TResponse>(request.downloadHandler.text);
 				onSuccess?.Invoke(result);
 			}

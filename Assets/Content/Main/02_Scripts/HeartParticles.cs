@@ -53,7 +53,10 @@ public class HeartParticles : MonoBehaviour
         {
             Init();
         }
-        if (hearts.Length == 0) return;   // 하트가 하나도 없으면 아무것도 하지 않는다
+        if (hearts.Length == 0)   // 하트가 하나도 없으면 아무것도 하지 않는다
+        {
+            return;
+        }
         for (int k = 0; k < count; k++)
         {
             Spawn(NextSlot());
@@ -62,7 +65,10 @@ public class HeartParticles : MonoBehaviour
 
     void Update()
     {
-        if (activeCount == 0) return;   // 떠 있는 하트가 없으면 아무것도 하지 않는다
+        if (activeCount == 0)   // 떠 있는 하트가 없으면 아무것도 하지 않는다
+        {
+            return;
+        }
         Tick(Time.deltaTime);
     }
 
@@ -70,7 +76,10 @@ public class HeartParticles : MonoBehaviour
     {
         for (int i = 0; i < age.Length; i++)
         {
-            if (age[i] < 0f) continue;
+            if (age[i] < 0f)
+            {
+                continue;
+            }
 
             age[i] += dt;
             float t = age[i] / lifetime;
@@ -91,8 +100,14 @@ public class HeartParticles : MonoBehaviour
         int oldest = 0;
         for (int i = 0; i < age.Length; i++)
         {
-            if (age[i] < 0f) return i;
-            if (age[i] > age[oldest]) oldest = i;
+            if (age[i] < 0f)
+            {
+                return i;
+            }
+            if (age[i] > age[oldest])
+            {
+                oldest = i;
+            }
         }
         return oldest;
     }
@@ -102,7 +117,10 @@ public class HeartParticles : MonoBehaviour
         Rect area = spawnArea.rect;
         origin[i] = spawnArea.anchoredPosition
                     + new Vector2(Random.Range(area.xMin, area.xMax), Random.Range(area.yMin, area.yMax));
-        if (age[i] < 0f) activeCount++;
+        if (age[i] < 0f)
+        {
+            activeCount++;
+        }
         age[i] = 0f;
         rise[i] = Random.Range(riseRange.x, riseRange.y);
         sway[i] = Random.Range(-swayAmount, swayAmount);

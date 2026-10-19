@@ -17,7 +17,10 @@ export default async function character(app, { db, now }) {
   const setHearts = db.prepare('UPDATE player SET hearts = ?, hearts_date = ? WHERE id = ?');
   const setAffection = db.prepare('UPDATE character SET affection = ? WHERE id = ?');
 
-  /** 헤더의 playerId 로 플레이어를 찾는다. 없으면 에러 응답을 보내고 null */
+  /**
+   * 헤더의 playerId 로 플레이어를 찾는다. 없으면 에러 응답을 보내고 null.
+   * 모르는 id 를 404 로 주면 「없는 주소」 404 와 섞인다. 클라이언트는 401 을 받으면 기기의 playerId 를 지운다
+   */
   function playerOf(req, reply) {
     const id = req.headers['x-player-id'];
     if (!id) {
@@ -26,7 +29,7 @@ export default async function character(app, { db, now }) {
     }
     const player = getPlayer.get(id);
     if (!player) {
-      reply.code(404).send({ error: 'not_found' });
+      reply.code(401).send({ error: 'unknown_player' });
       return null;
     }
     return player;

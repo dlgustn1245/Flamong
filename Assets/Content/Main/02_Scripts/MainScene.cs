@@ -92,6 +92,11 @@ public class MainScene : MonoBehaviour
     void OnFailGetMe(long code, string error)
     {
         print($"Get Me Failed: {error}");
+        if (code == 401)   // 서버가 모르는 계정
+        {
+            EntryRouter.GoToLogin();
+            return;
+        }
         errorPanel.Show(Init);
     }
     
@@ -179,5 +184,6 @@ public class MainScene : MonoBehaviour
         heartButton.onClick.RemoveAllListeners();
         settingButton.onClick.RemoveAllListeners();
         settingCloseButton.onClick.RemoveAllListeners();
+        StopAllCoroutines();
     }
 }

@@ -24,8 +24,8 @@ public static class EntryRouter
         }));
     }
 
-    // 404(서버에 없는 계정: DB 초기화 · 탈퇴)만 저장값을 지우고 Login 으로 보낸다. 그 밖의 실패는 onFail 로 넘긴다.
-    // 0(서버에 닿지 못함)에도 지우면 서버가 잠깐 꺼졌을 뿐인데 계정을 잃는다
+    // 401(서버가 모르는 계정: DB 초기화 · 탈퇴)만 저장값을 지우고 Login 으로 보낸다. 그 밖의 실패는 onFail 로 넘긴다.
+    // 0(서버에 닿지 못함)이나 404(없는 주소, BASE_URL 실수 등)에도 지우면 계정과 상관없는 문제로 저장값을 잃는다
     public static IEnumerator Go(Action<long, string> onFail)
     {
         var session = SessionState.Instance;
@@ -44,15 +44,20 @@ public static class EntryRouter
             },
             (code, error) =>
             {
-                if (code == 404)
+                if (code == 401)
                 {
-                    session.playerId = "";
-                    session.SavePlayerId();
-                    SceneLoader.Load(SceneName.LoginScene);
+                    GoToLogin();
                     return;
                 }
                 onFail?.Invoke(code, error);
             },
             header);
+    }
+
+    public static void GoToLogin()
+    {
+        SessionState.Instance.playerId = string.Empty;
+        SessionState.Instance.SavePlayerId();
+        SceneLoader.Load(SceneName.LoginScene);
     }
 }

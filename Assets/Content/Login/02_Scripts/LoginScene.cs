@@ -76,11 +76,17 @@ public class LoginScene : MonoBehaviour
 
     void OnClickCheck()
     {
-        if (checkButtonClicked) return;
+        if (checkButtonClicked)
+        {
+            return;
+        }
         if (string.IsNullOrEmpty(teamField.text) ||
             string.IsNullOrEmpty(nameField.text) ||
             string.IsNullOrEmpty(nickNameField.text) ||
-            string.IsNullOrEmpty(passwordField.text) && passwordField.text.Length < 4) return;
+            passwordField.text.Length < 4)
+        {
+            return;
+        }
 
         checkButtonClicked = true;
         checkedNickName = nickNameField.text;
@@ -165,7 +171,6 @@ public class LoginScene : MonoBehaviour
     {
         if (response.statusCode == 200)
         {
-            print($"Player ID: {response.body.playerId}");
             SessionState.Instance.playerId = response.body.playerId;
             SessionState.Instance.team = teamField.text;
             SessionState.Instance.playerName = nameField.text;
@@ -189,7 +194,10 @@ public class LoginScene : MonoBehaviour
     // 로그인: POST /players/login 으로 playerId 를 받고, /me 로 갈 곳을 정한다
     void OnClickLogin()
     {
-        if (isLoggingIn) return;
+        if (isLoggingIn)
+        {
+            return;
+        }
         if (string.IsNullOrEmpty(loginNickNameField.text) || 
             loginPasswordField.text.Length < 4)
         {
