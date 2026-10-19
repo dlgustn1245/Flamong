@@ -17,7 +17,7 @@ function setup() {
 }
 
 async function signup(app) {
-  const res = await app.inject({ method: 'POST', url: '/players', payload: { team: '플링커', name: '이현수', nickname: 'max' } });
+  const res = await app.inject({ method: 'POST', url: '/players', payload: { team: '플링커', name: '이현수', nickname: 'max', password: '1234' } });
   return { 'x-player-id': res.json().body.playerId };
 }
 
@@ -67,6 +67,7 @@ test('가입 → 알 고르기 → 첫날 하트 5개로 Lv2 → 하트 소진 �
   const h = await signup(app);
 
   const me = await call(app, 'GET', '/me', h);
+  assert.deepEqual([me.body.team, me.body.name, me.body.nickname], ['플링커', '이현수', 'max']);
   assert.equal(me.body.speciesId, -1);
   assert.equal(me.body.emotionToday, false);
   assert.deepEqual(me.body.growth, growth(5, 0, 1, 0, 5));

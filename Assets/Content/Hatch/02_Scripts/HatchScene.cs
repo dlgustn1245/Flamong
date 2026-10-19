@@ -6,8 +6,6 @@ using UnityEngine.UI;
 
 public class HatchScene : MonoBehaviour
 {
-    readonly string baseUrl = "http://localhost:3000";
-    
     public Button startButton;
 
     public GameObject resultPanel;
@@ -38,7 +36,7 @@ public class HatchScene : MonoBehaviour
         {
             eggId = SessionState.Instance.eggIdx
         };
-        string url = $"{baseUrl}/characters";
+        string url = $"{NetworkManager.BASE_URL}/characters";
         var header = new Dictionary<string, string>{{"X-Player-Id",  SessionState.Instance.playerId}};
         yield return StartCoroutine(
             NetworkManager.Instance.PostRequest<PostCharacterRequestBody, PostCharacterResponse>(
@@ -60,7 +58,7 @@ public class HatchScene : MonoBehaviour
         }
     }
 
-    void OnFailPostCharacter(string error)
+    void OnFailPostCharacter(long code, string error)
     {
         print("Server Error");
         errorPanel.Show(Request);

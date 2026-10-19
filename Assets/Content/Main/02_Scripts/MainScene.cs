@@ -8,7 +8,6 @@ using UnityEngine.UI;
 public class MainScene : MonoBehaviour
 {
     readonly string HEART_TAPS_KEY = "HeartsTaps";
-    readonly string baseUrl = "http://localhost:3000";
     
     public Button heartButton;
     public Image heartFill;
@@ -24,6 +23,10 @@ public class MainScene : MonoBehaviour
     public Sprite[] characterSprites;
     
     public ErrorPanel errorPanel;
+
+    public Button settingButton;
+    public Button settingCloseButton;
+    public GameObject settingPanel;
     
     int heartTaps;   // 쓰다 만 터치 수. 규칙과 무관한 표시용 값이라 기기에만 저장 (README)
 
@@ -38,13 +41,26 @@ public class MainScene : MonoBehaviour
         characterImage.enabled = false;   // /me 응답 전에 씬의 기본 그림이 잠깐 보이지 않게
         heartTaps = PlayerPrefs.GetInt(HEART_TAPS_KEY);
         Init();
+        BindButtonEvents();
+    }
+
+    void BindButtonEvents()
+    {
         heartButton.onClick.AddListener(OnClickHeartButton);
+        settingButton.onClick.AddListener(() =>
+        {
+            settingPanel.SetActive(true);
+        });
+        settingCloseButton.onClick.AddListener(() =>
+        {
+            settingPanel.SetActive(false);
+        });
     }
 
     void Init()
     {
         StartCoroutine(NetworkManager.Instance.GetRequest<MeResponse>(
-            $"{baseUrl}/me", OnSuccessGetMe, OnFailGetMe, header));
+            $"{NetworkManager.BASE_URL}/me", OnSuccessGetMe, OnFailGetMe, header));
     }
 
     void OnSuccessGetMe(MeResponse response)
@@ -66,7 +82,7 @@ public class MainScene : MonoBehaviour
         characterImage.enabled = true;
     }
 
-    void OnFailGetMe(string error)
+    void OnFailGetMe(long code, string error)
     {
         print($"Get Me Failed: {error}");
         errorPanel.Show(Init);
@@ -119,7 +135,7 @@ public class MainScene : MonoBehaviour
     {
         isSending = true;
         yield return NetworkManager.Instance.PostRequest<EmptyBody, TapResponse>(
-            $"{baseUrl}/tap", new EmptyBody(), OnSuccessTap, OnFailTap, header);
+            $"{NetworkManager.BASE_URL}/tap", new EmptyBody(), OnSuccessTap, OnFailTap, header);
         isSending = false;
     }
 
@@ -135,7 +151,7 @@ public class MainScene : MonoBehaviour
         }
     }
 
-    void OnFailTap(string error)
+    void OnFailTap(long code, string error)
     {
         print($"Tap Failed: {error}");
         Init();
@@ -154,5 +170,7 @@ public class MainScene : MonoBehaviour
     {
         PlayerPrefs.Save();
         heartButton.onClick.RemoveAllListeners();
+        settingButton.onClick.RemoveAllListeners();
+        settingCloseButton.onClick.RemoveAllListeners();
     }
 }

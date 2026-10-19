@@ -9,7 +9,7 @@ import { EGG_COUNT, pickSpecies } from '../rules/species.js';
  * @param {{ db: import('node:sqlite').DatabaseSync, now: () => Date }} opts
  */
 export default async function character(app, { db, now }) {
-  const getPlayer = db.prepare('SELECT id, nickname, hearts, hearts_date FROM player WHERE id = ?');
+  const getPlayer = db.prepare('SELECT id, team, name, nickname, hearts, hearts_date FROM player WHERE id = ?');
   const getActive = db.prepare('SELECT id, species_id, affection FROM character WHERE player_id = ? AND ended_at IS NULL');
   const getEmotion = db.prepare('SELECT 1 FROM emotion_log WHERE player_id = ? AND date = ?');
   const insertCharacter = db.prepare('INSERT INTO character (player_id, species_id, started_at) VALUES (?, ?, ?)');
@@ -38,6 +38,8 @@ export default async function character(app, { db, now }) {
     const today = kstDate(now());
     const c = getActive.get(p.id);
     return {
+      team: p.team,
+      name: p.name,
       nickname: p.nickname,
       speciesId: c ? c.species_id : -1,   // -1: 아직 알을 고르지 않음. JsonUtility 는 int 자리의 null 을 0 으로 읽는다
       emotionToday: Boolean(getEmotion.get(p.id, today)),

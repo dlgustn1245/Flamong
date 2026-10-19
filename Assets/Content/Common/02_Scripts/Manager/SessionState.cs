@@ -6,6 +6,10 @@ public class SessionState : Singleton<SessionState>
     public int eggIdx;
     public int speciesId;
 
+    public string team;
+    public string playerName;
+    public string nickName;
+
     protected override void Awake()
     {
         base.Awake();

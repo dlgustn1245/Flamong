@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS player (
   can_post_news INTEGER NOT NULL DEFAULT 0,
   created_at    TEXT NOT NULL,
   hearts        INTEGER NOT NULL,       -- 저장된 하트. 시작값 · 충전량 · 상한은 rules/growth.js
-  hearts_date   TEXT NOT NULL           -- hearts 가 기준으로 삼는 날 (KST YYYY-MM-DD). 충전은 이 날부터 계산
+  hearts_date   TEXT NOT NULL,          -- hearts 가 기준으로 삼는 날 (KST YYYY-MM-DD). 충전은 이 날부터 계산
+  password_hash TEXT NOT NULL,          -- rules/password.js (scrypt, "salt:hash"). 원문은 저장하지 않는다
+  login_fails   INTEGER NOT NULL DEFAULT 0,
+  locked_until  TEXT                    -- 로그인 잠금이 풀리는 시각 (ISO). NULL 이면 잠금 없음
 );
 
 CREATE TABLE IF NOT EXISTS character (
@@ -54,7 +57,7 @@ CREATE TABLE IF NOT EXISTS potion (
 CREATE TABLE IF NOT EXISTS event (
   id        INTEGER PRIMARY KEY,
   player_id TEXT,
-  type      TEXT NOT NULL,            -- login hatch tap emotion game_play game_score potion reset post news delete
+  type      TEXT NOT NULL,            -- login login_fail hatch tap emotion game_play game_score potion reset post news delete
   ts        TEXT NOT NULL,
   payload   TEXT
 );

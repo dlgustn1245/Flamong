@@ -19,6 +19,14 @@ namespace ServerData
 		public string team;
 		public string name;
 		public string nickname;
+		public string password;
+	}
+
+	// POST /players/login. 응답은 가입과 같은 { playerId } 라 PostPlayerResponse 를 쓴다
+	public class LoginRequestBody
+	{
+		public string nickname;
+		public string password;
 	}
 
 	public class PostPlayerResponse
@@ -83,6 +91,8 @@ namespace ServerData
 	[Serializable]
 	public class MeBody
 	{
+		public string team;
+		public string name;
 		public string nickname;
 		public int speciesId;
 		public bool emotionToday;

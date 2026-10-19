@@ -25,7 +25,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 |---|---|---|---|---|---|
 | 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 Login | - | 1.0 | 구현. NetworkManager · SessionState 싱글톤이 이 씬에 있음 |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro` | - | 1.0 | 구현 |
-| 3 | Login | 팀 · 이름 · 닉네임 입력. 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect | `GET /players/check`, `POST /players` | 1.0 | 구현. 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고, 앱 시작 때 불러온다. **`X-Player-Id` 헤더 전송은 아직** |
+| 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 가입 구현, 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 탭 · 비밀번호 · 로그인 화면은 UI만 (코드 연결 아직) |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
@@ -166,11 +166,16 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ### 로그
 - 모든 쓰기 API가 `event(player_id, type, ts, payload)` 한 줄. 클라이언트 별도 로그 전송 없음.
-- type: `login · hatch · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
+- type: `login · login_fail · hatch · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
 - 탈퇴(`DELETE /players/me`) 시에도 `event`는 지우지 않는다. 탈퇴자 포함 활동 통계가 대시보드 목적이고, `player` 행이 사라지면 이름·팀과 더 이상 연결되지 않는다.
 
-### 인증 (추후)
-- 지금은 서버 발급 `player_id`(GUID)를 PlayerPrefs에 저장하고 헤더 `X-Player-Id`로 전송.
+### 인증
+- 평소에는 서버 발급 `player_id`(GUID)를 PlayerPrefs에 저장하고 헤더 `X-Player-Id`로 전송한다.
+- 다른 기기 · 브라우저에서는 **닉네임 + 숫자 비밀번호(4~6자리)**로 로그인해서 `player_id`를 다시 받는다(`POST /players/login`).
+  - 비밀번호는 `node:crypto` scrypt 해시로만 저장한다(`rules/password.js`). 원문은 어디에도 남지 않는다.
+  - 계정마다 **5번 틀리면 10분 잠금**(429 `locked`). 4자리는 1만 가지뿐이라 마구 넣어 보기를 막는다. 잠그면서 횟수는 0으로 돌린다.
+  - 없는 닉네임도 틀린 비밀번호와 같은 401 `login_failed`를 준다.
+  - 잊어버리면 되찾는 방법은 아직 없다(관리자가 DB에서 처리). 잠금은 남이 일부러 틀려서 내 계정을 10분 막을 수도 있다는 한계가 있다.
 - 팀 · 이름은 프로필일 뿐 검증하지 않는다. 슬랙 OAuth 등은 2.0 이후 결정.
 
 ---
@@ -181,7 +186,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ```sql
 player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
-             hearts INT, hearts_date TEXT)           -- 저장된 하트와 그 기준일(KST). 가입 때 5개 · 가입일
+             hearts INT, hearts_date TEXT,           -- 저장된 하트와 그 기준일(KST). 가입 때 5개 · 가입일
+             password_hash TEXT, login_fails INT DEFAULT 0, locked_until TEXT NULL)   -- 로그인 (「인증」)
 character   (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
              started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
              UNIQUE INDEX one_active_character (player_id) WHERE ended_at IS NULL  -- 활성은 1개
@@ -206,16 +212,17 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
 에러는 `body: { error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 
-**1.0 서버 API 중 `/characters/reset`을 뺀 8개가 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 11개 통과). 1.1 이후는 설계만 있다.
+**1.0 서버 API 중 `/characters/reset`을 뺀 9개가 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 15개 통과). 1.1 이후는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
 |---|---|---|---|---|
 | GET | `/players/check?nickname=` | - | `{ available }` · 중복이거나 허용 글자 밖이면 false **(구현)** | 1.0 |
-| POST | `/players` | `{ team, name, nickname }` | `{ playerId }` · 중복 409 · 글자 400 **(구현)** | 1.0 |
+| POST | `/players` | `{ team, name, nickname, password }` | `{ playerId }` · 중복 409 · 글자 400 · 비밀번호가 숫자 4~6자리가 아니면 400 **(구현)** | 1.0 |
+| POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
-| GET | `/me` | - | `{ nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1 **(구현)** | 1.0 |
+| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1. 가입 여부 확인(404면 미가입)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
 | POST | `/characters/reset` | - | `{ ok }` | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
@@ -275,7 +282,7 @@ Assets/Content/<씬>/
   03_Art/                       씬별 텍스처·오디오 (씬별 아틀라스)
 Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장, 싱글톤)
-  02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤) · ServerData(요청·응답 DTO)
+  02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel
   03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
@@ -286,6 +293,7 @@ Server/
   routes/players.js             가입 · 닉네임 확인 · 수정 · 탈퇴 (라우트 + JSON 스키마)
   routes/character.js           /me · /characters · /tap · /emotions
   rules/nickname.js             순수 함수 (DB · HTTP 모름)
+  rules/password.js             비밀번호 해시 · 확인 · 로그인 잠금
   rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜
   rules/species.js              알 → 캐릭터 뽑기
   test/*.test.js                node:test
