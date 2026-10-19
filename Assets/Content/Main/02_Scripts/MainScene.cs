@@ -68,11 +68,18 @@ public class MainScene : MonoBehaviour
         if (response.statusCode == 200)
         {
             ShowCharacter(response.body.speciesId);
+            SetPlayerInfo(response.body);
             Apply(response.body.growth);
         }
     }
 
-    // 서버 종 수가 늘었는데 그림이 아직 없으면 씬에 놓인 기본 그림을 그대로 쓴다
+    void SetPlayerInfo(MeBody body)
+    {
+        SessionState.Instance.team = body.team;
+        SessionState.Instance.playerName = body.name;
+        SessionState.Instance.nickName = body.nickname;
+    }
+    
     void ShowCharacter(int speciesId)
     {
         if (speciesId >= 0 && speciesId < characterSprites.Length)

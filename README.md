@@ -23,8 +23,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 | # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
 |---|---|---|---|---|---|
-| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 Login | - | 1.0 | 구현. NetworkManager · SessionState 싱글톤이 이 씬에 있음 |
-| 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro` | - | 1.0 | 구현 |
+| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState 싱글톤이 이 씬에 있음 |
+| 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro`. 다음 → 들어갈 곳으로 | `GET /me` | 1.0 | 구현 |
 | 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 가입 구현, 가입하면 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 탭 · 비밀번호 · 로그인 화면은 UI만 (코드 연결 아직) |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | UI · 팝업 · 씬 이동 구현. **고른 알을 넘기는 부분은 아직** |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 구현. 「시작」 버튼 · 정지 · 서버 호출은 아직 |
@@ -34,6 +34,16 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
 | 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 | 빈 씬 |
+
+**들어갈 곳** (`Common/02_Scripts/Util/EntryRouter.cs`, Title · Intro · Login 로그인 성공 후 모두 이 규칙을 쓴다)
+
+| 상태 | 가는 곳 |
+|---|---|
+| 기기에 저장된 `playerId` 없음 | Login |
+| `/me` 200, `speciesId` -1 (가입만 하고 알을 안 고름) | EggSelect |
+| `/me` 200 | Main (팀 · 이름 · 닉네임 · `speciesId`를 `SessionState`에) |
+| `/me` 404 (서버에 없는 계정: DB 초기화 · 탈퇴) | 저장된 `playerId`를 지우고 Login |
+| 서버에 닿지 못함 (응답 코드 0 등) | 오류 창 → 다시 시도. **`playerId`는 지우지 않는다**(서버가 잠깐 꺼졌을 뿐일 수 있음) |
 
 씬 1개 = 화면 1개, `LoadSceneMode.Single`. 씬 간 데이터는 `SessionState`(싱글톤, Title 씬) 하나로만 전달한다. 중간 씬을 에디터에서 바로 플레이하면 싱글톤이 없으니 Title부터 플레이한다.
 
@@ -283,7 +293,7 @@ Assets/Content/<씬>/
 Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장, 싱글톤)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
-  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel
+  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · EntryRouter(들어갈 곳)
   03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
 Assets/Settings/                URP · Input System (Unity 생성)
@@ -307,7 +317,7 @@ Server/
 |---|---|---|
 | Canvas - Main | 0 | 배경 · 제목 · 고정 버튼 |
 | Canvas - Dynamic | 1 | 스크롤 목록, 회전하는 알처럼 매 프레임 움직이는 것만 |
-| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 확인 팝업. 기본 꺼짐. GraphicRaycaster 필수. 서버 오류 창은 공통 프리팹 `Panel - Error`를 놓는다(Hatch · Main) |
+| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 확인 팝업. 기본 꺼짐. GraphicRaycaster 필수. 서버 오류 창은 공통 프리팹 `Panel - Error`를 놓는다(Title · Intro · Hatch · Main) |
 
 움직이는 UI를 따로 두면 그것이 움직여도 배경과 버튼까지 다시 그려지지 않는다. 누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다.
 

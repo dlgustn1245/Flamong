@@ -6,6 +6,9 @@ public class IntroScene : MonoBehaviour
 {
     public Button neverShowButton;
     public Button nextButton;
+    public ErrorPanel errorPanel;
+
+    bool isEntering;   // /me 요청 중 버튼 연타 방지
 
     void Start()
     {
@@ -26,14 +29,9 @@ public class IntroScene : MonoBehaviour
 
     void LoadNextScene()
     {
-        if (string.IsNullOrEmpty(SessionState.Instance.playerId))
-        {
-            SceneLoader.Load(SceneName.LoginScene);
-        }
-        else
-        {
-            SceneLoader.Load(SceneName.MainScene);
-        }
+        if (isEntering) return;
+        isEntering = true;
+        EntryRouter.Enter(this, errorPanel);
     }
 
     void OnDestroy()

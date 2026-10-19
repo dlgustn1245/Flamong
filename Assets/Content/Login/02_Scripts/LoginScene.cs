@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -212,20 +211,8 @@ public class LoginScene : MonoBehaviour
     {
         SessionState.Instance.playerId = response.body.playerId;
         SessionState.Instance.SavePlayerId();
-
-        var header = new Dictionary<string, string> { { "X-Player-Id", response.body.playerId } };
-        StartCoroutine(NetworkManager.Instance.GetRequest<MeResponse>(
-            $"{NetworkManager.BASE_URL}/me", OnSuccessLoginMe, OnFailLogin, header));
-    }
-
-    void OnSuccessLoginMe(MeResponse response)
-    {
-        var me = response.body;
-        SessionState.Instance.team = me.team;
-        SessionState.Instance.playerName = me.name;
-        SessionState.Instance.nickName = me.nickname;
-        SessionState.Instance.speciesId = me.speciesId;
-        SceneLoader.Load(me.speciesId < 0 ? SceneName.EggSelectScene : SceneName.MainScene);
+        // 갈 곳은 다시 접속할 때와 같은 규칙 (EntryRouter)
+        StartCoroutine(EntryRouter.Go(OnFailLogin));
     }
 
     void OnFailLogin(long code, string error)
