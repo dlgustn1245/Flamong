@@ -64,13 +64,38 @@ public class NetworkManager : Singleton<NetworkManager>
 		Dictionary<string, string> headers = null,
 		int timeout = 60)
 	{
+		return SendJson("POST", url, jsonData, onSuccess, onError, headers, timeout);
+	}
+
+	// 일부만 고치는 요청 (PATCH /players/me). 형식은 POST 와 같다
+	public IEnumerator PatchRequest<TRequest, TResponse>(
+		string url,
+		TRequest jsonData,
+		Action<TResponse> onSuccess,
+		Action<long, string> onError,
+		Dictionary<string, string> headers = null,
+		int timeout = 60)
+	{
+		return SendJson("PATCH", url, jsonData, onSuccess, onError, headers, timeout);
+	}
+
+	// JSON 본문을 보내는 요청 (POST · PATCH 공통)
+	IEnumerator SendJson<TRequest, TResponse>(
+		string method,
+		string url,
+		TRequest jsonData,
+		Action<TResponse> onSuccess,
+		Action<long, string> onError,
+		Dictionary<string, string> headers,
+		int timeout)
+	{
 		string jsonString = JsonUtility.ToJson(jsonData);
 		byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
-        
-		// 본문은 찍지 않는다. 가입 · 로그인 요청에 비밀번호가 원문으로 들어 있고, 웹 빌드에서는 브라우저 콘솔에 그대로 남는다
-		print($"POST [ url : {url} ]");
 
-		var request = new UnityWebRequest(url, "POST");
+		// 본문은 찍지 않는다. 가입 · 로그인 요청에 비밀번호가 원문으로 들어 있고, 웹 빌드에서는 브라우저 콘솔에 그대로 남는다
+		print($"{method} [ url : {url} ]");
+
+		var request = new UnityWebRequest(url, method);
 		request.uploadHandler = new UploadHandlerRaw(jsonBytes);
 		request.downloadHandler = new DownloadHandlerBuffer();
 		request.SetRequestHeader("Content-Type", "application/json");

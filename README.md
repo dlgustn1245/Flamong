@@ -294,9 +294,10 @@ Assets/Content/<씬>/
 Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장, 싱글톤)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
-  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · EntryRouter(들어갈 곳)
+  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · EntryRouter(들어갈 곳)
   03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
+                                · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일))
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
   index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
@@ -318,7 +319,11 @@ Server/
 |---|---|---|
 | Canvas - Main | 0 | 배경 · 제목 · 고정 버튼 |
 | Canvas - Dynamic | 1 | 스크롤 목록, 회전하는 알처럼 매 프레임 움직이는 것만 |
-| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 확인 팝업. 기본 꺼짐. GraphicRaycaster 필수. 서버 오류 창은 공통 프리팹 `Panel - Error`를 놓는다(Title · Intro · Hatch · Main) |
+| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 씬마다의 창(설정 · 결과 등). 기본 꺼짐. GraphicRaycaster 필수 |
+| 확인 창 (공통 프리팹 `Panel - Confirm`) | 3 | 팝업 위에서 「정말 할까요?」를 묻는다(Main 설정 창) |
+| 오류 창 (공통 프리팹 `Panel - Error`) | 4 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main |
+
+같은 순서끼리는 하이어라키에서 뒤에 있어도 위에 그려진다는 보장이 없다(설정 창 뒤에 확인 창이 숨은 적이 있음). 겹쳐 뜰 수 있는 창은 순서 숫자로 나눈다.
 
 움직이는 UI를 따로 두면 그것이 움직여도 배경과 버튼까지 다시 그려지지 않는다. 누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다.
 

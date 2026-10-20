@@ -23,15 +23,23 @@ public class MainScene : MonoBehaviour
     public Sprite[] characterSprites;
     
     public ErrorPanel errorPanel;
+    public ConfirmPanel confirmPanel;
 
     public Button settingButton;
     public Button settingCloseButton;
     public GameObject settingPanel;
+
+    public TMP_InputField currTeam;
+    public TMP_InputField currName;
+    public TextMeshProUGUI currNickName;
+
+    public Button patchPlayerInfo;
+    public Button resetPlayer;
+    public Button logOut;
+    public Button ask;
     
-    int heartTaps;   // 쓰다 만 터치 수. 규칙과 무관한 표시용 값이라 기기에만 저장 (README)
-
+    int heartTaps;
     Dictionary<string, string> header;
-
     bool isSending;
 
     void Start()
@@ -47,14 +55,29 @@ public class MainScene : MonoBehaviour
     void BindButtonEvents()
     {
         heartButton.onClick.AddListener(OnClickHeartButton);
-        settingButton.onClick.AddListener(() =>
-        {
-            settingPanel.SetActive(true);
-        });
+        settingButton.onClick.AddListener(OpenSetting);
         settingCloseButton.onClick.AddListener(() =>
         {
             settingPanel.SetActive(false);
         });
+        patchPlayerInfo.onClick.AddListener(() =>
+        {
+            if (string.IsNullOrEmpty(currTeam.text) && string.IsNullOrEmpty(currName.text))
+            {
+                return;
+            }
+            confirmPanel.Show("정보를 수정할까요?", PatchPlayer);
+        });
+    }
+    
+    void OnDestroy()
+    {
+        PlayerPrefs.Save();
+        heartButton.onClick.RemoveAllListeners();
+        settingButton.onClick.RemoveAllListeners();
+        settingCloseButton.onClick.RemoveAllListeners();
+        patchPlayerInfo.onClick.RemoveAllListeners();
+        StopAllCoroutines();
     }
 
     void Init()
@@ -78,6 +101,17 @@ public class MainScene : MonoBehaviour
         SessionState.Instance.team = body.team;
         SessionState.Instance.playerName = body.name;
         SessionState.Instance.nickName = body.nickname;
+    }
+
+    void OpenSetting()
+    {
+        var session = SessionState.Instance;
+        currNickName.text = session.nickName;
+        ((TMP_Text)currName.placeholder).SetText(session.playerName);
+        ((TMP_Text)currTeam.placeholder).SetText(session.team);
+        currTeam.text = string.Empty;
+        currName.text = string.Empty;
+        settingPanel.SetActive(true);
     }
     
     void ShowCharacter(int speciesId)
@@ -143,6 +177,58 @@ public class MainScene : MonoBehaviour
         }
     }
 
+    void PatchPlayer()
+    {
+        var body = new PatchPlayerRequestBody
+        {
+            team = string.IsNullOrEmpty(currTeam.text) ? 
+                SessionState.Instance.team : currTeam.text,
+            name = string.IsNullOrEmpty(currName.text) ? 
+                SessionState.Instance.playerName : currName.text
+        };
+        StartCoroutine(NetworkManager.Instance.PatchRequest<PatchPlayerRequestBody, PatchPlayerResponse>
+        (
+            $"{NetworkManager.BASE_URL}/players/me", 
+            body, 
+            OnSuccessPatchPlayer, 
+            OnFailPatchPlayer,
+            header
+            ));
+    }
+
+    void OnSuccessPatchPlayer(PatchPlayerResponse response)
+    {
+        if (response.body.ok)
+        {
+            print("Patch Player Success");
+            if (!string.IsNullOrEmpty(currTeam.text))
+            {
+                SessionState.Instance.team = currTeam.text;
+            }
+            if (!string.IsNullOrEmpty(currName.text))
+            {
+                SessionState.Instance.playerName = currName.text;
+            }
+            OpenSetting();
+        }
+        else
+        {
+            print("Patch Player Failed: ok->false");
+            errorPanel.Show(PatchPlayer);
+        }
+    }
+
+    void OnFailPatchPlayer(long code, string error)
+    {
+        print($"Patch Player Failed: {error}");
+        if (code == 401)   // 서버가 모르는 계정
+        {
+            EntryRouter.GoToLogin();
+            return;
+        }
+        errorPanel.Show(PatchPlayer);
+    }
+
     IEnumerator PostTap()
     {
         isSending = true;
@@ -176,14 +262,5 @@ public class MainScene : MonoBehaviour
         {
             PlayerPrefs.Save();
         }
-    }
-
-    void OnDestroy()
-    {
-        PlayerPrefs.Save();
-        heartButton.onClick.RemoveAllListeners();
-        settingButton.onClick.RemoveAllListeners();
-        settingCloseButton.onClick.RemoveAllListeners();
-        StopAllCoroutines();
     }
 }

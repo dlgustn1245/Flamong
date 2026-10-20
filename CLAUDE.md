@@ -96,6 +96,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 
 -   **매 프레임 움직이는 UI**(스크롤 목록, 회전)는 `Canvas - Dynamic`(그리기 순서 1)에 따로 둔다. 캔버스 안의 하나가 바뀌면 그 캔버스 전체가 다시 그려지기 때문이다.
 -   **팝업**은 `Canvas - Main` 아래 하위 Canvas(Override Sorting, 순서 2) + GraphicRaycaster로 만들고 기본은 꺼 둔다. GraphicRaycaster가 없으면 버튼이 눌리지 않는다.
+    공통 프리팹은 확인 창(`Panel - Confirm`) 3, 오류 창(`Panel - Error`) 4. 같은 순서끼리는 위아래가 보장되지 않으므로 겹쳐 뜰 수 있는 창은 숫자를 나눈다.
 -   누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다. 장식 이미지·글자는 Raycast Target을 끈다.
 -   스크롤 뷰포트는 Mask 대신 RectMask2D. 가장자리 페이드는 RectMask2D Softness로 한다.
 -   UI에 Animator를 붙이지 않는다. 값이 그대로여도 매 프레임 UI를 다시 그리게 만든다. 움직임은 코루틴이나 `Update`로 직접 준다.

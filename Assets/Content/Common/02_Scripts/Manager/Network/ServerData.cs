@@ -40,6 +40,24 @@ namespace ServerData
 	{
 		public string playerId;
 	}
+	
+	public class PatchPlayerRequestBody
+	{
+		public string team;
+		public string name;
+	}
+
+	public class PatchPlayerResponse
+	{
+		public int statusCode; 
+		public PatchPlayerResponseBody body;
+	}
+
+	[Serializable]
+	public class PatchPlayerResponseBody
+	{
+		public bool ok;
+	}
 
 	public class PostCharacterRequestBody
 	{
