@@ -7,8 +7,6 @@ using UnityEngine.UI;
 
 public class MainScene : MonoBehaviour
 {
-    readonly string HEART_TAPS_KEY = "HeartsTaps";
-    
     public Button heartButton;
     public Image heartFill;
     public TextMeshProUGUI touchCountText;
@@ -36,7 +34,7 @@ public class MainScene : MonoBehaviour
     public Button patchPlayerInfo;
     public Button resetPlayer;
     public Button logOut;
-    public Button ask;
+    public Button contact;
     
     int heartTaps;
     Dictionary<string, string> header;
@@ -47,7 +45,7 @@ public class MainScene : MonoBehaviour
         header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         heartButton.interactable = false;
         characterImage.enabled = false;   // /me 응답 전에 씬의 기본 그림이 잠깐 보이지 않게
-        heartTaps = PlayerPrefs.GetInt(HEART_TAPS_KEY);
+        heartTaps = PlayerPrefs.GetInt(SessionState.HEART_TAPS_KEY);
         Init();
         BindButtonEvents();
     }
@@ -68,6 +66,10 @@ public class MainScene : MonoBehaviour
             }
             confirmPanel.Show("정보를 수정할까요?", PatchPlayer);
         });
+        logOut.onClick.AddListener(() =>
+        {
+            confirmPanel.Show("로그아웃할까요?", LogOut);
+        });
     }
     
     void OnDestroy()
@@ -77,7 +79,21 @@ public class MainScene : MonoBehaviour
         settingButton.onClick.RemoveAllListeners();
         settingCloseButton.onClick.RemoveAllListeners();
         patchPlayerInfo.onClick.RemoveAllListeners();
+        logOut.onClick.RemoveAllListeners();
+        resetPlayer.onClick.RemoveAllListeners();
+        contact.onClick.RemoveAllListeners();
         StopAllCoroutines();
+    }
+
+    void LogOut()
+    {
+        SessionState.Instance.playerId =
+            SessionState.Instance.team =
+                SessionState.Instance.playerName =
+                    SessionState.Instance.nickName = string.Empty;
+        PlayerPrefs.DeleteKey(SessionState.HEART_TAPS_KEY);
+        SessionState.Instance.SavePlayerId();
+        SceneLoader.Load(SceneName.TitleScene);
     }
 
     void Init()
@@ -168,7 +184,7 @@ public class MainScene : MonoBehaviour
         }
         
         heartFill.fillAmount = ++heartTaps / 10f;
-        PlayerPrefs.SetInt(HEART_TAPS_KEY, heartTaps);   // 메모리에만 적는다. 파일 쓰기는 화면을 떠날 때
+        PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, heartTaps);   // 메모리에만 적는다. 파일 쓰기는 화면을 떠날 때
 
         heartParticles.Emit(1);
         if (heartTaps >= 10)
@@ -240,7 +256,7 @@ public class MainScene : MonoBehaviour
     void OnSuccessTap(TapResponse response)
     {
         heartTaps = 0;
-        PlayerPrefs.SetInt(HEART_TAPS_KEY, 0);
+        PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, 0);
         Apply(response.body.growth);
         heartParticles.Emit(5);
         if (response.body.levelUp || response.body.growth.completed)

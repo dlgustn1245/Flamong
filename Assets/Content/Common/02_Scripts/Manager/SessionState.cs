@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class SessionState : Singleton<SessionState>
 {
+    public static readonly string HEART_TAPS_KEY = "HeartsTaps";
     public string playerId;
     public int eggIdx;
     public int speciesId;

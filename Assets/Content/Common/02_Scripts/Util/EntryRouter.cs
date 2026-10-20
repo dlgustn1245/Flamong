@@ -57,6 +57,7 @@ public static class EntryRouter
     public static void GoToLogin()
     {
         SessionState.Instance.playerId = string.Empty;
+        PlayerPrefs.DeleteKey(SessionState.HEART_TAPS_KEY); 
         SessionState.Instance.SavePlayerId();
         SceneLoader.Load(SceneName.LoginScene);
     }
