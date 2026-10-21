@@ -69,7 +69,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 -   **`Texture2D.isReadable = true`**: CPU·GPU 양쪽에 복사본이 생겨 메모리 2배. 임포트 설정에서 Read/Write 끈다.
 -   **`Resources.Load` 남용**: `Resources/` 폴더는 전부 빌드에 포함되어 다운로드 크기를 늘린다. 씬 참조 또는 Addressables.
 -   **비압축 텍스처**: 임포트 시 반드시 압축(WebGL 빌드 설정 Texture Compression = ASTC, Fallback DXT). UI는 Mipmap 끈다.
--   **`DontDestroyOnLoad` 남용**: `Singleton<T>`인 `NetworkManager` · `SessionState` 2개만 허용. 둘 다 Title 씬에 둔다. 화면 오브젝트는 씬과 함께 죽는다.
+-   **`DontDestroyOnLoad` 남용**: `Singleton<T>`인 `NetworkManager` · `SessionState` · `SoundManager` 3개만 허용. 셋 다 Title 씬에 둔다. `SoundManager`는 배경음이 씬을 넘어가도 끊기지 않게 하려고 둔다. 화면 오브젝트는 씬과 함께 죽는다.
 -   **`Instantiate`/`Destroy` 반복**: 하트·파티클 같은 반복 생성물은 **오브젝트 풀**. 풀 크기는 상한을 두고 초과 시 재사용.
 -   **예외 지원 Full**: `webGLExceptionSupport`는 1(명시적 throw만) 유지. Full은 코드 크기 30% 증가.
 

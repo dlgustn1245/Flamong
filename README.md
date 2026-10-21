@@ -23,13 +23,13 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 | # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
 |---|---|---|---|---|---|
-| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState 싱글톤이 이 씬에 있음 |
+| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState · SoundManager 싱글톤이 이 씬에 있음 |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro`. 다음 → 들어갈 곳으로 | `GET /me` | 1.0 | 구현 |
 | 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내 |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 결과 창(캐릭터 그림) · 오류 창 구현. **룰렛이 멈추는 연출은 아직**(정지 규칙 미정, 지금은 누르면 바로 결과) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
-| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 소리 · 문의는 아직 |
+| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 소리는 배경음 · 효과음 슬라이더와 `SoundManager`(Title)까지, 슬라이더 연결과 소리 파일은 아직. 문의는 아직 |
 | 8 | Collection | 알 계열 3종의 진화 5단계. 미해금은 `?`. 어느 계열을 보여 줄지는 「미정」 | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
@@ -296,6 +296,7 @@ Assets/Content/<씬>/
   03_Art/                       씬별 텍스처·오디오 (씬별 아틀라스)
 Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장 · 터치 수 저장 열쇠 `HEART_TAPS_KEY`, 싱글톤)
+                                · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · EntryRouter(들어갈 곳)
   03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character

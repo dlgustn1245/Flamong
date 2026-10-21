@@ -36,6 +36,9 @@ public class MainScene : MonoBehaviour
     public Button logOut;
     public Button contact;
     
+    public Slider bgmSlider;
+    public Slider sfxSlider;
+    
     int heartTaps;
     Dictionary<string, string> header;
     bool isSending;
@@ -78,6 +81,9 @@ public class MainScene : MonoBehaviour
                     : "아직 다 자라지 않았어요.\n지금 새로 키우면 도감에 남지 않아요.\n새로 키우시겠어요?",
                 ResetCharacter);
         });
+        
+        bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
+        sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
     }
     
     void OnDestroy()
@@ -90,6 +96,8 @@ public class MainScene : MonoBehaviour
         logOut.onClick.RemoveAllListeners();
         resetPlayer.onClick.RemoveAllListeners();
         contact.onClick.RemoveAllListeners();
+        bgmSlider.onValueChanged.RemoveAllListeners();
+        sfxSlider.onValueChanged.RemoveAllListeners();
         StopAllCoroutines();
     }
 
@@ -172,6 +180,8 @@ public class MainScene : MonoBehaviour
         ((TMP_Text)currTeam.placeholder).SetText(session.team);
         currTeam.text = string.Empty;
         currName.text = string.Empty;
+        bgmSlider.SetValueWithoutNotify(SoundManager.Instance.BgmVolume);
+        sfxSlider.SetValueWithoutNotify(SoundManager.Instance.SfxVolume);
         settingPanel.SetActive(true);
     }
     
