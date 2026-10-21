@@ -29,8 +29,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 결과 창(캐릭터 그림) · 오류 창 구현. **룰렛이 멈추는 연출은 아직**(정지 규칙 미정, 지금은 누르면 바로 결과) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
-| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) 구현. 소리 · 새로 키우기 · 문의는 아직. 새로 키우기 서버(`/characters/reset`)는 구현 |
-| 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
+| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 소리 · 문의는 아직 |
+| 8 | Collection | 알 계열 3종의 진화 5단계. 미해금은 `?`. 어느 계열을 보여 줄지는 「미정」 | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
 | 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 | 빈 씬 |
@@ -153,7 +153,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 알이 색 계열을 정하고, 그 안에서 서버가 균등 랜덤으로 캐릭터를 뽑는다. 클라이언트 랜덤 금지(새로고침 리롤 방지).
 - `speciesId = eggId × 3 + (0~2)`. 알당 3종은 임시값이고 `rules/species.js`의 숫자 하나로 바뀐다(「미정」 캐릭터 수).
 - 처음에는 선택 가능한 알 4종 × 3 = 12종으로 정했다. 8종 모두 고를 수 있게 되면서 캐릭터 수는 다시 정해야 한다(「미정」 참고).
-- 도감은 내 알 계열 3종만. 완성(Lv5 게이지 가득)한 캐릭터만 해금, 나머지 `?`.
+- 도감 범위는 미정이다(「미정」 참고). 리셋 때 다른 알을 고를 수 있어서 「내 알 계열」이 하나로 정해지지 않는다. 완성(Lv5 게이지 가득)한 캐릭터만 해금, 나머지 `?`.
 
 ### 닉네임
 - 1~12자. 허용 글자는 **KS X 1001 완성형 한글 2350자 + ASCII**다. 꾸불림체 폰트 아틀라스와 같은 범위라서, 아틀라스 밖 글자가 □로 보이는 일을 막는다.
@@ -162,7 +162,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ### 캐릭터 새로 키우기 (리셋)
 - 지금 캐릭터 행에 `ended_at`을 기록해 보관한다(지우지 않음, 유저 삭제 아님). 새 `character` 행은 알을 다시 골라 `POST /characters`에서 만든다.
-- 그 사이 `/me`의 `speciesId`는 -1이라, 리셋 후 앱을 껐다 켜도 EggSelect로 간다.
+- 리셋 뒤에는 EggSelect로 가서 **다른 알도 고를 수 있다**. 그 사이 `/me`의 `speciesId`는 -1이라, 앱을 껐다 켜도 EggSelect로 간다.
+- 클라이언트는 `eggIdx`를 따로 지우지 않는다. EggSelect에서 알을 고를 때 새 값으로 덮어쓴다. 쓰다 만 터치 수(`HeartsTaps`)도 하트처럼 이어진다.
 - 응답을 못 받고 다시 보내도 `{ ok }`(이미 끝났으면 그대로). `event`의 `reset`에는 끝낸 캐릭터의 `speciesId` · 애정도 · 완성 여부를 남긴다.
 - 유지: 도감 해금 · 랭킹 · 로그 · 프로필 · **남은 하트**. 초기화: 애정도 · 레벨.
 - 완성 전 리셋은 도감에 남지 않음. 경고 팝업 1회.
@@ -240,7 +241,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/characters/reset` | `{}` | `{ ok }` · 지금 캐릭터를 끝내 보관(`ended_at`). 남은 하트는 그대로. 캐릭터가 없으면(재시도) 그대로 ok **(구현)** | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
 | POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
-| GET | `/collection` | - | `{ eggId, species: [{ id, unlocked }] }` | 1.1 |
+| GET | `/collection` | - | `{ eggId, species: [{ id, unlocked }] }` · 모양은 도감 범위(「미정」)에 따라 다시 정한다 | 1.1 |
 | POST | `/scores` | `{ score }` | `{ best, rank, levelUp, growth }` · 하루 첫 플레이면 애정도 +2 반영 | 1.1 |
 | GET | `/rankings?month=YYYY-MM` | - | `[{ nickname, best }]` 상위 20 | 1.1 |
 | GET | `/missions` | - | `[{ id, done, claimed }]` | 1.2 |
@@ -383,6 +384,7 @@ Server/
 - 시안 12장 보관 위치. 세션 임시 폴더에서 지워졌으니 `Docs/Mockups/` 같은 곳에 두는 것을 권한다.
 - 꾸불림체 라이선스 원문 확인과 보관.
 - **한글 동적 폰트 폴백.** 아틀라스 밖 한글 8,822자(「슽」, 입력 중의 「잏」 등)가 □로 보인다. TTF(2.9MB)를 동적 폴백으로 넣을지 첫 빌드 크기를 보고 정한다. 넣으면 닉네임 허용 범위를 넓힐지도 함께 정한다.
+- **도감 범위.** 리셋 때 다른 알도 고를 수 있으므로, 지금 키우는 알 계열 3종만 보여 줄지 완성한 적 있는 모든 계열을 보여 줄지. `/collection` 응답 모양(`eggId` 하나)도 이에 따라 바뀐다. 1.1 전에 정한다.
 - **Hatch 룰렛 정지 규칙.** 포인터 위에 멈춘 알과 서버가 뽑은 결과를 어떻게 맞출지.
 - 오늘의 감정 팝업 디자인과 감정 아이콘 5종 이미지. 시안에 없다.
 - Main 상단 홈 아이콘의 동작. 이미 홈이라 의미가 겹친다(숨김 또는 새로고침 제안).

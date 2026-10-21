@@ -39,6 +39,7 @@ public class MainScene : MonoBehaviour
     int heartTaps;
     Dictionary<string, string> header;
     bool isSending;
+    bool isCompleted;
 
     void Start()
     {
@@ -70,6 +71,13 @@ public class MainScene : MonoBehaviour
         {
             confirmPanel.Show("로그아웃할까요?", LogOut);
         });
+        resetPlayer.onClick.AddListener(() =>
+        {
+            confirmPanel.Show(isCompleted
+                    ? "캐릭터를 새로 키우시겠어요?"
+                    : "아직 다 자라지 않았어요.\n지금 새로 키우면 도감에 남지 않아요.\n새로 키우시겠어요?",
+                ResetCharacter);
+        });
     }
     
     void OnDestroy()
@@ -94,6 +102,43 @@ public class MainScene : MonoBehaviour
         PlayerPrefs.DeleteKey(SessionState.HEART_TAPS_KEY);
         SessionState.Instance.SavePlayerId();
         SceneLoader.Load(SceneName.TitleScene);
+    }
+
+    void ResetCharacter()
+    {
+        StartCoroutine(NetworkManager.Instance.PostRequest<EmptyBody, OkResponse>(
+            $"{NetworkManager.BASE_URL}/characters/reset",
+            new EmptyBody(),
+            OnSuccessResetCharacter,
+            OnFailResetCharacter,
+            header));
+    }
+
+    void OnSuccessResetCharacter(OkResponse response)
+    {
+        if (response.statusCode == 200 && response.body.ok)
+        {
+            print("Reset Character Success");
+            SceneLoader.Load(SceneName.EggSelectScene);
+        }
+        else
+        {
+            print("Reset Character Failed.");
+            print($"status code: {response.statusCode}");
+            print($"status ok: {response.body.ok}");
+            errorPanel.Show(ResetCharacter);
+        }
+    }
+
+    void OnFailResetCharacter(long code, string error)
+    {
+        print("Reset Character Fail");
+        if (code == 401)
+        {
+            EntryRouter.GoToLogin();
+            return;
+        }
+        errorPanel.Show(ResetCharacter);
     }
 
     void Init()
@@ -155,6 +200,7 @@ public class MainScene : MonoBehaviour
         touchCountText.SetText("남은 하트: {0}", growth.hearts);
         loveLevelText.SetText("Lv {0}", growth.level);
         SetHeartHintText(growth);
+        isCompleted = growth.completed;
         gaugeFill.fillAmount = (float)growth.levelProgress / growth.levelNeed;
         heartButton.interactable = growth.hearts > 0 && !growth.completed;
         heartFill.fillAmount = heartButton.interactable ? heartTaps / 10f : 0f;
@@ -202,7 +248,7 @@ public class MainScene : MonoBehaviour
             name = string.IsNullOrEmpty(currName.text) ? 
                 SessionState.Instance.playerName : currName.text
         };
-        StartCoroutine(NetworkManager.Instance.PatchRequest<PatchPlayerRequestBody, PatchPlayerResponse>
+        StartCoroutine(NetworkManager.Instance.PatchRequest<PatchPlayerRequestBody, OkResponse>
         (
             $"{NetworkManager.BASE_URL}/players/me", 
             body, 
@@ -212,7 +258,7 @@ public class MainScene : MonoBehaviour
             ));
     }
 
-    void OnSuccessPatchPlayer(PatchPlayerResponse response)
+    void OnSuccessPatchPlayer(OkResponse response)
     {
         if (response.body.ok)
         {

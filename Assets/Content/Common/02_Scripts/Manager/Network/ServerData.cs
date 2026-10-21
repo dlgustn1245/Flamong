@@ -47,14 +47,14 @@ namespace ServerData
 		public string name;
 	}
 
-	public class PatchPlayerResponse
+	public class OkResponse
 	{
 		public int statusCode; 
-		public PatchPlayerResponseBody body;
+		public OkBody body;
 	}
 
 	[Serializable]
-	public class PatchPlayerResponseBody
+	public class OkBody
 	{
 		public bool ok;
 	}
