@@ -29,7 +29,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 결과 창(캐릭터 그림) · 오류 창 구현. **룰렛이 멈추는 연출은 아직**(정지 규칙 미정, 지금은 누르면 바로 결과) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
-| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) 구현. 소리 · 새로 키우기 · 문의는 아직. `/characters/reset` 서버도 아직 |
+| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) 구현. 소리 · 새로 키우기 · 문의는 아직. 새로 키우기 서버(`/characters/reset`)는 구현 |
 | 8 | Collection | 내 알 계열 3종의 진화 5단계. 미해금은 `?` | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
@@ -161,7 +161,9 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 자모 단독(ㅋㅋ), 「뷁」 같은 완성형 밖 글자, 이모지, 전각 문자는 쓸 수 없다. 자모는 입력 중 표시용으로 폰트 폴백에 있지만 닉네임에는 허용하지 않는다. Login 입력칸도 12자로 제한했다.
 
 ### 캐릭터 새로 키우기 (리셋)
-- 새 `character` 행 생성, 이전 행은 `ended_at` 기록 후 보관. 유저 삭제 아님.
+- 지금 캐릭터 행에 `ended_at`을 기록해 보관한다(지우지 않음, 유저 삭제 아님). 새 `character` 행은 알을 다시 골라 `POST /characters`에서 만든다.
+- 그 사이 `/me`의 `speciesId`는 -1이라, 리셋 후 앱을 껐다 켜도 EggSelect로 간다.
+- 응답을 못 받고 다시 보내도 `{ ok }`(이미 끝났으면 그대로). `event`의 `reset`에는 끝낸 캐릭터의 `speciesId` · 애정도 · 완성 여부를 남긴다.
 - 유지: 도감 해금 · 랭킹 · 로그 · 프로필 · **남은 하트**. 초기화: 애정도 · 레벨.
 - 완성 전 리셋은 도감에 남지 않음. 경고 팝업 1회.
 
@@ -223,7 +225,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
 에러는 `body: { error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 
-**1.0 서버 API 중 `/characters/reset`을 뺀 9개가 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 15개 통과). 1.1 이후는 설계만 있다.
+**1.0 서버 API 10개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 16개 통과). 1.1 이후는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -235,7 +237,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
 | GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1. 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
-| POST | `/characters/reset` | - | `{ ok }` | 1.0 |
+| POST | `/characters/reset` | `{}` | `{ ok }` · 지금 캐릭터를 끝내 보관(`ended_at`). 남은 하트는 그대로. 캐릭터가 없으면(재시도) 그대로 ok **(구현)** | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
 | POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
 | GET | `/collection` | - | `{ eggId, species: [{ id, unlocked }] }` | 1.1 |

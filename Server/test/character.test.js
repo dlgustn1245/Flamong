@@ -62,6 +62,7 @@ test('X-Player-Id 가 없거나 모르는 id 면 401 · 404 는 없는 주소에
   assert.deepEqual(await call(app, 'GET', '/me', { 'x-player-id': 'nope' }), { code: 401, body: { error: 'unknown_player' } });
   assert.equal((await call(app, 'POST', '/tap', { 'x-player-id': 'nope' }, {})).code, 401);
   assert.equal((await call(app, 'POST', '/characters', { 'x-player-id': 'nope' }, { eggId: 0 })).code, 401);
+  assert.equal((await call(app, 'POST', '/characters/reset', { 'x-player-id': 'nope' }, {})).code, 401);
   assert.equal((await call(app, 'GET', '/nope')).code, 404);
 });
 
@@ -119,6 +120,35 @@ test('오늘의 감정: +2 · 하루 1회 · 두 번째는 애정도도 오르�
   assert.equal(second.body.growth.affection, 4);
   const crossing = await call(app, 'POST', '/tap', h, {});   // 4 → 5 레벨업은 탭으로도
   assert.equal(crossing.body.levelUp, true);
+});
+
+test('새로 키우기: 지금 캐릭터는 보관 · 하트는 그대로 · 재시도해도 ok · 알을 다시 고르면 새 캐릭터', async () => {
+  const { app, db } = setup();
+  const h = await signup(app);
+  await call(app, 'POST', '/characters', h, { eggId: 0 });
+  for (let i = 0; i < 3; i++) await call(app, 'POST', '/tap', h, {});
+
+  assert.deepEqual(await call(app, 'POST', '/characters/reset', h, {}), { code: 200, body: { ok: true } });
+  const me = await call(app, 'GET', '/me', h);
+  assert.equal(me.body.speciesId, -1);   // 클라이언트는 EggSelect 로
+  assert.deepEqual(me.body.growth, growth(2, 0, 1, 0, 5));   // 하트 5 - 3 = 2 유지, 애정도 · 레벨은 처음부터
+  assert.equal((await call(app, 'POST', '/tap', h, {})).body.error, 'no_character');
+
+  // 응답을 못 받고 다시 보내도 ok, 기록은 한 번
+  assert.deepEqual(await call(app, 'POST', '/characters/reset', h, {}), { code: 200, body: { ok: true } });
+  const events = db.prepare("SELECT payload FROM event WHERE type = 'reset'").all();
+  assert.equal(events.length, 1);
+  assert.equal(JSON.parse(events[0].payload).completed, false);
+
+  const hatch = await call(app, 'POST', '/characters', h, { eggId: 5 });
+  assert.ok(hatch.body.speciesId >= 15 && hatch.body.speciesId <= 17);
+  assert.equal((await call(app, 'GET', '/me', h)).body.speciesId, hatch.body.speciesId);
+  // 이전 캐릭터는 지우지 않고 애정도와 함께 보관
+  const rows = db.prepare('SELECT affection, ended_at FROM character ORDER BY id').all();
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].affection, 3);
+  assert.ok(rows[0].ended_at);
+  assert.equal(rows[1].ended_at, null);
 });
 
 test('완성(175): 레벨업 없이 completed → 이후 탭은 409 · 감정은 기록만', async () => {

@@ -16,6 +16,7 @@ export default async function character(app, { db, now }) {
   const insertEmotion = db.prepare('INSERT INTO emotion_log (player_id, date, emotion) VALUES (?, ?, ?)');
   const setHearts = db.prepare('UPDATE player SET hearts = ?, hearts_date = ? WHERE id = ?');
   const setAffection = db.prepare('UPDATE character SET affection = ? WHERE id = ?');
+  const endCharacter = db.prepare('UPDATE character SET ended_at = ? WHERE id = ?');
 
   /**
    * 헤더의 playerId 로 플레이어를 찾는다. 없으면 에러 응답을 보내고 null.
@@ -71,6 +72,21 @@ export default async function character(app, { db, now }) {
     insertCharacter.run(p.id, speciesId, now().toISOString());
     logEvent(db, p.id, 'hatch', { eggId, speciesId }, now);
     return { speciesId };
+  });
+
+  // 새로 키우기. 지금 캐릭터는 ended_at 을 적어 보관만 하고, 새 캐릭터는 알을 다시 골라 POST /characters 로 만든다.
+  // 그 사이 /me 의 speciesId 가 -1 이라 앱을 껐다 켜도 EggSelect 로 간다. 하트는 플레이어 것이라 그대로 둔다.
+  // 활성 캐릭터가 없으면(응답을 못 받고 재시도) 이미 끝난 것이므로 그대로 ok
+  app.post('/characters/reset', (req, reply) => {
+    const p = playerOf(req, reply);
+    if (!p) return reply;
+    const c = getActive.get(p.id);
+    if (!c) return { ok: true };
+    tx(db, () => {
+      endCharacter.run(now().toISOString(), c.id);
+      logEvent(db, p.id, 'reset', { speciesId: c.species_id, affection: c.affection, completed: levelOf(c.affection).completed }, now);
+    });
+    return { ok: true };
   });
 
   // 하트 1개 사용. 터치 10번은 클라이언트 연출이고 서버는 저장량만 본다

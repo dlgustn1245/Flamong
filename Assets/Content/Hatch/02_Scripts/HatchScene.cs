@@ -48,8 +48,6 @@ public class HatchScene : MonoBehaviour
         if (response.statusCode == 200)
         {
             int speciesId = response.body.speciesId;
-            print($"Species Id: {speciesId}");
-            SessionState.Instance.speciesId = speciesId;
             if (speciesId >= 0 && speciesId < characterSprites.Length)
             {
                 characterImage.sprite = characterSprites[speciesId];

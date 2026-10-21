@@ -38,7 +38,6 @@ public static class EntryRouter
                 session.team = me.team;
                 session.playerName = me.name;
                 session.nickName = me.nickname;
-                session.speciesId = me.speciesId;
                 // 가입만 하고 알을 고르기 전에 나간 사람은 알 고르기부터
                 SceneLoader.Load(me.speciesId < 0 ? SceneName.EggSelectScene : SceneName.MainScene);
             },
