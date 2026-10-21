@@ -86,7 +86,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 ## 화면 전환 규칙
 
 1.  화면마다 **씬 1개**, `Assets/Content/<씬>/01_Scenes/<씬>.unity`. `LoadSceneMode.Single`만 사용. Additive 금지.
-    씬 스크립트는 자기 `02_Scripts/`와 `Common/02_Scripts/`만 참조한다. 폴더 이름에 `Resources`를 쓰지 않는다.
+    씬 스크립트는 자기 `02_Scripts/`와 `Common/02_Scripts/`만 참조한다. 이름이 정확히 `Resources`인 폴더는 만들지 않는다(안의 파일이 전부 빌드에 들어간다). 에셋 폴더 `03_Resources`처럼 앞에 번호가 붙은 이름은 특수 폴더가 아니다.
 2.  씬 로드 직후 `Resources.UnloadUnusedAssets()` → `GC.Collect()` 순서로 1회 호출. 그 외 위치에서 `GC.Collect()` 금지.
 3.  씬 간 데이터는 `SessionState`(싱글톤) 하나로만 전달. 값(문자열 · 숫자 · DTO)만 담고 씬 오브젝트 참조는 담지 않는다.
     싱글톤이 Title 씬에 있으므로, 중간 씬을 에디터에서 바로 플레이하면 `Instance`가 null이다. Title부터 플레이한다.

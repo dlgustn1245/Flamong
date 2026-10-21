@@ -142,7 +142,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 하트 파티클은 Main의 **20개 풀**을 돌려 쓴다. 터치마다 1개, 하트 전달 때 5개, 레벨업 때 10개를 더 띄운다. 초당 4번 연타 중 레벨업해도 떠 있던 4개 + 16개 = 20개로 딱 맞는다. 더 빠르게 누르면 가장 오래된(거의 사라진) 하트부터 다시 쓴다.
 
 ### 캐릭터
-- 알 이미지 **8종** (`Common/03_Art/Egg/`). EggSelect에서 **8종 모두 고를 수 있게** 배치했다.
+- 알 이미지 **8종** (`Common/03_Resources/Egg/`). EggSelect에서 **8종 모두 고를 수 있게** 배치했다.
 - `eggId`는 EggSelect 목록 순서다. 순서를 바꾸면 서버 값도 바뀐다.
 
   | eggId | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
@@ -293,13 +293,13 @@ Assets/Content/<씬>/
   01_Scenes/<씬>.unity
   02_Scripts/                   씬 컨트롤러(<씬>Scene.cs) + 그 씬에서만 쓰는 컴포넌트. 다른 씬 폴더 참조 금지
                                 두 씬 이상에서 쓰게 되면 Common/02_Scripts 로 옮긴다
-  03_Art/                       씬별 텍스처·오디오 (씬별 아틀라스)
+  03_Resources/                 씬별 텍스처·오디오 (씬별 아틀라스). Unity 특수 폴더 `Resources`와 이름만 비슷하고 동작은 다르다
 Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장 · 터치 수 저장 열쇠 `HEART_TAPS_KEY`, 싱글톤)
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · EntryRouter(들어갈 곳)
-  03_Art/                       Font · Egg · Heart · Icon · UI · Background · Character
+  03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
                                 · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일))
 Assets/Settings/                URP · Input System (Unity 생성)

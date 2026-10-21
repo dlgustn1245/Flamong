@@ -16,9 +16,9 @@ description: 구조 검토 — 씬 단위 분리·SessionState 데이터 흐름�
 ```
 Assets/Content/<씬>/01_Scenes/    씬 1개 = 화면 1개, Single 로드
 Assets/Content/<씬>/02_Scripts/   그 씬의 컨트롤러 (다른 씬 폴더에서 참조 금지)
-Assets/Content/<씬>/03_Art/       씬별 텍스처·오디오
+Assets/Content/<씬>/03_Resources/ 씬별 텍스처·오디오
 Assets/Content/Common/02_Scripts/ Manager(SessionState · SoundManager 싱글톤) · Manager/Network(NetworkManager 싱글톤 · ServerData DTO) · Util(SceneLoader · SceneFader · Singleton)
-Assets/Content/Common/03_Art/     공용 UI 에셋
+Assets/Content/Common/03_Resources/ 공용 UI 에셋
 Server/
   index.js                        Fastify 앱 조립 · 포트 · now() 주입 (진입점)
   db.js                           node:sqlite 열기 · schema.sql 적용 · logEvent
