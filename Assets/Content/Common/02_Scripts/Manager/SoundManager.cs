@@ -22,12 +22,6 @@ public class SoundManager : Singleton<SoundManager>
             return;
         }
 
-        bgmSource.loop = true;
-        bgmSource.playOnAwake = false;
-
-        sfxSource.loop = false;
-        sfxSource.playOnAwake = false;
-        
         bgmSource.volume = PlayerPrefs.GetFloat(BGM_VOLUME_KEY, 1.0f);
         sfxSource.volume = PlayerPrefs.GetFloat(SFX_VOLUME_KEY, 1.0f);
     }

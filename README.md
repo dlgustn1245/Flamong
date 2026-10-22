@@ -29,7 +29,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 결과 창(캐릭터 그림) · 오류 창 구현. **룰렛이 멈추는 연출은 아직**(정지 규칙 미정, 지금은 누르면 바로 결과) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 홈 · 꽃(→꽃밭) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · `speciesId`로 캐릭터 그림(모든 레벨에 Lv1 그림) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`). 오늘의 감정 · 레벨업/완성 안내 · 「준비 중」 안내는 아직 |
-| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 소리는 배경음 · 효과음 슬라이더와 `SoundManager`(Title)까지, 슬라이더 연결과 소리 파일은 아직. 문의는 아직 |
+| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 소리는 배경음 · 효과음 슬라이더 · `SoundManager`(Title) 연결까지, 소리 파일은 아직. 문의는 아직 |
 | 8 | Collection | 알 계열 3종의 진화 5단계. 미해금은 `?`. 어느 계열을 보여 줄지는 「미정」 | `GET /collection` | 1.1 | 빈 씬 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
@@ -298,10 +298,11 @@ Assets/Content/Common/
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장 · 터치 수 저장 열쇠 `HEART_TAPS_KEY`, 싱글톤)
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
-  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · EntryRouter(들어갈 곳)
+  02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · NoticePanel · EntryRouter(들어갈 곳)
   03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
                                 · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일))
+                                · Panel - Notice(문구와 [확인]만 있는 안내 창, NoticePanel.Show(문구))
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
   index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
@@ -325,7 +326,8 @@ Server/
 | Canvas - Dynamic | 1 | 스크롤 목록, 회전하는 알처럼 매 프레임 움직이는 것만 |
 | 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 씬마다의 창(설정 · 결과 등). 기본 꺼짐. GraphicRaycaster 필수 |
 | 확인 창 (공통 프리팹 `Panel - Confirm`) | 3 | 팝업 위에서 「정말 할까요?」를 묻는다(Main 설정 창) |
-| 오류 창 (공통 프리팹 `Panel - Error`) | 4 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main |
+| 안내 창 (공통 프리팹 `Panel - Notice`) | 4 | 「준비 중이에요」 · 레벨업 · 완성처럼 알리기만 한다(Main). 하트 응답이 늦게 와서 확인 창이 떠 있는 동안 레벨업 안내가 뜰 수 있어 확인 창과 숫자를 나눴다 |
+| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main |
 
 같은 순서끼리는 하이어라키에서 뒤에 있어도 위에 그려진다는 보장이 없다(설정 창 뒤에 확인 창이 숨은 적이 있음). 겹쳐 뜰 수 있는 창은 순서 숫자로 나눈다.
 

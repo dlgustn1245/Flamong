@@ -22,6 +22,7 @@ public class MainScene : MonoBehaviour
     
     public ErrorPanel errorPanel;
     public ConfirmPanel confirmPanel;
+    public NoticePanel noticePanel;
 
     public Button settingButton;
     public Button settingCloseButton;
@@ -38,6 +39,11 @@ public class MainScene : MonoBehaviour
     
     public Slider bgmSlider;
     public Slider sfxSlider;
+
+    public Button gardenButton;
+    public Button collectionButton;
+    public Button potionButton;
+    public Button gameButton;
     
     int heartTaps;
     Dictionary<string, string> header;
@@ -82,6 +88,23 @@ public class MainScene : MonoBehaviour
                 ResetCharacter);
         });
         
+        gardenButton.onClick.AddListener(() =>
+        {
+            noticePanel.Show("준비 중이에요");
+        });
+        collectionButton.onClick.AddListener(() =>
+        {
+            noticePanel.Show("준비 중이에요");
+        });
+        potionButton.onClick.AddListener(() =>
+        {
+            noticePanel.Show("준비 중이에요");
+        });
+        gameButton.onClick.AddListener(() =>
+        {
+            noticePanel.Show("준비 중이에요");
+        });
+        
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
     }
@@ -98,6 +121,10 @@ public class MainScene : MonoBehaviour
         contact.onClick.RemoveAllListeners();
         bgmSlider.onValueChanged.RemoveAllListeners();
         sfxSlider.onValueChanged.RemoveAllListeners();
+        gardenButton.onClick.RemoveAllListeners();
+        potionButton.onClick.RemoveAllListeners();
+        collectionButton.onClick.RemoveAllListeners();
+        gameButton.onClick.RemoveAllListeners();
         StopAllCoroutines();
     }
 
@@ -315,9 +342,17 @@ public class MainScene : MonoBehaviour
         PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, 0);
         Apply(response.body.growth);
         heartParticles.Emit(5);
-        if (response.body.levelUp || response.body.growth.completed)
+        if (response.body.levelUp)
         {
             heartParticles.Emit(10);
+            noticePanel.Show($"Lv {response.body.growth.level} 달성!");
+        }
+
+        if (response.body.growth.completed)
+        {
+            heartParticles.Emit(10);
+            noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");
+            //todo 도감 등록
         }
     }
 
