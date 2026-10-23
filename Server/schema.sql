@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS potion (
 CREATE TABLE IF NOT EXISTS event (
   id        INTEGER PRIMARY KEY,
   player_id TEXT,
-  type      TEXT NOT NULL,            -- login login_fail hatch tap emotion game_play game_score potion reset post news delete
+  type      TEXT NOT NULL,            -- login login_fail profile hatch tap emotion game_play game_score potion reset post news delete
   ts        TEXT NOT NULL,
   payload   TEXT
 );

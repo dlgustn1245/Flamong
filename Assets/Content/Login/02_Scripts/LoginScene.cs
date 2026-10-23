@@ -1,4 +1,3 @@
-using System.Collections;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -101,12 +100,6 @@ public class LoginScene : MonoBehaviour
     void OnSuccessCheckNickName(CheckNickNameResponse response)
     {
         checkButtonClicked = false;
-        if (response == null || response.body == null)
-        {
-            ShowResult("서버 응답을 읽을 수 없어요.\n잠시 후 다시 시도해주세요.", false);
-            return;
-        }
-
         if (response.body.available)
         {
             ShowResult(
@@ -147,13 +140,11 @@ public class LoginScene : MonoBehaviour
     {
         ClosePanel();
         nickNameField.text = checkedNickName;
-        StartCoroutine(PostPlayer());
+        PostPlayer();
     }
 
-    IEnumerator PostPlayer()
+    void PostPlayer()
     {
-        string url = $"{NetworkManager.BASE_URL}/players";
-
         var player = new PostPlayerRequestBody
         {
             team = teamField.text,
@@ -162,27 +153,19 @@ public class LoginScene : MonoBehaviour
             password =  passwordField.text
         };
 
-        yield return StartCoroutine(NetworkManager.Instance.PostRequest
-            <PostPlayerRequestBody, PostPlayerResponse>(
-            url, player, OnSuccessPostPlayer, OnFailPostPlayer, null, 10));
+        StartCoroutine(NetworkManager.Instance.PostRequest<PostPlayerRequestBody, PostPlayerResponse>(
+            $"{NetworkManager.BASE_URL}/players", player, OnSuccessPostPlayer, OnFailPostPlayer, null, 10));
     }
 
+    // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
     void OnSuccessPostPlayer(PostPlayerResponse response)
     {
-        if (response.statusCode == 200)
-        {
-            SessionState.Instance.playerId = response.body.playerId;
-            SessionState.Instance.team = teamField.text;
-            SessionState.Instance.playerName = nameField.text;
-            SessionState.Instance.nickName = nickNameField.text;
-            SessionState.Instance.SavePlayerId();
-            SceneLoader.Load(SceneName.EggSelectScene);
-        }
-        else
-        {
-            print("Server Error");
-            ShowResult("서버 응답을 읽을 수 없어요.\n잠시 후 다시 시도해주세요.", false);
-        }
+        SessionState.Instance.playerId = response.body.playerId;
+        SessionState.Instance.team = teamField.text;
+        SessionState.Instance.playerName = nameField.text;
+        SessionState.Instance.nickName = nickNameField.text;
+        SessionState.Instance.SavePlayerId();
+        SceneLoader.Load(SceneName.EggSelectScene);
     }
 
     void OnFailPostPlayer(long code, string response)

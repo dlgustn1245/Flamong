@@ -49,33 +49,24 @@ public class HatchScene : MonoBehaviour
     // 오류 창의 [다시 시도]도 요청만 다시 보낸다. 바퀴와 연출은 그대로 이어진다
     void SendRequest()
     {
-        StartCoroutine(PostCharacter());
-    }
-
-    IEnumerator PostCharacter()
-    {
         var request = new PostCharacterRequestBody
         {
             eggId = SessionState.Instance.eggIdx
         };
-        string url = $"{NetworkManager.BASE_URL}/characters";
         var header = new Dictionary<string, string>{{"X-Player-Id",  SessionState.Instance.playerId}};
-        yield return StartCoroutine(
-            NetworkManager.Instance.PostRequest<PostCharacterRequestBody, PostCharacterResponse>(
-            url, request, OnSuccessPostCharacter, OnFailPostCharacter, header, 5));
+        StartCoroutine(NetworkManager.Instance.PostRequest<PostCharacterRequestBody, PostCharacterResponse>(
+            $"{NetworkManager.BASE_URL}/characters", request, OnSuccessPostCharacter, OnFailPostCharacter, header, 5));
     }
 
+    // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
     void OnSuccessPostCharacter(PostCharacterResponse response)
     {
-        if (response.statusCode == 200)
+        int speciesId = response.body.speciesId;
+        if (speciesId >= 0 && speciesId < characterSprites.Length)
         {
-            int speciesId = response.body.speciesId;
-            if (speciesId >= 0 && speciesId < characterSprites.Length)
-            {
-                characterImage.sprite = characterSprites[speciesId];
-            }
-            received = true;
+            characterImage.sprite = characterSprites[speciesId];
         }
+        received = true;
     }
 
     void OnFailPostCharacter(long code, string error)

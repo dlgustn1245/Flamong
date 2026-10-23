@@ -23,6 +23,16 @@ test('가입 → 같은 닉네임 재가입은 409 → check 는 available false
   assert.equal(check.json().body.available, false);
 });
 
+test('정보 수정: 보낸 값만 바뀌고 event 를 남김', async () => {
+  const db = openDb(':memory:');
+  const app = buildApp({ db, now: fixed });
+  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json().body;
+  const res = await app.inject({ method: 'PATCH', url: '/players/me', headers: { 'x-player-id': playerId }, payload: { team: '서북' } });
+  assert.equal(res.statusCode, 200);
+  assert.deepEqual({ ...db.prepare('SELECT team, name FROM player').get() }, { team: '서북', name: body.name });   // 행은 프로토타입 없는 객체라 펼쳐서 비교
+  assert.equal(db.prepare("SELECT payload FROM event WHERE type = 'profile'").get().payload, '{"team":"서북"}');
+});
+
 test('삭제 → 수정은 401 → 같은 닉네임 재가입 200 · event 는 남음', async () => {
   const db = openDb(':memory:');
   const app = buildApp({ db, now: fixed });

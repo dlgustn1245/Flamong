@@ -1,28 +1,32 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class TitleScene : MonoBehaviour
 {
+    public Button screenButton;   // 화면 전체인 배경(Image - BG)에 붙인 버튼. 오류 창이 뜨면 그 배경이 터치를 막는다
     public ErrorPanel errorPanel;
 
-    // /me 요청 중이거나 오류 창이 떠 있으면 화면 탭을 무시한다.
-    // Input 은 오류 창의 반투명 배경(터치 막기)과 상관없이 들어오기 때문이다
-    bool isEntering;
-
-    void Update()
+    void Start()
     {
-        if (isEntering || !Input.GetMouseButtonDown(0))
-        {
-            return;
-        }
+        screenButton.onClick.AddListener(OnClickScreen);
+    }
 
+    void OnClickScreen()
+    {
         if (PlayerPrefs.GetInt("NeverShowIntro", 0) == 1)
         {
-            isEntering = true;
+            screenButton.interactable = false;   // /me 응답을 기다리는 동안 다시 눌리지 않게
             EntryRouter.Enter(this, errorPanel);
         }
         else
         {
             SceneLoader.Load(SceneName.IntroScene);
         }
+    }
+
+    void OnDestroy()
+    {
+        screenButton.onClick.RemoveAllListeners();
+        StopAllCoroutines();
     }
 }

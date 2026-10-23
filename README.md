@@ -185,7 +185,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ### 로그
 - 모든 쓰기 API가 `event(player_id, type, ts, payload)` 한 줄. 클라이언트 별도 로그 전송 없음.
-- type: `login · login_fail · hatch · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
+- type: `login · login_fail · profile(정보 수정, 바뀐 뒤의 팀) · hatch · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
 - 탈퇴(`DELETE /players/me`) 시에도 `event`는 지우지 않는다. 탈퇴자 포함 활동 통계가 대시보드 목적이고, `player` 행이 사라지면 이름·팀과 더 이상 연결되지 않는다.
 
 ### 인증
@@ -394,6 +394,7 @@ Server/
 - 시안 12장 보관 위치. 세션 임시 폴더에서 지워졌으니 `Docs/Mockups/` 같은 곳에 두는 것을 권한다.
 - 꾸불림체 라이선스 원문 확인과 보관.
 - **한글 동적 폰트 폴백.** 아틀라스 밖 한글 8,822자(「슽」, 입력 중의 「잏」 등)가 □로 보인다. TTF(2.9MB)를 동적 폴백으로 넣을지 첫 빌드 크기를 보고 정한다. 넣으면 닉네임 허용 범위를 넓힐지도 함께 정한다.
+- **입력 설정을 새 Input System 하나로.** 옛 `Input`을 쓰던 Title을 버튼으로 바꿔서 코드에는 옛 `Input`이 없다. 다만 TMP 입력칸의 한글 조합(IME)이 새 Input System만으로 동작하는지 확인하지 못해 「둘 다」(`activeInputHandler: 2`)로 두었다. 첫 빌드에서 가입 화면 한글 입력을 확인한 뒤 바꾼다.
 - **진화 그림 크기.** Main의 `characterSprites`가 120장(약 7.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 첫 빌드에서 다운로드가 15MB를 넘으면 Crunch 압축 → ASTC 6×6 → 어드레서블(플레이어당 5장만 받음) 순으로 줄인다.
 - **도감 범위.** 리셋 때 다른 알도 고를 수 있으므로, 지금 키우는 알 계열 3종만 보여 줄지 완성한 적 있는 모든 계열을 보여 줄지. `/collection` 응답 모양(`eggId` 하나)도 이에 따라 바뀐다. 1.1 전에 정한다.
 - 오늘의 감정 팝업 디자인과 감정 아이콘 5종 이미지. 시안에 없어서 지금은 기존 아이콘(파란 손그림 테두리 · 옅은 노랑)에 맞춰 코드로 그린 임시 그림(`icon_emotion_*.png`)을 쓴다. 디자이너 그림이 생기면 같은 파일 이름으로 덮어쓴다.

@@ -165,19 +165,7 @@ public class MainScene : MonoBehaviour
         }
         emotionPanel.SetActive(false);
         Apply(response.body.growth);
-        if (response.body.levelUp)
-        {
-            ShowCharacter(speciesId, response.body.growth.level);
-            heartParticles.Emit(10);
-            noticePanel.Show($"Lv {response.body.growth.level} 달성!");
-        }
-
-        if (response.body.growth.completed)
-        {
-            heartParticles.Emit(10);
-            noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");
-            //todo 도감 등록
-        }
+        ShowGrowthEvents(response.body);
     }
 
     void OnFailPostEmotion(long code, string response, string emotion)
@@ -251,20 +239,11 @@ public class MainScene : MonoBehaviour
             header));
     }
 
+    // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
     void OnSuccessResetCharacter(OkResponse response)
     {
-        if (response.body.ok)
-        {
-            print("Reset Character Success");
-            SceneLoader.Load(SceneName.EggSelectScene);
-        }
-        else
-        {
-            print("Reset Character Failed.");
-            print($"status code: {response.statusCode}");
-            print($"status ok: {response.body.ok}");
-            errorPanel.Show(ResetCharacter);
-        }
+        print("Reset Character Success");
+        SceneLoader.Load(SceneName.EggSelectScene);
     }
 
     void OnFailResetCharacter(long code, string error)
@@ -402,24 +381,16 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessPatchPlayer(OkResponse response)
     {
-        if (response.body.ok)
+        print("Patch Player Success");
+        if (!string.IsNullOrEmpty(currTeam.text))
         {
-            print("Patch Player Success");
-            if (!string.IsNullOrEmpty(currTeam.text))
-            {
-                SessionState.Instance.team = currTeam.text;
-            }
-            if (!string.IsNullOrEmpty(currName.text))
-            {
-                SessionState.Instance.playerName = currName.text;
-            }
-            OpenSetting();
+            SessionState.Instance.team = currTeam.text;
         }
-        else
+        if (!string.IsNullOrEmpty(currName.text))
         {
-            print("Patch Player Failed: ok->false");
-            errorPanel.Show(PatchPlayer);
+            SessionState.Instance.playerName = currName.text;
         }
+        OpenSetting();
     }
 
     void OnFailPatchPlayer(long code, string error)
@@ -447,14 +418,20 @@ public class MainScene : MonoBehaviour
         PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, 0);
         Apply(response.body.growth);
         heartParticles.Emit(5);
-        if (response.body.levelUp)
+        ShowGrowthEvents(response.body);
+    }
+
+    // 레벨업 · 완성 연출. 하트 탭과 오늘의 감정이 같이 쓴다
+    void ShowGrowthEvents(TapBody body)
+    {
+        if (body.levelUp)
         {
-            ShowCharacter(speciesId, response.body.growth.level);
+            ShowCharacter(speciesId, body.growth.level);
             heartParticles.Emit(10);
-            noticePanel.Show($"Lv {response.body.growth.level} 달성!");
+            noticePanel.Show($"Lv {body.growth.level} 달성!");
         }
 
-        if (response.body.growth.completed)
+        if (body.growth.completed)
         {
             heartParticles.Emit(10);
             noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");

@@ -102,8 +102,9 @@ export default async function players(app, { db, now }) {
     if (!id) return reply.code(401).send({ error: 'no_player' });
     const cur = db.prepare('SELECT team, name FROM player WHERE id = ?').get(id);
     if (!cur) return reply.code(401).send({ error: 'unknown_player' });
-    db.prepare('UPDATE player SET team = ?, name = ? WHERE id = ?')
-      .run(req.body.team ?? cur.team, req.body.name ?? cur.name, id);
+    const team = req.body.team ?? cur.team;
+    db.prepare('UPDATE player SET team = ?, name = ? WHERE id = ?').run(team, req.body.name ?? cur.name, id);
+    logEvent(db, id, 'profile', { team }, now);
     return { ok: true };
   });
 

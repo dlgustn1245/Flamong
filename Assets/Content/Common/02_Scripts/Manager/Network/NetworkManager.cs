@@ -19,43 +19,9 @@ public class NetworkManager : Singleton<NetworkManager>
 		Dictionary<string, string> headers = null,
 		int timeout = 10)
 	{
-		print($"GET [ url: {url} ]");
-		var request = UnityWebRequest.Get(url);
-		if (headers != null)
-		{
-			foreach (var header in headers)
-			{
-				request.SetRequestHeader(header.Key, header.Value);
-			}
-		}
-
-		request.timeout = timeout;
-		yield return request.SendWebRequest();
-            
-		if (request.result == UnityWebRequest.Result.Success)
-		{
-			try
-			{
-#if UNITY_EDITOR
-				// 응답에는 playerId(사실상 로그인 열쇠)가 들어 있어 빌드의 브라우저 콘솔에는 남기지 않는다
-				print($"Response: {request.downloadHandler.text}");
-#endif
-				var result = JsonUtility.FromJson<TResponse>(request.downloadHandler.text);
-				onSuccess?.Invoke(result);
-			}
-			catch (Exception e)
-			{
-				onError?.Invoke(request.responseCode, $"파싱 실패: {e.Message}");
-			}
-		}
-		else
-		{
-			onError?.Invoke(request.responseCode, request.error);
-		}
-
-		request.Dispose();
+		return Send("GET", url, null, onSuccess, onError, headers, timeout);
 	}
-	
+
 	public IEnumerator PostRequest<TRequest, TResponse>(
 		string url,
 		TRequest jsonData,
@@ -64,7 +30,7 @@ public class NetworkManager : Singleton<NetworkManager>
 		Dictionary<string, string> headers = null,
 		int timeout = 60)
 	{
-		return SendJson("POST", url, jsonData, onSuccess, onError, headers, timeout);
+		return Send("POST", url, ToJsonBytes(jsonData), onSuccess, onError, headers, timeout);
 	}
 
 	// 일부만 고치는 요청 (PATCH /players/me). 형식은 POST 와 같다
@@ -76,61 +42,64 @@ public class NetworkManager : Singleton<NetworkManager>
 		Dictionary<string, string> headers = null,
 		int timeout = 60)
 	{
-		return SendJson("PATCH", url, jsonData, onSuccess, onError, headers, timeout);
+		return Send("PATCH", url, ToJsonBytes(jsonData), onSuccess, onError, headers, timeout);
 	}
 
-	// JSON 본문을 보내는 요청 (POST · PATCH 공통)
-	IEnumerator SendJson<TRequest, TResponse>(
+	static byte[] ToJsonBytes<T>(T data)
+	{
+		return Encoding.UTF8.GetBytes(JsonUtility.ToJson(data));
+	}
+
+	// body 가 null 이면 본문 없는 요청(GET)
+	IEnumerator Send<TResponse>(
 		string method,
 		string url,
-		TRequest jsonData,
+		byte[] body,
 		Action<TResponse> onSuccess,
 		Action<long, string> onError,
 		Dictionary<string, string> headers,
 		int timeout)
 	{
-		string jsonString = JsonUtility.ToJson(jsonData);
-		byte[] jsonBytes = Encoding.UTF8.GetBytes(jsonString);
-
 		// 본문은 찍지 않는다. 가입 · 로그인 요청에 비밀번호가 원문으로 들어 있고, 웹 빌드에서는 브라우저 콘솔에 그대로 남는다
-		print($"{method} [ url : {url} ]");
+		print($"{method} [ url: {url} ]");
 
-		var request = new UnityWebRequest(url, method);
-		request.uploadHandler = new UploadHandlerRaw(jsonBytes);
-		request.downloadHandler = new DownloadHandlerBuffer();
-		request.SetRequestHeader("Content-Type", "application/json");
-
-		if (headers != null)
+		using (var request = new UnityWebRequest(url, method))
 		{
-			foreach (var header in headers)
+			request.downloadHandler = new DownloadHandlerBuffer();
+			if (body != null)
 			{
-				request.SetRequestHeader(header.Key, header.Value);
+				request.uploadHandler = new UploadHandlerRaw(body);
+				request.SetRequestHeader("Content-Type", "application/json");
 			}
-		}
+			if (headers != null)
+			{
+				foreach (var header in headers)
+				{
+					request.SetRequestHeader(header.Key, header.Value);
+				}
+			}
 
-		request.timeout = timeout;
-		yield return request.SendWebRequest();
+			request.timeout = timeout;
+			yield return request.SendWebRequest();
 
-		if (request.result == UnityWebRequest.Result.Success)
-		{
+			if (request.result != UnityWebRequest.Result.Success)
+			{
+				onError?.Invoke(request.responseCode, request.error);
+				yield break;
+			}
+
 			try
 			{
 #if UNITY_EDITOR
 				// 응답에는 playerId(사실상 로그인 열쇠)가 들어 있어 빌드의 브라우저 콘솔에는 남기지 않는다
 				print($"Response: {request.downloadHandler.text}");
 #endif
-				TResponse result = JsonUtility.FromJson<TResponse>(request.downloadHandler.text);
-				onSuccess?.Invoke(result);
+				onSuccess?.Invoke(JsonUtility.FromJson<TResponse>(request.downloadHandler.text));
 			}
 			catch (Exception e)
 			{
 				onError?.Invoke(request.responseCode, $"파싱 실패: {e.Message}");
 			}
 		}
-		else
-		{
-			onError?.Invoke(request.responseCode, request.error);
-		}
-		request.Dispose();
 	}
 }
