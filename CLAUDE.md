@@ -25,6 +25,7 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
     -   MCP 코드는 래퍼 네임스페이스 안에서 돈다. `Image`·`Button`은 이름이 겹치므로 `using UImage = UnityEngine.UI.Image;`처럼 별칭을 쓴다. `System.Reflection`·`Regex`는 쓸 수 없다.
     -   꺼진 오브젝트의 Canvas `overrideSorting`·`sortingOrder`는 프로퍼티로 넣으면 저장되지 않는다. `SerializedObject`로 넣는다.
     -   스크립트를 고치면 재컴파일 동안 MCP 연결이 잠시 끊긴다. 확인은 컴파일이 끝난 뒤에 한다.
+    -   패키지를 지우면 `Unity_RunCommand`가 지워진 DLL을 찾다 초기화에 실패하고, 에디터를 다시 켤 때까지 계속 실패한다. 패키지 제거는 마지막에 하고 사용자에게 재시작을 부탁한다.
     -   확인용으로 씬을 바꿨다면 저장하지 말고 `EditorSceneManager.OpenScene`으로 다시 열어 버린다.
 -   빌드: File → Build Profiles → Web. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
 -   서버: `Server/`에서 `npm start` (실행) · `npm test` (node:test). 패키지 추가는 사용자 확인 후.

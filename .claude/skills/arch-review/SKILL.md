@@ -55,7 +55,7 @@ Server/
 2. 에셋 로드 경로: 씬 참조 / Addressables 외(`Resources.Load`)가 있는가.
 
 ### Phase 5: 의존성
-1. `Packages/manifest.json`: 쓰지 않는 패키지(2D Animation · Aseprite · PSD Importer · SpriteShape · Tilemap · Visual Scripting · Timeline · IET Framework · AI Assistant)가 빌드 크기·컴파일 시간을 늘린다. 실제 사용 여부 확인 후 제거 권고.
+1. `Packages/manifest.json`: 템플릿 패키지 9개(2D Animation · Aseprite · PSD Importer · SpriteShape · Tilemap Extras · Visual Scripting · Timeline · IET Framework · Collab)는 2026-10-24에 지웠다. 쓰지 않는 패키지가 다시 들어왔으면 빌드 크기·컴파일 시간을 늘리므로 제거 권고. AI Assistant는 Unity MCP용이라 둔다.
 2. `Server/package.json`: `fastify` · `@fastify/cors` 외 의존성이 있으면 이유 확인. `rules/`가 `db`나 `request`를 import하면 지적.
 
 ## 리포트
