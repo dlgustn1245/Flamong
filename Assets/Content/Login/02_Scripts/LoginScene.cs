@@ -81,9 +81,14 @@ public class LoginScene : MonoBehaviour
         }
         if (string.IsNullOrEmpty(teamField.text) ||
             string.IsNullOrEmpty(nameField.text) ||
-            string.IsNullOrEmpty(nickNameField.text) ||
-            passwordField.text.Length < 4)
+            string.IsNullOrEmpty(nickNameField.text))
         {
+            ShowResult("팀 · 이름 · 닉네임을\n모두 적어주세요.", false);
+            return;
+        }
+        if (passwordField.text.Length < 4)
+        {
+            ShowResult("비밀번호는 숫자\n4~6자리로 적어주세요.", false);
             return;
         }
 
@@ -181,9 +186,10 @@ public class LoginScene : MonoBehaviour
         {
             return;
         }
-        if (string.IsNullOrEmpty(loginNickNameField.text) || 
+        if (string.IsNullOrEmpty(loginNickNameField.text) ||
             loginPasswordField.text.Length < 4)
         {
+            ShowResult("닉네임과 비밀번호\n(숫자 4~6자리)를 적어주세요.", false);
             return;
         }
 

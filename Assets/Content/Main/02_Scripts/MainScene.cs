@@ -433,11 +433,11 @@ public class MainScene : MonoBehaviour
             noticePanel.Show($"Lv {body.growth.level} 달성!");
         }
 
+        // 도감은 서버가 완성된 캐릭터 기록(애정도 175)으로 만든다. 클라이언트가 따로 등록하지 않는다
         if (justCompleted)
         {
             heartParticles.Emit(10);
             noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");
-            //todo 도감 등록
         }
     }
 
