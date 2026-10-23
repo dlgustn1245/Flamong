@@ -39,6 +39,9 @@ public class MainScene : MonoBehaviour
     public Button logOut;
     public Button contact;
     
+    public GameObject contactPanel;
+    public Button contactCloseButton;
+    
     public Slider bgmSlider;
     public Slider sfxSlider;
 
@@ -118,6 +121,15 @@ public class MainScene : MonoBehaviour
                 PostEmotion(emotions[idx]);
             });
         }
+        
+        contact.onClick.AddListener(() =>
+        {
+            contactPanel.SetActive(true);
+        });
+        contactCloseButton.onClick.AddListener(() =>
+        {
+            contactPanel.SetActive(false);
+        });
         
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
@@ -212,6 +224,7 @@ public class MainScene : MonoBehaviour
         {
             emotionButton.onClick.RemoveAllListeners();
         }
+        contactCloseButton.onClick.RemoveAllListeners();
         StopAllCoroutines();
     }
 
