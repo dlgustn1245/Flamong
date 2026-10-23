@@ -54,6 +54,7 @@ public class MainScene : MonoBehaviour
     public Button[] emotionButtons; 
     
     int heartTaps;
+    int speciesId;
     Dictionary<string, string> header;
     bool isSending;
     bool isCompleted;
@@ -166,6 +167,7 @@ public class MainScene : MonoBehaviour
         Apply(response.body.growth);
         if (response.body.levelUp)
         {
+            ShowCharacter(speciesId, response.body.growth.level);
             heartParticles.Emit(10);
             noticePanel.Show($"Lv {response.body.growth.level} 달성!");
         }
@@ -284,7 +286,8 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessGetMe(MeResponse response)
     {
-        ShowCharacter(response.body.speciesId);
+        speciesId = response.body.speciesId;
+        ShowCharacter(speciesId, response.body.growth.level);
         SetPlayerInfo(response.body);
         Apply(response.body.growth);
         if (!response.body.emotionToday)
@@ -313,11 +316,12 @@ public class MainScene : MonoBehaviour
         settingPanel.SetActive(true);
     }
     
-    void ShowCharacter(int speciesId)
+    void ShowCharacter(int speciesId, int level)
     {
-        if (speciesId >= 0 && speciesId < characterSprites.Length)
+        int idx = speciesId * 5 + level - 1;
+        if (idx >= 0 && idx < characterSprites.Length)
         {
-            characterImage.sprite = characterSprites[speciesId];
+            characterImage.sprite = characterSprites[idx];
         }
         characterImage.enabled = true;
     }
@@ -445,6 +449,7 @@ public class MainScene : MonoBehaviour
         heartParticles.Emit(5);
         if (response.body.levelUp)
         {
+            ShowCharacter(speciesId, response.body.growth.level);
             heartParticles.Emit(10);
             noticePanel.Show($"Lv {response.body.growth.level} 달성!");
         }

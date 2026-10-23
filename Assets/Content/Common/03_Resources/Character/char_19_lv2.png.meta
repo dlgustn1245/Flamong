@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f1ab7e722f9e7064d9ea99a213e730b3
+guid: 9361545c61bbe7040934df3fae05484d
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -1398027664541523787
-    second: char_mint_lv2_0
+      213: -6636249367359422935
+    second: char_19_lv2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -74,7 +74,7 @@ TextureImporter:
   platformSettings:
   - serializedVersion: 4
     buildTarget: DefaultTexturePlatform
-    maxTextureSize: 2048
+    maxTextureSize: 256
     resizeAlgorithm: 0
     textureFormat: -1
     textureCompression: 1
@@ -115,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: char_mint_lv2_0
+      name: char_19_lv2_0
       rect:
         serializedVersion: 2
-        x: 4
-        y: 12
-        width: 248
-        height: 232
+        x: 47
+        y: 13
+        width: 161
+        height: 174
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -130,8 +130,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5b065d40f35399ce0800000000000000
-      internalID: -1398027664541523787
+      spriteID: 92e71a95c5e47e3a0800000000000000
+      internalID: -6636249367359422935
       vertices: []
       indices: 
       edges: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 5e97eb03825dee720800000000000000
     internalID: 0
     vertices: []
     indices: 
@@ -150,7 +150,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      char_mint_lv2_0: -1398027664541523787
+      char_19_lv2_0: -6636249367359422935
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
