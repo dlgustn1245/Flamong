@@ -89,8 +89,17 @@ namespace ServerData
 		public bool completed;
 	}
 
+	public class EmotionRequestBody
+	{
+		public string emotion;
+	}
+
 	// POST /tap
-	public class TapResponse { public int statusCode; public TapBody body; }
+	public class TapResponse
+	{
+		public int statusCode; 
+		public TapBody body;
+	}
 
 	[Serializable]
 	public class TapBody

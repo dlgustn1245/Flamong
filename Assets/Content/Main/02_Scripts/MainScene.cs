@@ -7,6 +7,8 @@ using UnityEngine.UI;
 
 public class MainScene : MonoBehaviour
 {
+    readonly string[] emotions = { "tired", "stress", "achievement", "focus", "calm" };
+    
     public Button heartButton;
     public Image heartFill;
     public TextMeshProUGUI touchCountText;
@@ -44,6 +46,9 @@ public class MainScene : MonoBehaviour
     public Button collectionButton;
     public Button potionButton;
     public Button gameButton;
+    
+    public GameObject emotionPanel;
+    public Button[] emotionButtons; 
     
     int heartTaps;
     Dictionary<string, string> header;
@@ -105,8 +110,86 @@ public class MainScene : MonoBehaviour
             noticePanel.Show("준비 중이에요");
         });
         
+        for (int i = 0; i < emotionButtons.Length; i++)
+        {
+            int idx = i;
+            emotionButtons[idx].onClick.AddListener(() =>
+            {
+                PostEmotion(emotions[idx]);
+            });
+        }
+        
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
+    }
+
+    void PostEmotion(string emotion)
+    {
+        foreach (var emotionButton in emotionButtons)
+        {
+            emotionButton.interactable = false;
+        }
+
+        var request = new EmotionRequestBody
+        {
+            emotion = emotion
+        };
+
+        StartCoroutine(NetworkManager.Instance.PostRequest<EmotionRequestBody, TapResponse>(
+            $"{NetworkManager.BASE_URL}/emotions", 
+            request, OnSuccessPostEmotion, (code, error) =>
+            {
+                OnFailPostEmotion(code, error, emotion);
+            }, header));
+    }
+
+    void OnSuccessPostEmotion(TapResponse response)
+    {
+        print("Success Post Emotion");
+        foreach (var emotionButton in emotionButtons)
+        {
+            emotionButton.interactable = true;
+        }
+        emotionPanel.SetActive(false);
+        Apply(response.body.growth);
+        if (response.body.levelUp)
+        {
+            heartParticles.Emit(10);
+            noticePanel.Show($"Lv {response.body.growth.level} 달성!");
+        }
+
+        if (response.body.growth.completed)
+        {
+            heartParticles.Emit(10);
+            noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");
+            //todo 도감 등록
+        }
+    }
+
+    void OnFailPostEmotion(long code, string response, string emotion)
+    {
+        print($"Fail Post Emotion: {code}, {response}");
+        if (code == 409)
+        {
+            foreach (var emotionButton in emotionButtons)
+            {
+                emotionButton.interactable = true;
+            }
+            emotionPanel.SetActive(false);
+            noticePanel.Show("오늘은 이미 골랐어요.");
+            return;
+        }
+
+        if (code == 401)
+        {
+            EntryRouter.GoToLogin();
+            return;
+        }
+
+        errorPanel.Show(() =>
+        {
+            PostEmotion(emotion);
+        });
     }
     
     void OnDestroy()
@@ -125,6 +208,10 @@ public class MainScene : MonoBehaviour
         potionButton.onClick.RemoveAllListeners();
         collectionButton.onClick.RemoveAllListeners();
         gameButton.onClick.RemoveAllListeners();
+        foreach (var emotionButton in emotionButtons)
+        {
+            emotionButton.onClick.RemoveAllListeners();
+        }
         StopAllCoroutines();
     }
 
@@ -151,7 +238,7 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessResetCharacter(OkResponse response)
     {
-        if (response.statusCode == 200 && response.body.ok)
+        if (response.body.ok)
         {
             print("Reset Character Success");
             SceneLoader.Load(SceneName.EggSelectScene);
@@ -184,11 +271,12 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessGetMe(MeResponse response)
     {
-        if (response.statusCode == 200)
+        ShowCharacter(response.body.speciesId);
+        SetPlayerInfo(response.body);
+        Apply(response.body.growth);
+        if (!response.body.emotionToday)
         {
-            ShowCharacter(response.body.speciesId);
-            SetPlayerInfo(response.body);
-            Apply(response.body.growth);
+            emotionPanel.SetActive(true);
         }
     }
 
