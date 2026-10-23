@@ -88,18 +88,23 @@ public class NetworkManager : Singleton<NetworkManager>
 				yield break;
 			}
 
+#if UNITY_EDITOR
+			// 응답에는 playerId(사실상 로그인 열쇠)가 들어 있어 빌드의 브라우저 콘솔에는 남기지 않는다
+			print($"Response: {request.downloadHandler.text}");
+#endif
+			TResponse response;
 			try
 			{
-#if UNITY_EDITOR
-				// 응답에는 playerId(사실상 로그인 열쇠)가 들어 있어 빌드의 브라우저 콘솔에는 남기지 않는다
-				print($"Response: {request.downloadHandler.text}");
-#endif
-				onSuccess?.Invoke(JsonUtility.FromJson<TResponse>(request.downloadHandler.text));
+				response = JsonUtility.FromJson<TResponse>(request.downloadHandler.text);
 			}
 			catch (Exception e)
 			{
 				onError?.Invoke(request.responseCode, $"파싱 실패: {e.Message}");
+				yield break;
 			}
+
+			// 콜백 안의 예외는 잡지 않는다. onError 로 보내면 오류 창 [다시 시도]가 이미 성공한 요청(가입 등)을 또 보낸다
+			onSuccess?.Invoke(response);
 		}
 	}
 }

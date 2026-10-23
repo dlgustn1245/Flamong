@@ -164,8 +164,7 @@ public class MainScene : MonoBehaviour
             emotionButton.interactable = true;
         }
         emotionPanel.SetActive(false);
-        Apply(response.body.growth);
-        ShowGrowthEvents(response.body);
+        ApplyGrowth(response.body);
     }
 
     void OnFailPostEmotion(long code, string response, string emotion)
@@ -416,14 +415,17 @@ public class MainScene : MonoBehaviour
     {
         heartTaps = 0;
         PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, 0);
-        Apply(response.body.growth);
         heartParticles.Emit(5);
-        ShowGrowthEvents(response.body);
+        ApplyGrowth(response.body);
     }
 
-    // 레벨업 · 완성 연출. 하트 탭과 오늘의 감정이 같이 쓴다
-    void ShowGrowthEvents(TapBody body)
+    // 응답의 성장 상태를 화면에 반영하고 레벨업 · 완성이면 연출한다. 하트 탭과 오늘의 감정이 같이 쓴다
+    void ApplyGrowth(TapBody body)
     {
+        // 완성 뒤에도 오늘의 감정 응답은 completed 가 계속 true 라, 완성 안내는 처음 완성됐을 때 한 번만
+        bool justCompleted = body.growth.completed && !isCompleted;
+        Apply(body.growth);
+
         if (body.levelUp)
         {
             ShowCharacter(speciesId, body.growth.level);
@@ -431,7 +433,7 @@ public class MainScene : MonoBehaviour
             noticePanel.Show($"Lv {body.growth.level} 달성!");
         }
 
-        if (body.growth.completed)
+        if (justCompleted)
         {
             heartParticles.Emit(10);
             noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");
