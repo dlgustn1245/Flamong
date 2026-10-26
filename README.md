@@ -410,3 +410,4 @@ Server/
 | 날짜 | 버전 | 다운로드 (MB) | 힙 피크 (MB) | 비고 |
 |---|---|---|---|---|
 | 2026-10-26 | 1.0 첫 빌드 (소리 없음) | 13.07 (`.data.br` 6.36 + `.wasm.br` 6.71) | 143 | `Web - Mobile` 프로필(ASTC · Disk Size LTO · Brotli · 씬 6개). 힙은 PC Chrome에서 Title → 가입 → 알 → Hatch → Main을 거친 뒤의 WASM 힙(사용 137.1). PC Chrome은 ASTC를 못 읽어 텍스처를 풀어 쓰므로 폰보다 크게 나온다. 큰 에셋(압축 전): 꾸불림체 SDF 아틀라스 4MB · Unity 스플래시 로고 1.2MB · LiberationSans SDF+TTF 1.3MB(안 씀) · 진화 그림 120장 약 3.5MB(ASTC 장당 29KB) |
+| 2026-10-26 | 1.0 정리 빌드 (소리 없음) | 12.55 (`.data.br` 5.84 + `.wasm.br` 6.71) | 138.1 | 빌드 오류 · 경고 0. Global Light 2D · LiberationSans · Unity 로고를 뺐다. PC Chrome JS 힙: 새로 키우기 → 알 → Hatch → Main 10회 순환 전후 24.24 → 24.18MB(1.0배, 기준 1.5배 이내), WASM 힙 그대로. 에디터에서 Main · Hatch · EggSelect 3회 전환 시 텍스처 · Mono 힙 증가 없음(Memory Profiler 대신 직접 측정) |
