@@ -27,7 +27,8 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
     -   스크립트를 고치면 재컴파일 동안 MCP 연결이 잠시 끊긴다. 확인은 컴파일이 끝난 뒤에 한다.
     -   패키지를 지우면 `Unity_RunCommand`가 지워진 DLL을 찾다 초기화에 실패하고, 에디터를 다시 켤 때까지 계속 실패한다. 패키지 제거는 마지막에 하고 사용자에게 재시작을 부탁한다.
     -   확인용으로 씬을 바꿨다면 저장하지 말고 `EditorSceneManager.OpenScene`으로 다시 열어 버린다.
--   빌드: File → Build Profiles → Web. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
+-   빌드: File → Build Profiles → `Web - Mobile`. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
+-   Player Settings는 Build Profiles 창의 `Web - Mobile` 프로필에서 고친다. 프로필이 자기 사본을 써서 Project Settings → Player를 고치면 빌드에 반영되지 않는다.
 -   서버: `Server/`에서 `npm start` (실행) · `npm test` (node:test). 패키지 추가는 사용자 확인 후.
 
 ------------------------------------------------------------------------
