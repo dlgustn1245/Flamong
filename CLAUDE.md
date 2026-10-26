@@ -28,7 +28,8 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
     -   패키지를 지우면 `Unity_RunCommand`가 지워진 DLL을 찾다 초기화에 실패하고, 에디터를 다시 켤 때까지 계속 실패한다. 패키지 제거는 마지막에 하고 사용자에게 재시작을 부탁한다.
     -   확인용으로 씬을 바꿨다면 저장하지 말고 `EditorSceneManager.OpenScene`으로 다시 열어 버린다.
 -   빌드: File → Build Profiles → `Web - Mobile`. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
--   Player Settings는 Build Profiles 창의 `Web - Mobile` 프로필에서 고친다. 프로필이 자기 사본을 써서 Project Settings → Player를 고치면 빌드에 반영되지 않는다.
+-   Player Settings는 Project Settings → Player 한 곳에서 고친다. `Web - Mobile` 프로필은 Player Settings 사본 없이 ASTC · 코드 최적화 같은 플랫폼 설정만 갖는다.
+    Build Profiles 창에서 「Customize player settings」를 누르거나 `BuildProfile.CreateBuildProfile`로 프로필을 만들면 사본이 생겨 전역과 따로 움직인다. 사본은 에디터 메모리에 남아 저장할 때마다 파일에 다시 쓰이므로, 지우려면 프로필을 비활성화하고 파일을 지운 뒤 사본 없는 파일(같은 GUID)로 다시 읽는다.
 -   서버: `Server/`에서 `npm start` (실행) · `npm test` (node:test). 패키지 추가는 사용자 확인 후.
 
 ------------------------------------------------------------------------
