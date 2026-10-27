@@ -38,6 +38,7 @@ public class MainScene : MonoBehaviour
     public Button resetPlayer;
     public Button logOut;
     public Button contact;
+    public Button withdraw;
     
     public GameObject contactPanel;
     public Button contactCloseButton;
@@ -95,6 +96,12 @@ public class MainScene : MonoBehaviour
                     ? "캐릭터를 새로 키우시겠어요?"
                     : "아직 다 자라지 않았어요.\n지금 새로 키우면 도감에 남지 않아요.\n새로 키우시겠어요?",
                 ResetCharacter);
+        });
+        withdraw.onClick.AddListener(() =>
+        {
+            confirmPanel.Show(
+                "탈퇴하면 캐릭터와 기록이 모두 사라지고\n되돌릴 수 없어요.\n탈퇴할까요?",
+                WithdrawCharacter);
         });
         
         gardenButton.onClick.AddListener(() =>
@@ -209,6 +216,7 @@ public class MainScene : MonoBehaviour
         potionButton.onClick.RemoveAllListeners();
         collectionButton.onClick.RemoveAllListeners();
         gameButton.onClick.RemoveAllListeners();
+        withdraw.onClick.RemoveAllListeners();
         foreach (var emotionButton in emotionButtons)
         {
             emotionButton.onClick.RemoveAllListeners();
@@ -236,6 +244,32 @@ public class MainScene : MonoBehaviour
             OnSuccessResetCharacter,
             OnFailResetCharacter,
             header));
+    }
+
+    void WithdrawCharacter()
+    {
+        StartCoroutine(NetworkManager.Instance.DeleteRequest<OkResponse>(
+            $"{NetworkManager.BASE_URL}/players/me", 
+            OnSuccessDeleteMe, 
+            OnFailDeleteMe, 
+            header));
+    }
+
+    void OnSuccessDeleteMe(OkResponse response)
+    {
+        print("Delete Me Success");
+        LogOut();
+    }
+
+    void OnFailDeleteMe(long code, string error)
+    {
+        print($"Delete Me Failed: {code} {error}");
+        if (code == 401)
+        {
+            EntryRouter.GoToLogin();
+            return;
+        }
+        errorPanel.Show(WithdrawCharacter);
     }
 
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다

@@ -44,6 +44,11 @@ public class NetworkManager : Singleton<NetworkManager>
 	{
 		return Send("PATCH", url, ToJsonBytes(jsonData), onSuccess, onError, headers, timeout);
 	}
+	
+	public IEnumerator DeleteRequest<TResponse>(string url, Action<TResponse> onSuccess, Action<long, string> onError, Dictionary<string, string> headers = null, int timeout = 10)
+	{
+		return Send("DELETE", url, null, onSuccess, onError, headers, timeout);
+	}
 
 	static byte[] ToJsonBytes<T>(T data)
 	{
