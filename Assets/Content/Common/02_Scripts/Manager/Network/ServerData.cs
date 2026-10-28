@@ -126,6 +126,20 @@ namespace ServerData
 		public Growth growth;
 	}
 	
+	public class CollectionResponse
+	{
+		public int statusCode;
+		public CollectionBody body;
+	}
+
+	[Serializable]
+	public class CollectionBody
+	{
+		public int[] levels;       // [speciesId] = 도달한 최고 레벨 (0 = 아직 없음). 지금 캐릭터 · 완성한 캐릭터만 센다
+		public int[] completed;
+		public int speciesId;
+	}
+	
 	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)
 	public class EmptyBody { }
 }

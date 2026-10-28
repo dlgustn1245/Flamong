@@ -151,6 +151,34 @@ test('새로 키우기: 지금 캐릭터는 보관 · 하트는 그대로 · 재
   assert.equal(rows[1].ended_at, null);
 });
 
+test('도감: 지금 캐릭터는 도달 레벨까지 · 완성은 남음 · 완성 전 리셋은 안 남음 · 401', async () => {
+  const { app, db } = setup();
+  const h = await signup(app);
+  const levels = (entries) => { const a = new Array(24).fill(0); for (const [s, lv] of entries) a[s] = lv; return a; };
+  assert.deepEqual(await call(app, 'GET', '/collection', h), { code: 200, body: { levels: levels([]), completed: [], speciesId: -1 } });
+
+  await call(app, 'POST', '/characters', h, { eggId: 3 });
+  const first = (await call(app, 'GET', '/me', h)).body.speciesId;
+  assert.deepEqual((await call(app, 'GET', '/collection', h)).body.levels, levels([[first, 1]]));   // 막 깨어나도 Lv1 은 보인다
+  for (let i = 0; i < 5; i++) await call(app, 'POST', '/tap', h, {});
+  assert.deepEqual((await call(app, 'GET', '/collection', h)).body.levels, levels([[first, 2]]));
+
+  db.prepare('UPDATE character SET affection = 175').run();
+  const done = { levels: levels([[first, 5]]), completed: [first], speciesId: first };
+  assert.deepEqual((await call(app, 'GET', '/collection', h)).body, done);
+
+  // 완성 뒤 새로 키우기 → 그대로 남는다. 새 캐릭터는 키우는 동안 보이다가, 완성 전에 리셋하면 사라진다
+  await call(app, 'POST', '/characters/reset', h, {});
+  assert.deepEqual((await call(app, 'GET', '/collection', h)).body, { ...done, speciesId: -1 });
+  await call(app, 'POST', '/characters', h, { eggId: 0 });
+  const second = (await call(app, 'GET', '/me', h)).body.speciesId;
+  assert.deepEqual((await call(app, 'GET', '/collection', h)).body.levels, levels([[first, 5], [second, 1]]));
+  await call(app, 'POST', '/characters/reset', h, {});
+  assert.deepEqual((await call(app, 'GET', '/collection', h)).body, { ...done, speciesId: -1 });
+
+  assert.equal((await call(app, 'GET', '/collection', { 'x-player-id': 'nope' })).code, 401);
+});
+
 test('완성(175): 레벨업 없이 completed → 이후 탭은 409 · 감정은 기록만', async () => {
   const { app, db } = setup();
   const h = await signup(app);

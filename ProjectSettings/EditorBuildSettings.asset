@@ -23,16 +23,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Content/Main/01_Scenes/Main.unity
     guid: ad09b0677792400ea5799a617edb9724
-  - enabled: 0
+  - enabled: 1
     path: Assets/Content/Collection/01_Scenes/Collection.unity
     guid: da205fe3c3b04c97ae50c80cd944883a
-  - enabled: 0
+  - enabled: 1
     path: Assets/Content/Game/01_Scenes/Game.unity
     guid: 3c2e800e722145c598142212a97fb7f4
-  - enabled: 0
+  - enabled: 1
     path: Assets/Content/Potion/01_Scenes/Potion.unity
     guid: a1a29d2c15214ccfa3bb592d93886205
-  - enabled: 0
+  - enabled: 1
     path: Assets/Content/Garden/01_Scenes/Garden.unity
     guid: 1661dcd848b24b21af8c1bbb925ed76b
   m_configObjects:

@@ -10,6 +10,7 @@ public static class SceneName
 	public const string EggSelectScene = "EggSelect";
 	public const string HatchScene = "Hatch";
 	public const string MainScene = "Main";
+	public const string CollectionScene = "Collection";
 }
 
 public static class SceneLoader

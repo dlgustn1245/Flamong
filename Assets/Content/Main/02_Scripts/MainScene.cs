@@ -110,7 +110,7 @@ public class MainScene : MonoBehaviour
         });
         collectionButton.onClick.AddListener(() =>
         {
-            noticePanel.Show("준비 중이에요");
+            SceneLoader.Load(SceneName.CollectionScene);
         });
         potionButton.onClick.AddListener(() =>
         {

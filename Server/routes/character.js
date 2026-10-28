@@ -1,6 +1,6 @@
 import { logEvent, tx } from '../db.js';
-import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, rechargeHearts } from '../rules/growth.js';
-import { EGG_COUNT, pickSpecies } from '../rules/species.js';
+import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
+import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
 
 /**
  * 내 캐릭터 · 하트 · 오늘의 감정. 모든 경로가 X-Player-Id 헤더를 요구한다.
@@ -17,6 +17,9 @@ export default async function character(app, { db, now }) {
   const setHearts = db.prepare('UPDATE player SET hearts = ?, hearts_date = ? WHERE id = ?');
   const setAffection = db.prepare('UPDATE character SET affection = ? WHERE id = ?');
   const endCharacter = db.prepare('UPDATE character SET ended_at = ? WHERE id = ?');
+  // 종마다 가장 많이 키운 애정도. 지금 캐릭터와 완성한 캐릭터만 센다(완성 전에 새로 키운 캐릭터는 도감에 남지 않는다)
+  const getBest = db.prepare(`SELECT species_id, MAX(affection) AS affection FROM character
+    WHERE player_id = ? AND (ended_at IS NULL OR affection >= ?) GROUP BY species_id ORDER BY species_id`);
 
   /**
    * 헤더의 playerId 로 플레이어를 찾는다. 없으면 에러 응답을 보내고 null.
@@ -87,6 +90,21 @@ export default async function character(app, { db, now }) {
       logEvent(db, p.id, 'reset', { speciesId: c.species_id, affection: c.affection, completed: levelOf(c.affection).completed }, now);
     });
     return { ok: true };
+  });
+
+  // 도감. 새로 키우기를 해도 캐릭터 행을 지우지 않으므로 따로 저장할 것이 없다.
+  // levels[speciesId] = 도달한 최고 레벨(0 = 아직 없음), completed = 완성한 종, speciesId = 지금 캐릭터(없으면 -1)
+  app.get('/collection', (req, reply) => {
+    const p = playerOf(req, reply);
+    if (!p) return reply;
+    const levels = new Array(EGG_COUNT * SPECIES_PER_EGG).fill(0);
+    const completed = [];
+    for (const row of getBest.all(p.id, MAX_AFFECTION)) {
+      levels[row.species_id] = levelOf(row.affection).level;
+      if (row.affection >= MAX_AFFECTION) completed.push(row.species_id);
+    }
+    const c = getActive.get(p.id);
+    return { levels, completed, speciesId: c ? c.species_id : -1 };
   });
 
   // 하트 1개 사용. 터치 10번은 클라이언트 연출이고 서버는 저장량만 본다
