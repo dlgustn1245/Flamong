@@ -402,7 +402,6 @@ Server/
 - 오늘의 감정 팝업 디자인과 감정 아이콘 5종 이미지. 시안에 없어서 지금은 기존 아이콘(파란 손그림 테두리 · 옅은 노랑)에 맞춰 코드로 그린 임시 그림(`icon_emotion_*.png`)을 쓴다. 디자이너 그림이 생기면 같은 파일 이름으로 덮어쓴다.
 - 서버 호스팅 위치. AWS Lightsail $5 플랜(신규 계정 6개월 크레딧)을 검토했다. 미확정.
 - 임직원 명단 없이 아무나 가입 가능한 상태를 1.0에서 허용할지.
-- 앱 시작 시 서버 헬스체크(`GET /health`) 추가 여부. WebGL은 앱을 종료할 수 없어서, 실패하면 「다시 시도」 화면을 띄우는 방식을 검토했다.
 
 ---
 
@@ -412,3 +411,4 @@ Server/
 |---|---|---|---|---|
 | 2026-10-26 | 1.0 첫 빌드 (소리 없음) | 13.07 (`.data.br` 6.36 + `.wasm.br` 6.71) | 143 | `Web - Mobile` 프로필(ASTC · Disk Size LTO · Brotli · 씬 6개). 힙은 PC Chrome에서 Title → 가입 → 알 → Hatch → Main을 거친 뒤의 WASM 힙(사용 137.1). PC Chrome은 ASTC를 못 읽어 텍스처를 풀어 쓰므로 폰보다 크게 나온다. 큰 에셋(압축 전): 꾸불림체 SDF 아틀라스 4MB · Unity 스플래시 로고 1.2MB · LiberationSans SDF+TTF 1.3MB(안 씀) · 진화 그림 120장 약 3.5MB(ASTC 장당 29KB) |
 | 2026-10-26 | 1.0 정리 빌드 (소리 없음) | 12.55 (`.data.br` 5.84 + `.wasm.br` 6.71) | 138.1 | 빌드 오류 · 경고 0. Global Light 2D · LiberationSans · Unity 로고를 뺐다. PC Chrome JS 힙: 새로 키우기 → 알 → Hatch → Main 10회 순환 전후 24.24 → 24.18MB(1.0배, 기준 1.5배 이내), WASM 힙 그대로. 에디터에서 Main · Hatch · EggSelect 3회 전환 시 텍스처 · Mono 힙 증가 없음(Memory Profiler 대신 직접 측정) |
+| 2026-10-28 | 1.1 도감 빌드 (소리 없음) | 12.52 (`.data.br` 5.84 + `.wasm.br` 6.68) | 138.1 | 씬 7개(도감 추가, 빈 씬 Game · Potion · Garden 제외). 빌드 오류 0, 경고 3은 IL2CPP가 TMP의 큰 함수 3개를 따로 컴파일했다는 안내. 힙은 PC Chrome에서 Title → 안내 → 가입 → 알 → Hatch → Main → 도감을 거친 뒤의 WASM 힙(사용 136.9), JS 힙 24.2MB. 도감은 Main과 같은 진화 그림을 써서 크기가 거의 늘지 않았다 |
