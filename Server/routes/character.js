@@ -1,4 +1,4 @@
-import { logEvent, tx } from '../db.js';
+import { logEvent, playerOf, tx } from '../db.js';
 import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
 
@@ -9,7 +9,6 @@ import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
  * @param {{ db: import('node:sqlite').DatabaseSync, now: () => Date }} opts
  */
 export default async function character(app, { db, now }) {
-  const getPlayer = db.prepare('SELECT id, team, name, nickname, hearts, hearts_date FROM player WHERE id = ?');
   const getActive = db.prepare('SELECT id, species_id, affection FROM character WHERE player_id = ? AND ended_at IS NULL');
   const getEmotion = db.prepare('SELECT 1 FROM emotion_log WHERE player_id = ? AND date = ?');
   const insertCharacter = db.prepare('INSERT INTO character (player_id, species_id, started_at) VALUES (?, ?, ?)');
@@ -21,26 +20,8 @@ export default async function character(app, { db, now }) {
   const getBest = db.prepare(`SELECT species_id, MAX(affection) AS affection FROM character
     WHERE player_id = ? AND (ended_at IS NULL OR affection >= ?) GROUP BY species_id ORDER BY species_id`);
 
-  /**
-   * 헤더의 playerId 로 플레이어를 찾는다. 없으면 에러 응답을 보내고 null.
-   * 모르는 id 를 404 로 주면 「없는 주소」 404 와 섞인다. 클라이언트는 401 을 받으면 기기의 playerId 를 지운다
-   */
-  function playerOf(req, reply) {
-    const id = req.headers['x-player-id'];
-    if (!id) {
-      reply.code(401).send({ error: 'no_player' });
-      return null;
-    }
-    const player = getPlayer.get(id);
-    if (!player) {
-      reply.code(401).send({ error: 'unknown_player' });
-      return null;
-    }
-    return player;
-  }
-
   app.get('/me', (req, reply) => {
-    const p = playerOf(req, reply);
+    const p = playerOf(db, req, reply);
     if (!p) return reply;
     const today = kstDate(now());
     const c = getActive.get(p.id);
@@ -63,7 +44,7 @@ export default async function character(app, { db, now }) {
       },
     },
   }, (req, reply) => {
-    const p = playerOf(req, reply);
+    const p = playerOf(db, req, reply);
     if (!p) return reply;
     // 이미 있으면 새로 뽑지 않고 그 캐릭터를 돌려준다.
     // 응답을 못 받은(시간 초과) 클라이언트가 재시도해도 같은 결과가 오고, 다시 뽑기도 막힌다
@@ -81,7 +62,7 @@ export default async function character(app, { db, now }) {
   // 그 사이 /me 의 speciesId 가 -1 이라 앱을 껐다 켜도 EggSelect 로 간다. 하트는 플레이어 것이라 그대로 둔다.
   // 활성 캐릭터가 없으면(응답을 못 받고 재시도) 이미 끝난 것이므로 그대로 ok
   app.post('/characters/reset', (req, reply) => {
-    const p = playerOf(req, reply);
+    const p = playerOf(db, req, reply);
     if (!p) return reply;
     const c = getActive.get(p.id);
     if (!c) return { ok: true };
@@ -95,7 +76,7 @@ export default async function character(app, { db, now }) {
   // 도감. 새로 키우기를 해도 캐릭터 행을 지우지 않으므로 따로 저장할 것이 없다.
   // levels[speciesId] = 도달한 최고 레벨(0 = 아직 없음), completed = 완성한 종, speciesId = 지금 캐릭터(없으면 -1)
   app.get('/collection', (req, reply) => {
-    const p = playerOf(req, reply);
+    const p = playerOf(db, req, reply);
     if (!p) return reply;
     const levels = new Array(EGG_COUNT * SPECIES_PER_EGG).fill(0);
     const completed = [];
@@ -109,7 +90,7 @@ export default async function character(app, { db, now }) {
 
   // 하트 1개 사용. 터치 10번은 클라이언트 연출이고 서버는 저장량만 본다
   app.post('/tap', (req, reply) => {
-    const p = playerOf(req, reply);
+    const p = playerOf(db, req, reply);
     if (!p) return reply;
     const c = getActive.get(p.id);
     if (!c) return reply.code(409).send({ error: 'no_character' });
@@ -139,7 +120,7 @@ export default async function character(app, { db, now }) {
       },
     },
   }, (req, reply) => {
-    const p = playerOf(req, reply);
+    const p = playerOf(db, req, reply);
     if (!p) return reply;
     const c = getActive.get(p.id);
     if (!c) return reply.code(409).send({ error: 'no_character' });

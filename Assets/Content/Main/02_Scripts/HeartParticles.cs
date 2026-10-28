@@ -23,11 +23,6 @@ public class HeartParticles : MonoBehaviour
 
     void Awake()
     {
-        Init();
-    }
-
-    void Init()
-    {
         hearts = GetComponentsInChildren<Image>(true);
         int n = hearts.Length;
         rects = new RectTransform[n];
@@ -42,21 +37,10 @@ public class HeartParticles : MonoBehaviour
             age[i] = -1f;
             hearts[i].gameObject.SetActive(false);
         }
-        activeCount = 0;
     }
 
     public void Emit(int count)
     {
-        // 다른 스크립트의 Awake 에서 먼저 불려도 동작하게.
-        // 스크립트 재컴파일 뒤에는 비어 있던 배열이 null 이 아닌 길이 0 배열로 돌아오므로 길이도 본다
-        if (hearts == null || hearts.Length == 0)
-        {
-            Init();
-        }
-        if (hearts.Length == 0)   // 하트가 하나도 없으면 아무것도 하지 않는다
-        {
-            return;
-        }
         for (int k = 0; k < count; k++)
         {
             Spawn(NextSlot());
@@ -69,11 +53,7 @@ public class HeartParticles : MonoBehaviour
         {
             return;
         }
-        Tick(Time.deltaTime);
-    }
 
-    public void Tick(float dt)
-    {
         for (int i = 0; i < age.Length; i++)
         {
             if (age[i] < 0f)
@@ -81,7 +61,7 @@ public class HeartParticles : MonoBehaviour
                 continue;
             }
 
-            age[i] += dt;
+            age[i] += Time.deltaTime;
             float t = age[i] / lifetime;
             if (t >= 1f)
             {

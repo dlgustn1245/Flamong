@@ -104,22 +104,13 @@ public class MainScene : MonoBehaviour
                 WithdrawCharacter);
         });
         
-        gardenButton.onClick.AddListener(() =>
-        {
-            noticePanel.Show("준비 중이에요");
-        });
+        gardenButton.onClick.AddListener(ShowComingSoon);
         collectionButton.onClick.AddListener(() =>
         {
             SceneLoader.Load(SceneName.CollectionScene);
         });
-        potionButton.onClick.AddListener(() =>
-        {
-            noticePanel.Show("준비 중이에요");
-        });
-        gameButton.onClick.AddListener(() =>
-        {
-            noticePanel.Show("준비 중이에요");
-        });
+        potionButton.onClick.AddListener(ShowComingSoon);
+        gameButton.onClick.AddListener(ShowComingSoon);
         
         for (int i = 0; i < emotionButtons.Length; i++)
         {
@@ -141,6 +132,11 @@ public class MainScene : MonoBehaviour
         
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
+    }
+
+    void ShowComingSoon()
+    {
+        noticePanel.Show("준비 중이에요");
     }
 
     void PostEmotion(string emotion)
@@ -300,19 +296,11 @@ public class MainScene : MonoBehaviour
     {
         speciesId = response.body.speciesId;
         ShowCharacter(speciesId, response.body.growth.level);
-        SetPlayerInfo(response.body);
         Apply(response.body.growth);
         if (!response.body.emotionToday)
         {
             emotionPanel.SetActive(true);
         }
-    }
-
-    void SetPlayerInfo(MeBody body)
-    {
-        SessionState.Instance.team = body.team;
-        SessionState.Instance.playerName = body.name;
-        SessionState.Instance.nickName = body.nickname;
     }
 
     void OpenSetting()

@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { logEvent } from '../db.js';
+import { logEvent, playerOf, tx } from '../db.js';
 import { isValidNickname, NICKNAME_MAX } from '../rules/nickname.js';
 import { HEARTS_START, kstDate } from '../rules/growth.js';
 import { hashPassword, isLocked, lockUntil, MAX_LOGIN_FAILS, PASSWORD_PATTERN, verifyPassword } from '../rules/password.js';
@@ -98,33 +98,25 @@ export default async function players(app, { db, now }) {
       },
     },
   }, (req, reply) => {
-    const id = req.headers['x-player-id'];
-    if (!id) return reply.code(401).send({ error: 'no_player' });
-    const cur = db.prepare('SELECT team, name FROM player WHERE id = ?').get(id);
-    if (!cur) return reply.code(401).send({ error: 'unknown_player' });
-    const team = req.body.team ?? cur.team;
-    db.prepare('UPDATE player SET team = ?, name = ? WHERE id = ?').run(team, req.body.name ?? cur.name, id);
-    logEvent(db, id, 'profile', { team }, now);
+    const p = playerOf(db, req, reply);
+    if (!p) return reply;
+    const team = req.body.team ?? p.team;
+    db.prepare('UPDATE player SET team = ?, name = ? WHERE id = ?').run(team, req.body.name ?? p.name, p.id);
+    logEvent(db, p.id, 'profile', { team }, now);
     return { ok: true };
   });
 
   // 탈퇴. event 는 남긴다 (탈퇴자 포함 활동 통계가 대시보드 목적)
   app.delete('/players/me', (req, reply) => {
-    const id = req.headers['x-player-id'];
-    if (!id) return reply.code(401).send({ error: 'no_player' });
-    if (!db.prepare('SELECT 1 FROM player WHERE id = ?').get(id)) return reply.code(401).send({ error: 'unknown_player' });
-    db.exec('BEGIN');
-    try {
+    const p = playerOf(db, req, reply);
+    if (!p) return reply;
+    tx(db, () => {
       for (const t of ['character', 'emotion_log', 'score', 'post', 'potion']) {
-        db.prepare(`DELETE FROM ${t} WHERE player_id = ?`).run(id);
+        db.prepare(`DELETE FROM ${t} WHERE player_id = ?`).run(p.id);
       }
-      db.prepare('DELETE FROM player WHERE id = ?').run(id);
-      logEvent(db, id, 'delete', null, now);
-      db.exec('COMMIT');
-    } catch (e) {
-      db.exec('ROLLBACK');
-      throw e;
-    }
+      db.prepare('DELETE FROM player WHERE id = ?').run(p.id);
+      logEvent(db, p.id, 'delete', null, now);
+    });
     return { ok: true };
   });
 }

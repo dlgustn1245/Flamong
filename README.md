@@ -234,7 +234,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
 에러는 `body: { error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 
-**1.0 서버 API 10개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 16개 통과). 1.1 이후는 설계만 있다.
+**1.0 서버 API 10개와 1.1의 `/collection`이 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 18개 통과). 나머지 1.1 이후는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -314,9 +314,9 @@ Assets/Content/Common/
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
   index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
-  db.js  schema.sql             node:sqlite · logEvent · tx(트랜잭션)
+  db.js  schema.sql             node:sqlite · logEvent · tx(트랜잭션) · playerOf(X-Player-Id → 플레이어, 없으면 401)
   routes/players.js             가입 · 닉네임 확인 · 수정 · 탈퇴 (라우트 + JSON 스키마)
-  routes/character.js           /me · /characters · /tap · /emotions
+  routes/character.js           /me · /characters · /tap · /emotions · /collection
   rules/nickname.js             순수 함수 (DB · HTTP 모름)
   rules/password.js             비밀번호 해시 · 확인 · 로그인 잠금
   rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜

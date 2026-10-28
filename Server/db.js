@@ -26,6 +26,27 @@ export function logEvent(db, playerId, type, payload, now) {
 }
 
 /**
+ * 헤더의 playerId 로 플레이어를 찾는다. 없으면 에러 응답을 보내고 null.
+ * 모르는 id 를 404 로 주면 「없는 주소」 404 와 섞인다. 클라이언트는 401 을 받으면 기기의 playerId 를 지운다
+ * @param {DatabaseSync} db
+ * @param {import('fastify').FastifyRequest} req
+ * @param {import('fastify').FastifyReply} reply
+ */
+export function playerOf(db, req, reply) {
+  const id = req.headers['x-player-id'];
+  if (!id) {
+    reply.code(401).send({ error: 'no_player' });
+    return null;
+  }
+  const player = db.prepare('SELECT id, team, name, nickname, hearts, hearts_date FROM player WHERE id = ?').get(id);
+  if (!player) {
+    reply.code(401).send({ error: 'unknown_player' });
+    return null;
+  }
+  return player;
+}
+
+/**
  * fn 의 쓰기를 한 트랜잭션으로 묶는다. fn 이 던지면 ROLLBACK 후 다시 던진다.
  * @template T
  * @param {DatabaseSync} db
