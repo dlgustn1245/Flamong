@@ -18,13 +18,13 @@ function setup() {
 
 async function signup(app) {
   const res = await app.inject({ method: 'POST', url: '/players', payload: { team: '플링커', name: '이현수', nickname: 'max', password: '1234' } });
-  return { 'x-player-id': res.json().body.playerId };
+  return { 'x-player-id': res.json().playerId };
 }
 
 // 본문 없는 POST 도 클라이언트처럼 {} 를 보낸다 (JSON 빈 본문은 Fastify 가 400)
 async function call(app, method, url, headers, payload) {
   const res = await app.inject({ method, url, headers, payload });
-  return { code: res.statusCode, body: res.json().body };
+  return { code: res.statusCode, body: res.json() };
 }
 
 const growth = (hearts, affection, level, levelProgress, levelNeed, completed = false) =>

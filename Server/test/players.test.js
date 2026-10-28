@@ -12,21 +12,20 @@ test('가입 → 같은 닉네임 재가입은 409 → check 는 available false
 
   const first = await app.inject({ method: 'POST', url: '/players', payload: body });
   assert.equal(first.statusCode, 200);
-  assert.equal(first.json().statusCode, 200);
-  assert.match(first.json().body.playerId, /^[0-9a-f-]{36}$/);
+  assert.match(first.json().playerId, /^[0-9a-f-]{36}$/);
 
   const dup = await app.inject({ method: 'POST', url: '/players', payload: body });
   assert.equal(dup.statusCode, 409);
-  assert.deepEqual(dup.json(), { statusCode: 409, body: { error: 'nickname_taken' } });
+  assert.deepEqual(dup.json(), { error: 'nickname_taken' });
 
   const check = await app.inject({ method: 'GET', url: '/players/check?nickname=max' });
-  assert.equal(check.json().body.available, false);
+  assert.equal(check.json().available, false);
 });
 
 test('정보 수정: 보낸 값만 바뀌고 event 를 남김', async () => {
   const db = openDb(':memory:');
   const app = buildApp({ db, now: fixed });
-  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json().body;
+  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json();
   const res = await app.inject({ method: 'PATCH', url: '/players/me', headers: { 'x-player-id': playerId }, payload: { team: '서북' } });
   assert.equal(res.statusCode, 200);
   assert.deepEqual({ ...db.prepare('SELECT team, name FROM player').get() }, { team: '서북', name: body.name });   // 행은 프로토타입 없는 객체라 펼쳐서 비교
@@ -36,7 +35,7 @@ test('정보 수정: 보낸 값만 바뀌고 event 를 남김', async () => {
 test('삭제 → 수정은 401 → 같은 닉네임 재가입 200 · event 는 남음', async () => {
   const db = openDb(':memory:');
   const app = buildApp({ db, now: fixed });
-  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json().body;
+  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json();
   const headers = { 'x-player-id': playerId };
 
   assert.equal((await app.inject({ method: 'DELETE', url: '/players/me', headers })).statusCode, 200);
@@ -50,18 +49,17 @@ test('아틀라스 밖 글자 닉네임은 400', async () => {
   const app = buildApp({ db: openDb(':memory:'), now: fixed });
   const res = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: '뷁' } });
   assert.equal(res.statusCode, 400);
-  assert.equal(res.json().body.error, 'nickname_charset');
+  assert.equal(res.json().error, 'nickname_charset');
 });
 
 test('스키마 검증 실패와 없는 경로도 같은 형식', async () => {
   const app = buildApp({ db: openDb(':memory:'), now: fixed });
   const bad = await app.inject({ method: 'POST', url: '/players', payload: { team: '플링커' } });
   assert.equal(bad.statusCode, 400);
-  assert.equal(bad.json().statusCode, 400);
-  assert.equal(bad.json().body.error, 'FST_ERR_VALIDATION');
+  assert.equal(bad.json().error, 'FST_ERR_VALIDATION');
 
   const missing = await app.inject({ method: 'GET', url: '/nope' });
-  assert.deepEqual(missing.json(), { statusCode: 404, body: { error: 'not_found' } });
+  assert.deepEqual(missing.json(), { error: 'not_found' });
 });
 
 test('비밀번호 해시: 같은 값도 매번 다름 · 맞으면 통과 · 틀리면 거절', () => {
@@ -86,14 +84,14 @@ test('가입 비밀번호는 숫자 4~6자리만 · DB 에는 원문이 없음',
 
 test('로그인: 닉네임 + 비밀번호로 같은 playerId · 틀린 비밀번호와 없는 닉네임은 같은 401', async () => {
   const app = buildApp({ db: openDb(':memory:'), now: fixed });
-  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json().body;
+  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json();
 
   const ok = await app.inject({ method: 'POST', url: '/players/login', payload: { nickname: 'max', password: '1234' } });
-  assert.deepEqual(ok.json(), { statusCode: 200, body: { playerId } });
+  assert.deepEqual(ok.json(), { playerId });
 
   const wrong = await app.inject({ method: 'POST', url: '/players/login', payload: { nickname: 'max', password: '9999' } });
   const nobody = await app.inject({ method: 'POST', url: '/players/login', payload: { nickname: 'nobody', password: '1234' } });
-  assert.deepEqual(wrong.json(), { statusCode: 401, body: { error: 'login_failed' } });
+  assert.deepEqual(wrong.json(), { error: 'login_failed' });
   assert.deepEqual(nobody.json(), wrong.json());
 });
 
@@ -104,7 +102,7 @@ test('로그인: 5번 틀리면 10분 잠금 → 맞는 비밀번호도 429 → 
   const login = (password) => app.inject({ method: 'POST', url: '/players/login', payload: { nickname: 'max', password } });
 
   for (let i = 1; i <= 4; i++) assert.equal((await login('0000')).statusCode, 401, `${i}번째`);
-  assert.deepEqual((await login('0000')).json().body, { error: 'locked' });   // 5번째에 잠김
+  assert.deepEqual((await login('0000')).json(), { error: 'locked' });   // 5번째에 잠김
   assert.equal((await login('1234')).statusCode, 429);
 
   t = new Date(t.getTime() + 9 * 60_000);

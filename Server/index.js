@@ -14,8 +14,6 @@ export function buildApp({ db = openDb(), now = () => new Date() } = {}) {
   // 기본값은 GET·HEAD·POST 뿐이라 PATCH·DELETE 를 브라우저가 막는다
   app.register(cors, { origin: true, methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'] }); // ponytail: 개발용 전체 허용. 배포 시 도메인 지정
 
-  // 모든 응답을 { statusCode, body } 로 통일. HTTP 상태 코드도 같은 값으로 유지
-  app.addHook('preSerialization', async (req, reply, payload) => ({ statusCode: reply.statusCode, body: payload }));
   app.setErrorHandler((err, req, reply) => {
     const code = err.statusCode ?? 500;
     if (code >= 500) req.log.error(err);

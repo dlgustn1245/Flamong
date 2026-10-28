@@ -151,7 +151,7 @@ public class MainScene : MonoBehaviour
             emotion = emotion
         };
 
-        StartCoroutine(NetworkManager.Instance.PostRequest<EmotionRequestBody, TapResponse>(
+        StartCoroutine(NetworkManager.Instance.PostRequest<EmotionRequestBody, TapBody>(
             $"{NetworkManager.BASE_URL}/emotions", 
             request, OnSuccessPostEmotion, (code, error) =>
             {
@@ -159,7 +159,7 @@ public class MainScene : MonoBehaviour
             }, header));
     }
 
-    void OnSuccessPostEmotion(TapResponse response)
+    void OnSuccessPostEmotion(TapBody response)
     {
         print("Success Post Emotion");
         foreach (var emotionButton in emotionButtons)
@@ -167,7 +167,7 @@ public class MainScene : MonoBehaviour
             emotionButton.interactable = true;
         }
         emotionPanel.SetActive(false);
-        ApplyGrowth(response.body);
+        ApplyGrowth(response);
     }
 
     void OnFailPostEmotion(long code, string response, string emotion)
@@ -234,7 +234,7 @@ public class MainScene : MonoBehaviour
 
     void ResetCharacter()
     {
-        StartCoroutine(NetworkManager.Instance.PostRequest<EmptyBody, OkResponse>(
+        StartCoroutine(NetworkManager.Instance.PostRequest<EmptyBody, OkBody>(
             $"{NetworkManager.BASE_URL}/characters/reset",
             new EmptyBody(),
             OnSuccessResetCharacter,
@@ -244,14 +244,14 @@ public class MainScene : MonoBehaviour
 
     void WithdrawCharacter()
     {
-        StartCoroutine(NetworkManager.Instance.DeleteRequest<OkResponse>(
+        StartCoroutine(NetworkManager.Instance.DeleteRequest<OkBody>(
             $"{NetworkManager.BASE_URL}/players/me", 
             OnSuccessDeleteMe, 
             OnFailDeleteMe, 
             header));
     }
 
-    void OnSuccessDeleteMe(OkResponse response)
+    void OnSuccessDeleteMe(OkBody response)
     {
         print("Delete Me Success");
         LogOut();
@@ -269,7 +269,7 @@ public class MainScene : MonoBehaviour
     }
 
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
-    void OnSuccessResetCharacter(OkResponse response)
+    void OnSuccessResetCharacter(OkBody response)
     {
         print("Reset Character Success");
         SceneLoader.Load(SceneName.EggSelectScene);
@@ -288,16 +288,16 @@ public class MainScene : MonoBehaviour
 
     void Init()
     {
-        StartCoroutine(NetworkManager.Instance.GetRequest<MeResponse>(
+        StartCoroutine(NetworkManager.Instance.GetRequest<MeBody>(
             $"{NetworkManager.BASE_URL}/me", OnSuccessGetMe, OnFailGetMe, header));
     }
 
-    void OnSuccessGetMe(MeResponse response)
+    void OnSuccessGetMe(MeBody response)
     {
-        speciesId = response.body.speciesId;
-        ShowCharacter(speciesId, response.body.growth.level);
-        Apply(response.body.growth);
-        if (!response.body.emotionToday)
+        speciesId = response.speciesId;
+        ShowCharacter(speciesId, response.growth.level);
+        Apply(response.growth);
+        if (!response.emotionToday)
         {
             emotionPanel.SetActive(true);
         }
@@ -390,7 +390,7 @@ public class MainScene : MonoBehaviour
             name = string.IsNullOrEmpty(currName.text) ? 
                 SessionState.Instance.playerName : currName.text
         };
-        StartCoroutine(NetworkManager.Instance.PatchRequest<PatchPlayerRequestBody, OkResponse>
+        StartCoroutine(NetworkManager.Instance.PatchRequest<PatchPlayerRequestBody, OkBody>
         (
             $"{NetworkManager.BASE_URL}/players/me", 
             body, 
@@ -400,7 +400,7 @@ public class MainScene : MonoBehaviour
             ));
     }
 
-    void OnSuccessPatchPlayer(OkResponse response)
+    void OnSuccessPatchPlayer(OkBody response)
     {
         print("Patch Player Success");
         if (!string.IsNullOrEmpty(currTeam.text))
@@ -428,17 +428,17 @@ public class MainScene : MonoBehaviour
     IEnumerator PostTap()
     {
         isSending = true;
-        yield return NetworkManager.Instance.PostRequest<EmptyBody, TapResponse>(
+        yield return NetworkManager.Instance.PostRequest<EmptyBody, TapBody>(
             $"{NetworkManager.BASE_URL}/tap", new EmptyBody(), OnSuccessTap, OnFailTap, header);
         isSending = false;
     }
 
-    void OnSuccessTap(TapResponse response)
+    void OnSuccessTap(TapBody response)
     {
         heartTaps = 0;
         PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, 0);
         heartParticles.Emit(5);
-        ApplyGrowth(response.body);
+        ApplyGrowth(response);
     }
 
     // 응답의 성장 상태를 화면에 반영하고 레벨업 · 완성이면 연출한다. 하트 탭과 오늘의 감정이 같이 쓴다

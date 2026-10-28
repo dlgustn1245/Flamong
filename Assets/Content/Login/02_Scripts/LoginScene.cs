@@ -94,7 +94,7 @@ public class LoginScene : MonoBehaviour
 
         checkButtonClicked = true;
         checkedNickName = nickNameField.text;
-        StartCoroutine(NetworkManager.Instance.GetRequest<CheckNickNameResponse>(
+        StartCoroutine(NetworkManager.Instance.GetRequest<CheckNickNameResponseBody>(
             $"{NetworkManager.BASE_URL}/players/check?nickname={UnityWebRequest.EscapeURL(checkedNickName)}",
             OnSuccessCheckNickName,
             OnFailCheckNickName,
@@ -102,10 +102,10 @@ public class LoginScene : MonoBehaviour
             3));
     }
 
-    void OnSuccessCheckNickName(CheckNickNameResponse response)
+    void OnSuccessCheckNickName(CheckNickNameResponseBody response)
     {
         checkButtonClicked = false;
-        if (response.body.available)
+        if (response.available)
         {
             ShowResult(
                 $"[{checkedNickName}]\n사용할 수 있는 닉네임이에요.\n이 닉네임으로 할까요?",
@@ -158,14 +158,14 @@ public class LoginScene : MonoBehaviour
             password =  passwordField.text
         };
 
-        StartCoroutine(NetworkManager.Instance.PostRequest<PostPlayerRequestBody, PostPlayerResponse>(
+        StartCoroutine(NetworkManager.Instance.PostRequest<PostPlayerRequestBody, PostPlayerResponseBody>(
             $"{NetworkManager.BASE_URL}/players", player, OnSuccessPostPlayer, OnFailPostPlayer, null, 10));
     }
 
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
-    void OnSuccessPostPlayer(PostPlayerResponse response)
+    void OnSuccessPostPlayer(PostPlayerResponseBody response)
     {
-        SessionState.Instance.playerId = response.body.playerId;
+        SessionState.Instance.playerId = response.playerId;
         SessionState.Instance.team = teamField.text;
         SessionState.Instance.playerName = nameField.text;
         SessionState.Instance.nickName = nickNameField.text;
@@ -200,13 +200,13 @@ public class LoginScene : MonoBehaviour
             password = loginPasswordField.text
         };
         StartCoroutine(
-            NetworkManager.Instance.PostRequest<LoginRequestBody, PostPlayerResponse>(
+            NetworkManager.Instance.PostRequest<LoginRequestBody, PostPlayerResponseBody>(
             $"{NetworkManager.BASE_URL}/players/login", body, OnSuccessLogin, OnFailLogin, null, 10));
     }
 
-    void OnSuccessLogin(PostPlayerResponse response)
+    void OnSuccessLogin(PostPlayerResponseBody response)
     {
-        SessionState.Instance.playerId = response.body.playerId;
+        SessionState.Instance.playerId = response.playerId;
         SessionState.Instance.SavePlayerId();
         // 갈 곳은 다시 접속할 때와 같은 규칙 (EntryRouter)
         StartCoroutine(EntryRouter.Go(OnFailLogin));

@@ -54,14 +54,14 @@ public class HatchScene : MonoBehaviour
             eggId = SessionState.Instance.eggIdx
         };
         var header = new Dictionary<string, string>{{"X-Player-Id",  SessionState.Instance.playerId}};
-        StartCoroutine(NetworkManager.Instance.PostRequest<PostCharacterRequestBody, PostCharacterResponse>(
+        StartCoroutine(NetworkManager.Instance.PostRequest<PostCharacterRequestBody, PostCharacterResponseBody>(
             $"{NetworkManager.BASE_URL}/characters", request, OnSuccessPostCharacter, OnFailPostCharacter, header, 5));
     }
 
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
-    void OnSuccessPostCharacter(PostCharacterResponse response)
+    void OnSuccessPostCharacter(PostCharacterResponseBody response)
     {
-        int speciesId = response.body.speciesId;
+        int speciesId = response.speciesId;
         if (speciesId >= 0 && speciesId < characterSprites.Length)
         {
             characterImage.sprite = characterSprites[speciesId];

@@ -2,12 +2,6 @@ using System;
 
 namespace ServerData
 {
-	public class CheckNickNameResponse
-	{
-		public int statusCode;
-		public CheckNickNameResponseBody body;
-	}
-
 	[Serializable]
 	public class CheckNickNameResponseBody
 	{
@@ -22,17 +16,11 @@ namespace ServerData
 		public string password;
 	}
 
-	// POST /players/login. 응답은 가입과 같은 { playerId } 라 PostPlayerResponse 를 쓴다
+	// POST /players/login. 응답은 가입과 같은 { playerId } 라 PostPlayerResponseBody 를 쓴다
 	public class LoginRequestBody
 	{
 		public string nickname;
 		public string password;
-	}
-
-	public class PostPlayerResponse
-	{
-		public int statusCode;
-		public PostPlayerResponseBody body;
 	}
 
 	[Serializable]
@@ -47,12 +35,6 @@ namespace ServerData
 		public string name;
 	}
 
-	public class OkResponse
-	{
-		public int statusCode; 
-		public OkBody body;
-	}
-
 	[Serializable]
 	public class OkBody
 	{
@@ -62,12 +44,6 @@ namespace ServerData
 	public class PostCharacterRequestBody
 	{
 		public int eggId;
-	}
-
-	public class PostCharacterResponse
-	{
-		public int statusCode;
-		public PostCharacterResponseBody body;
 	}
 
 	[Serializable]
@@ -94,13 +70,7 @@ namespace ServerData
 		public string emotion;
 	}
 
-	// POST /tap
-	public class TapResponse
-	{
-		public int statusCode; 
-		public TapBody body;
-	}
-
+	// POST /tap · POST /emotions
 	[Serializable]
 	public class TapBody
 	{
@@ -109,12 +79,6 @@ namespace ServerData
 	}
 
 	// GET /me
-	public class MeResponse
-	{
-		public int statusCode; 
-		public MeBody body;
-	}
-
 	[Serializable]
 	public class MeBody
 	{
@@ -126,12 +90,6 @@ namespace ServerData
 		public Growth growth;
 	}
 	
-	public class CollectionResponse
-	{
-		public int statusCode;
-		public CollectionBody body;
-	}
-
 	[Serializable]
 	public class CollectionBody
 	{

@@ -30,11 +30,10 @@ public static class EntryRouter
     {
         var session = SessionState.Instance;
         var header = new Dictionary<string, string> { { "X-Player-Id", session.playerId } };
-        yield return NetworkManager.Instance.GetRequest<MeResponse>(
+        yield return NetworkManager.Instance.GetRequest<MeBody>(
             $"{NetworkManager.BASE_URL}/me",
-            response =>
+            me =>
             {
-                var me = response.body;
                 session.team = me.team;
                 session.playerName = me.name;
                 session.nickName = me.nickname;

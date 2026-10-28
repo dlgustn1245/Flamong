@@ -81,16 +81,16 @@ public class CollectionScene : MonoBehaviour
 
     void GetCollection()
     {
-        StartCoroutine(NetworkManager.Instance.GetRequest<CollectionResponse>(
+        StartCoroutine(NetworkManager.Instance.GetRequest<CollectionBody>(
             $"{NetworkManager.BASE_URL}/collection", OnSuccessGetCollection, OnFailGetCollection, header));
     }
 
-    void OnSuccessGetCollection(CollectionResponse response)
+    void OnSuccessGetCollection(CollectionBody response)
     {
         print("Get Collection Success");
-        completed = response.body.completed;
-        speciesId = response.body.speciesId;
-        levels = response.body.levels;
+        completed = response.completed;
+        speciesId = response.speciesId;
+        levels = response.levels;
         OnClickEggTab(speciesId >= 0 ? speciesId / 3 : 0);
         countText.SetText($"{completed.Length} / 24");
     }

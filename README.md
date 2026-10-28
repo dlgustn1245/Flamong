@@ -231,8 +231,8 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400.
 본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
-모든 응답은 `{ "statusCode": N, "body": {...} }` 형식이며 HTTP 상태 코드도 같은 값이다. 아래 표의 「응답」은 `body` 내용.
-에러는 `body: { error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
+응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
+클라이언트(`UnityWebRequest`)는 400 이상이면 본문을 읽지 않고 `onError(상태 코드)`로 보낸다. 그래서 같은 코드 안의 `error` 값은 서버 로그 · 테스트용이고, 클라이언트는 코드 숫자로만 나눈다.
 
 **1.0 서버 API 10개와 1.1의 `/collection`이 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 18개 통과). 나머지 1.1 이후는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
@@ -285,11 +285,10 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 - 서버는 누적 애정도만 저장한다. 레벨과 진행값은 응답을 만들 때 계산한다. 그래서 한 번에 2 이상 올라 넘친 양은 자동으로 다음 레벨로 이월되고, 175를 넘친 양은 버린다.
 
 ```json
-{ "statusCode": 200,
-  "body": { "levelUp": false,
-            "growth": { "hearts": 4, "heartsMax": 15, "affection": 1,
-                        "level": 1, "levelProgress": 1, "levelNeed": 5,
-                        "completed": false } } }
+{ "levelUp": false,
+  "growth": { "hearts": 4, "heartsMax": 15, "affection": 1,
+              "level": 1, "levelProgress": 1, "levelNeed": 5,
+              "completed": false } }
 ```
 
 ---
@@ -313,7 +312,7 @@ Assets/Content/Common/
                                 · Panel - Notice(문구와 [확인]만 있는 안내 창, NoticePanel.Show(문구))
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
-  index.js                      Fastify 조립 · 응답 { statusCode, body } 감싸기 · now() 주입
+  index.js                      Fastify 조립 · 에러 형식 { error } · now() 주입
   db.js  schema.sql             node:sqlite · logEvent · tx(트랜잭션) · playerOf(X-Player-Id → 플레이어, 없으면 401)
   routes/players.js             가입 · 닉네임 확인 · 수정 · 탈퇴 (라우트 + JSON 스키마)
   routes/character.js           /me · /characters · /tap · /emotions · /collection
