@@ -11,6 +11,7 @@ public static class SceneName
 	public const string HatchScene = "Hatch";
 	public const string MainScene = "Main";
 	public const string CollectionScene = "Collection";
+	public const string PotionScene = "Potion";
 }
 
 public static class SceneLoader

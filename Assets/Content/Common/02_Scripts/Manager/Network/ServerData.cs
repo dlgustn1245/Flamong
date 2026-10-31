@@ -87,6 +87,7 @@ namespace ServerData
 		public string nickname;
 		public int speciesId;
 		public bool emotionToday;
+		public bool potionReady;
 		public Growth growth;
 	}
 	
@@ -96,6 +97,37 @@ namespace ServerData
 		public int[] levels;       // [speciesId] = 도달한 최고 레벨 (0 = 아직 없음). 지금 캐릭터 · 완성한 캐릭터만 센다
 		public int[] completed;
 		public int speciesId;
+	}
+	
+	// GET /missions
+	[Serializable]
+	public class MissionsBody
+	{
+		public bool canDrink;
+		public VisitMission visit;
+		public HiddenMission[] hidden;
+	}
+
+	[Serializable]
+	public class VisitMission
+	{
+		public int progress;
+		public int need;
+	}
+
+	[Serializable]
+	public class HiddenMission
+	{
+		public string id;
+		public bool done;
+		public bool claimed;
+	}
+
+	// POST /potions/claim. 응답은 TapBody 를 그대로 쓴다
+	[Serializable]
+	public class ClaimRequestBody
+	{
+		public string missionId;
 	}
 	
 	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)

@@ -12,6 +12,19 @@ export const EMOTION_AFFECTION = 2;
 // 피로 · 스트레스 · 성취감 · 몰입 · 평온
 export const EMOTIONS = ['tired', 'stress', 'achievement', 'focus', 'calm'];
 
+export const POTION_AFFECTION = 10;
+export const VISIT_PER_POTION = 7;   // 오늘의 감정을 고른 날 7일마다 1개. 연속이 아니라 누적
+// 히든 미션. 한 번씩만 받는다. 순서가 Potion 씬 카드 순서다
+export const HIDDEN_MISSIONS = ['first_complete', 'first_game', 'first_garden'];
+
+/**
+ * 방문 묘약 게이지. 받기 전에는 need 에서 멈춰 보이고, 그 뒤 방문은 쌓아 두었다가 받은 뒤 이어진다
+ * @param {number} visitDays 오늘의 감정을 고른 날 수 @param {number} claimed 받은 방문 묘약 수
+ */
+export function visitStatus(visitDays, claimed) {
+  return { progress: Math.min(VISIT_PER_POTION, visitDays - claimed * VISIT_PER_POTION), need: VISIT_PER_POTION };
+}
+
 const DAY_MS = 86_400_000;
 const KST_MS = 9 * 3_600_000;
 

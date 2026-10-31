@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS post (
 
 CREATE TABLE IF NOT EXISTS potion (
   player_id  TEXT NOT NULL,
-  mission_id TEXT NOT NULL,
+  mission_id TEXT NOT NULL,           -- 히든 미션 id, 방문 묘약은 'visit:1' 'visit:2' … (routes/potion.js)
   claimed_at TEXT NOT NULL,
   UNIQUE(player_id, mission_id)
 );

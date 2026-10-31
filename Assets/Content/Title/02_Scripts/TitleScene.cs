@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -5,6 +6,13 @@ public class TitleScene : MonoBehaviour
 {
     public Button screenButton;   // 화면 전체인 배경(Image - BG)에 붙인 버튼. 오류 창이 뜨면 그 배경이 터치를 막는다
     public ErrorPanel errorPanel;
+
+    void Awake()
+    {
+        #if UNITY_EDITOR
+        Application.runInBackground = true;
+        #endif
+    }
 
     void Start()
     {

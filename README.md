@@ -32,7 +32,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 · 회원 탈퇴. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset`, `DELETE /players/me` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 회원 탈퇴는 맨 아래 흐린 밑줄 글씨(실수로 누르지 않게) → 되돌릴 수 없다는 확인 창 → `DELETE /players/me` → 로그아웃과 같이 저장값을 지우고 Title, 이미 없는 계정(401)이면 Login 구현. 소리는 배경음 · 효과음 슬라이더 · `SoundManager`(Title) 연결까지, 소리 파일은 아직. 문의하기는 「손편지로 부탁드립니다」 안내 창(`Panel - Contact`, 설정 창 안. 아주 작은 글씨로 주소를 적은 이스터 에그, 화면 아무 곳이나 누르면 닫힘) 구현 |
 | 8 | Collection | 알 탭 8개 × (계열 3종 × 진화 5단계). 도달한 레벨까지 그림, 나머지는 검은 실루엣. 상단 뒤로가기 · 완성 개수. 규칙은 「캐릭터」 | `GET /collection` | 1.1 | 구현. 처음엔 지금 키우는 알 탭을 연다. 탭 글로우 이동 · 칸 그림과 실루엣 · 완성 개수 · 알 이름 · 401 · 오류 창 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
-| 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 빈 씬 |
+| 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 구현. 방문 묘약 카드(병이 7분의 1씩 차오름, 7 / 7이고 마실 수 있을 때만 [받기]) · 히든 미션 카드 3장(숨김 · 받기 · 대기 · 받음) · 받으면 안내 창(레벨업 포함) 뒤 `/missions` 다시 부름 · 409도 다시 부름 · 401 · 오류 창. 상단은 뒤로가기만(홈 아이콘 뺌) |
 | 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 | 빈 씬 |
 
 **들어갈 곳** (`Common/02_Scripts/Util/EntryRouter.cs`, Title · Intro · Login 로그인 성공 후 모두 이 규칙을 쓴다)
@@ -73,7 +73,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 하트 | 1개당 +1. 하트 버튼을 **10번** 누르면 1개 전달 | 매일 KST 0시에 **5개 충전, 최대 15개까지 저장** | 1.0 |
 | 오늘의 감정 | +2 | 하루 1회 | 1.0 |
 | 미니게임 | +2 | 하루 첫 플레이 | 1.1 |
-| 묘약 | +10 | 7일 연속 방문마다 1개(반복) + 히든 미션(1회성) | 1.2 |
+| 묘약 | +10 | 오늘의 감정을 고른 날 **누적 7일**마다 1개(반복) + 히든 미션 3개(1번씩). 「규칙 › 묘약」 | 1.2 |
 
 하루 최대는 1.0 기준 7, 1.1 이후 9(묘약 제외)다.
 
@@ -98,9 +98,12 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 |---|---|---|---|---|---|
 | 매일 · 하트만 | 1일 | 6일 | 13일 | 23일 | 35일 |
 | 매일 · 하트 + 감정 (1.0 기본) | 1일 | 5일 | 10일 | 17일 | **25일** |
-| 매일 · + 7일 연속 묘약 | 1일 | 5일 | 8일 | 14일 | 21일 |
+| 매일 · + 방문 묘약 | 1일 | 5일 | 8일 | 14일 | 21일 |
 | 매일 · + 묘약 + 미니게임 (1.1) | 1일 | 4일 | 7일 | 12일 | 18일 |
+| 평일만 · 하트 + 감정 | 1일 | 5일 | 10일 | 18일 | 29일 |
+| 평일만 · + 방문 묘약 | 1일 | 5일 | 9일 | 17일 | 24일 |
 | 주 3회(월·수·금) · 하트 + 감정 | 1일 | 5일 | 12일 | 22일 | **31일** |
+| 주 3회(월·수·금) · + 방문 묘약 | 1일 | 5일 | 12일 | 19일 | 29일 |
 | 주 1회 · 하트 + 감정 | 1일 | 15일 | 29일 | 50일 | 71일 |
 
 주 3회 방문자가 매일 방문자에 크게 뒤처지지 않는 이유는 하트 저장(최대 3일치) 때문이다. 주 1회는 저장 상한에 걸려 느려진다. 완전히 손을 놓은 사람을 따라잡게 하지는 않는다.
@@ -176,6 +179,23 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 유지: 도감 해금 · 랭킹 · 로그 · 프로필 · **남은 하트**. 초기화: 애정도 · 레벨.
 - 완성 전 리셋은 도감에 남지 않음. 경고 팝업 1회.
 
+### 묘약 (Potion)
+- 미션을 달성하고 [받기]를 누르면 묘약을 **바로 마셔 애정도 +10**. 보관해 두고 골라 쓰는 기능은 없다.
+- **방문 묘약**: 오늘의 감정을 고른 날이 **누적 7일**이 될 때마다 1개, 계속 받는다. 연속이 아니라서 주말 · 휴가로 빠져도 끊기지 않는다(연속이면 평일만 오는 사람은 하나도 못 받는다). 방문 일수는 `emotion_log` 행 수로 세서 따로 저장하지 않는다.
+  - 게이지는 7에서 멈춰 [받기]를 기다린다. 그사이 방문은 쌓아 두었다가 받은 뒤 이어진다(늦게 받아도 손해 없음).
+- **히든 미션** 3개, 한 번씩. 달성 전에는 「???」와 힌트만 보인다. 순서가 카드 순서다.
+
+  | id | 조건 | 판정 |
+  |---|---|---|
+  | `first_complete` | 캐릭터를 처음 완성 | `character.affection` 175인 행이 있다 |
+  | `first_game` | 미니게임 첫 플레이 (1.1) | `score` 행이 있다 |
+  | `first_garden` | 꽃밭에 첫 한마디 (1.2) | `post`(garden) 행이 있다 |
+
+- 캐릭터가 없거나 완성했으면 마실 수 없다(409). 묘약은 남아 있다가 새로 키울 때 마신다. 첫 완성 묘약이 이 경우다.
+- 고른 감정의 종류로 받는 미션(감정 5종 모두 고르기 등)은 두지 않는다. 묘약을 받으려고 실제와 다른 감정을 고르면 2.0 대시보드 데이터가 틀어진다.
+- 받은 기록만 `potion`에 남긴다. 방문 묘약은 `visit:1`, `visit:2`처럼 몇 번째인지 적어 UNIQUE로 두 번 받기를 막는다. 수치는 `rules/growth.js`(`POTION_AFFECTION` · `VISIT_PER_POTION` · `HIDDEN_MISSIONS`).
+- Main 「묘약」 버튼은 `/me`의 `potionReady`가 true면 빨간 점을 띄운다(마실 수 있고 받을 것이 있을 때). 점(`Button - Potion/Image - PotionDot`, 기본 꺼짐, 그림 `Main/03_Resources/dot_red` 64²)은 배치했고, 켜는 코드는 아직이다.
+
 ### 미니게임 · 랭킹
 - 게임은 **1개**. 매달 새 게임을 만들지 않는다. 「이달의 게임」 12칸 중 이번 달만 활성.
 - `score(player_id, month, best_score)`. 랭킹 = 해당 월 정렬.
@@ -204,7 +224,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ## 데이터 모델 (`Server/schema.sql`)
 
-`visit`만 1.2 목표이고 나머지는 `schema.sql`에 있다.
+모든 테이블이 `schema.sql`에 있다. `score` · `post`는 아직 쓰는 API가 없다.
 
 ```sql
 player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
@@ -214,10 +234,9 @@ character   (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
              started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
              UNIQUE INDEX one_active_character (player_id) WHERE ended_at IS NULL  -- 활성은 1개
 emotion_log (player_id, date, emotion,              UNIQUE(player_id, date))   -- 오늘의 감정, 하루 1회
-visit       (player_id, date,                       UNIQUE(player_id, date))   -- 1.2: 연속 방문 묘약용 (아직 없음)
 score       (player_id, month, best_score INT,      UNIQUE(player_id, month))
 post       (id INTEGER PK, player_id, date, kind, body,  UNIQUE(player_id, date, kind))
-potion     (player_id, mission_id, claimed_at,     UNIQUE(player_id, mission_id))
+potion     (player_id, mission_id, claimed_at,     UNIQUE(player_id, mission_id))   -- 받은 묘약. 방문 묘약은 'visit:N'
 event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 ```
 
@@ -234,7 +253,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 클라이언트(`UnityWebRequest`)는 400 이상이면 본문을 읽지 않고 `onError(상태 코드)`로 보낸다. 그래서 같은 코드 안의 `error` 값은 서버 로그 · 테스트용이고, 클라이언트는 코드 숫자로만 나눈다.
 
-**1.0 서버 API 10개와 1.1의 `/collection`이 구현되어 있다** (`routes/players.js` · `routes/character.js`, `npm test` 18개 통과). 나머지 1.1 이후는 설계만 있다.
+**1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js`, `npm test` 22개 통과). 나머지는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -244,7 +263,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
-| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth }` · 알을 아직 안 골랐으면 `speciesId` -1. 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
+| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth, potionReady }` · 알을 아직 안 골랐으면 `speciesId` -1. `potionReady`는 지금 마실 수 있는 묘약이 있는지(Main 빨간 점). 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
 | POST | `/characters/reset` | `{}` | `{ ok }` · 지금 캐릭터를 끝내 보관(`ended_at`). 남은 하트는 그대로. 캐릭터가 없으면(재시도) 그대로 ok **(구현)** | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
@@ -252,8 +271,8 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | GET | `/collection` | - | `{ levels: [24], completed: [speciesId…], speciesId }` · `levels[speciesId]` = 도달한 최고 레벨(0 = 없음, 지금 캐릭터 · 완성한 캐릭터만), `completed` = 완성한 종 오름차순, `speciesId` = 지금 캐릭터(없으면 -1) **(구현)** | 1.1 |
 | POST | `/scores` | `{ score }` | `{ best, rank, levelUp, growth }` · 하루 첫 플레이면 애정도 +2 반영 | 1.1 |
 | GET | `/rankings?month=YYYY-MM` | - | `[{ nickname, best }]` 상위 20 | 1.1 |
-| GET | `/missions` | - | `[{ id, done, claimed }]` | 1.2 |
-| POST | `/potions/claim` | `{ missionId }` | `{ levelUp, growth }` | 1.2 |
+| GET | `/missions` | - | `{ canDrink, visit: { progress, need }, hidden: [{ id, done, claimed }] }` · `canDrink`는 캐릭터가 있고 완성 전인지. `hidden`은 `first_complete` · `first_game` · `first_garden` 순서 **(구현)** | 1.2 |
+| POST | `/potions/claim` | `{ missionId }` (`visit` · `first_complete` · `first_game` · `first_garden`) | `{ levelUp, growth }` · 애정도 +10. 409: 달성 전 `not_ready` · 이미 받음 `claimed` · 캐릭터 없음 `no_character` · 완성 `completed`. 응답을 못 받고 다시 보내면 409가 오니 `/missions`를 다시 부른다 **(구현)** | 1.2 |
 | GET | `/posts?kind=&date=` | - | `[{ body, nickname? }]` | 1.2 |
 | POST | `/posts` | `{ kind, body }` | `{ ok }` · 중복은 409 | 1.2 |
 
@@ -334,7 +353,7 @@ Server/
 | 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 씬마다의 창(설정 · 오늘의 감정 · 결과 등). 기본 꺼짐. GraphicRaycaster 필수 |
 | 확인 창 (공통 프리팹 `Panel - Confirm`) | 3 | 팝업 위에서 「정말 할까요?」를 묻는다(Main 설정 창) |
 | 안내 창 (공통 프리팹 `Panel - Notice`) | 4 | 「준비 중이에요」 · 레벨업 · 완성처럼 알리기만 한다(Main). 하트 응답이 늦게 와서 확인 창이 떠 있는 동안 레벨업 안내가 뜰 수 있어 확인 창과 숫자를 나눴다 |
-| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main · Collection |
+| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main · Collection · Potion |
 
 같은 순서끼리는 하이어라키에서 뒤에 있어도 위에 그려진다는 보장이 없다(설정 창 뒤에 확인 창이 숨은 적이 있음). 겹쳐 뜰 수 있는 창은 순서 숫자로 나눈다.
 
@@ -350,6 +369,7 @@ Server/
 - 물결 밑줄(`line_wavy`), 노란 라벨 글로우(`label_glow_yellow`), 흰 박스 버튼(`btn_box_white`), 노란 타원 버튼(`btn_oval_yellow`), 크림색 라벨(`label_glow`)은 시안을 보고 새로 그렸다.
 - 9-slice로 쓰는 것: `frame_card`, `line_wavy`, `label_glow_yellow`, `btn_box_white`.
 - **캐릭터**: `Character/char_{speciesId 두 자리}_lv{레벨}.png` (예: `char_07_lv3`). 24종 × Lv1~5 = 120장, 256², 단일 스프라이트, 웹 빌드(ASTC)에서 장당 약 29KB(합계 약 3.5MB). 구성과 알별 컨셉은 「규칙 › 성장 밸런스」. 같은 알 안의 3종은 몸통 톤(기본 · 밝게 · 진하게)과 지느러미 색(연두 · 하늘 · 분홍)으로 구분한다.
+- **묘약** (`Potion/03_Resources`, 시안이 없어 코드로 그린 임시 그림): `potion_bottle`(병 테두리 · 눈금 6개, 속은 비움) 위로 `potion_liquid`(흰 몸통 모양)를 보라로 칠해 Filled · Vertical로 7분의 1씩 채운다. 눈금은 내용물 높이를 7등분한 자리다. `icon_potion`은 달성한 히든 미션 아이콘, `frame_card_white`는 `frame_card`의 민트 바탕만 흰색으로 바꾼 9-slice 카드다.
 - **게이지**는 이미지 두 장으로 세 겹을 만든다.
   - `gauge_fill`은 흰색 모양이다. Image Color로 칠해 빈 바탕(`#D7DBDC`)과 채움(`#FFFEB1`, Filled · Horizontal)에 한 번씩 쓴다.
   - 맨 위에 `gauge_frame`(파란 테두리 + 눈금)을 올린다.
@@ -383,6 +403,7 @@ Server/
 | 묘약 · 꽃밭 · 소식 시안 없음 | 1.2로 미룸 | 시안 나오면 진행 |
 | Main 하단 메뉴 「기록」 | 「묘약」 | 「기록」 정의가 없음. 상단 꽃 아이콘이 꽃밭 진입점 |
 | Main 상단 홈 아이콘 | 없음 | 이미 홈 화면이라 의미가 겹침 |
+| 묘약 상단 홈 아이콘 | 없음 | Main에서만 들어와서 뒤로가기와 같은 곳으로 감. 도감도 뒤로가기만 있음 |
 | 소식 씬 별도 | 꽃밭 씬의 탭 | 데이터·화면이 같고 Main에 진입점이 없음. 필요하면 나중에 분리 |
 | (없음) | 오늘의 감정 체크인 추가 | 안내문의 「하루에 한 번, 고른 감정 하나가」와 「감정연료」 컨셉을 규칙으로 옮김. 2.0 대시보드의 핵심 데이터 |
 | 하루 고정 횟수 | 하트 하루 5개 충전, 최대 15개 저장 | 못 온 날 손해를 줄여 주 3회 방문자도 약 한 달에 완성 |

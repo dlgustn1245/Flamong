@@ -3,6 +3,7 @@ import cors from '@fastify/cors';
 import { openDb } from './db.js';
 import players from './routes/players.js';
 import character from './routes/character.js';
+import potion from './routes/potion.js';
 
 /**
  * 테스트가 인메모리 DB와 고정 시계를 주입할 수 있게 앱 생성을 분리한다.
@@ -23,6 +24,7 @@ export function buildApp({ db = openDb(), now = () => new Date() } = {}) {
 
   app.register(players, { db, now });
   app.register(character, { db, now });
+  app.register(potion, { db, now });
   return app;
 }
 

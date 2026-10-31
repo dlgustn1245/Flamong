@@ -1,6 +1,7 @@
 import { logEvent, playerOf, tx } from '../db.js';
 import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
+import { missionsOf } from './potion.js';
 
 /**
  * 내 캐릭터 · 하트 · 오늘의 감정. 모든 경로가 X-Player-Id 헤더를 요구한다.
@@ -32,6 +33,7 @@ export default async function character(app, { db, now }) {
       speciesId: c ? c.species_id : -1,   // -1: 아직 알을 고르지 않음. JsonUtility 는 int 자리의 null 을 0 으로 읽는다
       emotionToday: Boolean(getEmotion.get(p.id, today)),
       growth: growthOf(rechargeHearts(p.hearts, p.hearts_date, today), c ? c.affection : 0),
+      potionReady: missionsOf(db, p.id, c).ready,   // Main 묘약 버튼의 빨간 점
     };
   });
 

@@ -49,6 +49,7 @@ public class MainScene : MonoBehaviour
     public Button gardenButton;
     public Button collectionButton;
     public Button potionButton;
+    public GameObject potionDot; 
     public Button gameButton;
     
     public GameObject emotionPanel;
@@ -109,7 +110,10 @@ public class MainScene : MonoBehaviour
         {
             SceneLoader.Load(SceneName.CollectionScene);
         });
-        potionButton.onClick.AddListener(ShowComingSoon);
+        potionButton.onClick.AddListener(() =>
+        {
+            SceneLoader.Load(SceneName.PotionScene);
+        });
         gameButton.onClick.AddListener(ShowComingSoon);
         
         for (int i = 0; i < emotionButtons.Length; i++)
@@ -297,6 +301,7 @@ public class MainScene : MonoBehaviour
         speciesId = response.speciesId;
         ShowCharacter(speciesId, response.growth.level);
         Apply(response.growth);
+        potionDot.SetActive(response.potionReady);
         if (!response.emotionToday)
         {
             emotionPanel.SetActive(true);
