@@ -1,6 +1,6 @@
 // 알(eggId 0~7, README 「캐릭터」 표 순서)마다 캐릭터 SPECIES_PER_EGG 종.
 // speciesId = eggId × SPECIES_PER_EGG + (0 ~ SPECIES_PER_EGG-1)
-// ponytail: 알당 3종은 임시값 (README 「미정」 캐릭터 수). 정해지면 이 숫자만 고친다
+// 알당 3종, 모두 24종 (2026-11-01 확정)
 export const EGG_COUNT = 8;
 export const SPECIES_PER_EGG = 3;
 
