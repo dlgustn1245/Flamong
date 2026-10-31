@@ -15,6 +15,7 @@ public class MainScene : MonoBehaviour
     public TextMeshProUGUI heartHintText;
 
     public Image gaugeFill;
+    public float gaugeFillTime = 0.5f;   // 애정도가 오를 때 게이지가 차오르는 시간
     public TextMeshProUGUI loveLevelText;
 
     public HeartParticles heartParticles;
@@ -57,6 +58,7 @@ public class MainScene : MonoBehaviour
     
     int heartTaps;
     int speciesId;
+    Coroutine gaugeRoutine;
     Dictionary<string, string> header;
     bool isSending;
     bool isCompleted;
@@ -451,7 +453,14 @@ public class MainScene : MonoBehaviour
     {
         // 완성 뒤에도 오늘의 감정 응답은 completed 가 계속 true 라, 완성 안내는 처음 완성됐을 때 한 번만
         bool justCompleted = body.growth.completed && !isCompleted;
+        float gaugeFrom = gaugeFill.fillAmount;
         Apply(body.growth);
+        // Apply 가 바로 맞춘 값을 이전 값에서부터 차오르게 다시 그린다
+        if (gaugeRoutine != null)
+        {
+            StopCoroutine(gaugeRoutine);
+        }
+        gaugeRoutine = StartCoroutine(FillGauge(gaugeFrom, gaugeFill.fillAmount, body.levelUp));
 
         if (body.levelUp)
         {
@@ -466,6 +475,28 @@ public class MainScene : MonoBehaviour
             heartParticles.Emit(10);
             noticePanel.Show("다 자랐어요!\n도감에 등록됐어요.");
         }
+    }
+
+    // 레벨업이면 끝까지 채운 뒤 0에서 새 레벨의 진행값까지 다시 차오른다
+    IEnumerator FillGauge(float from, float to, bool levelUp)
+    {
+        if (levelUp)
+        {
+            yield return FillGaugeTo(from, 1f);
+            from = 0f;
+        }
+        yield return FillGaugeTo(from, to);
+        gaugeRoutine = null;
+    }
+
+    IEnumerator FillGaugeTo(float from, float to)
+    {
+        for (float t = 0f; t < gaugeFillTime; t += Time.deltaTime)
+        {
+            gaugeFill.fillAmount = Mathf.Lerp(from, to, t / gaugeFillTime);
+            yield return null;
+        }
+        gaugeFill.fillAmount = to;
     }
 
     void OnFailTap(long code, string error)
