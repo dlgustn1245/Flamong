@@ -118,12 +118,12 @@ TextureImporter:
       name: heart_pink_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 4
-        width: 58
-        height: 57
+        x: 0
+        y: 0
+        width: 145
+        height: 142
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2385b10c57ecbf84eaf2c43f14eb70b1
     internalID: 0
     vertices: []
     indices: 

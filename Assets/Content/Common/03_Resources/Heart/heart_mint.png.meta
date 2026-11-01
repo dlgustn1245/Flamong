@@ -118,12 +118,12 @@ TextureImporter:
       name: heart_mint_0
       rect:
         serializedVersion: 2
-        x: 3
-        y: 6
-        width: 51
-        height: 47
+        x: 0
+        y: 0
+        width: 102
+        height: 94
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 4c32b0030e0cd824fa7ccf85e14357e5
     internalID: 0
     vertices: []
     indices: 
