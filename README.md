@@ -18,7 +18,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
                                                           ├─ 8 도감
                                                           ├─ 9 게임
                                                           ├─ 10 묘약
-                                                          └─ 11 꽃밭 (탭: 꽃밭 | 소식)
+                                                          ├─ 11 꽃밭
+                                                          └─ 12 소식
 ```
 
 | # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
@@ -28,12 +29,13 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내 |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 고른 알에서 멈춤 → 커짐 · 흔들림 · 번쩍임 → 결과 창(캐릭터 그림) · 오류 창 구현(「캐릭터 › Hatch 연출」) |
-| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 꽃(→꽃밭) · 확성기(→소식) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · 캐릭터 그림(`speciesId * 5 + level - 1`번 진화 그림, 레벨업하면 바로 바뀜) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`) · 레벨업/완성 · 「준비 중」 안내(`Panel - Notice`) · 오늘의 감정(`Panel - Emotion` → `POST /emotions`, 레벨업이면 안내 창) · 감정 버튼 아이콘(코드로 그린 그림, `Main/03_Resources/Emotion`) · 묘약 버튼 빨간 점(`/me`의 `potionReady`) |
+| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 꽃(→꽃밭) · 확성기(→소식) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · 캐릭터 그림(`speciesId * 5 + level - 1`번 진화 그림, 레벨업하면 바로 바뀜) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`) · 레벨업/완성 · 「준비 중」 안내(`Panel - Notice`) · 오늘의 감정(`Panel - Emotion` → `POST /emotions`, 레벨업이면 안내 창) · 감정 버튼 아이콘(코드로 그린 그림, `Main/03_Resources/Emotion`) · 묘약 버튼 빨간 점(`/me`의 `potionReady`) · 확성기 빨간 점 배치(`newsReady`, 켜는 코드는 아직) |
 | 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 · 회원 탈퇴. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset`, `DELETE /players/me` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 회원 탈퇴는 맨 아래 흐린 밑줄 글씨(실수로 누르지 않게) → 되돌릴 수 없다는 확인 창 → `DELETE /players/me` → 로그아웃과 같이 저장값을 지우고 Title, 이미 없는 계정(401)이면 Login 구현. 소리는 배경음 · 효과음 슬라이더 · `SoundManager`(Title) 연결까지, 소리 파일은 아직. 문의하기는 「손편지로 부탁드립니다」 안내 창(`Panel - Contact`, 설정 창 안. 아주 작은 글씨로 주소를 적은 이스터 에그, 화면 아무 곳이나 누르면 닫힘) 구현 |
 | 8 | Collection | 알 탭 8개 × (계열 3종 × 진화 5단계). 도달한 레벨까지 그림, 나머지는 검은 실루엣. 상단 뒤로가기 · 완성 개수. 규칙은 「캐릭터」 | `GET /collection` | 1.1 | 구현. 처음엔 지금 키우는 알 탭을 연다. 탭 글로우 이동 · 칸 그림과 실루엣 · 완성 개수 · 알 이름 · 401 · 오류 창 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 구현. 방문 묘약 카드(병이 7분의 1씩 차오름, 7 / 7이고 마실 수 있을 때만 [받기]) · 히든 미션 카드 3장(숨김 · 받기 · 대기 · 받음) · 받으면 안내 창(레벨업 포함) 뒤 `/missions` 다시 부름 · 409도 다시 부름 · 401 · 오류 창. 상단은 뒤로가기만(홈 아이콘 뺌) |
-| 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 규칙은 「꽃밭 · 소식」 | `GET /posts?kind=`, `POST /posts` | 1.2 | 서버 구현, 화면은 빈 씬 |
+| 11 | Garden | 꽃밭: 하루 1회 익명 한마디(대나무숲). 위에 쓰기 카드, 아래에 최신 30개. 규칙 · 화면은 「꽃밭 · 소식」 | `GET /posts?kind=garden`, `POST /posts` | 1.2 | 서버 · 화면 배치 완료, 스크립트 아직 |
+| 12 | News | 소식: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 화면은 꽃밭과 같다 | `GET /posts?kind=news`, `POST /posts` | 1.2 | 서버 · 화면 배치 완료, 스크립트 아직 |
 
 **들어갈 곳** (`Common/02_Scripts/Util/EntryRouter.cs`, Title · Intro · Login 로그인 성공 후 모두 이 규칙을 쓴다)
 
@@ -196,7 +198,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 캐릭터가 없거나 완성했으면 마실 수 없다(409). 묘약은 남아 있다가 새로 키울 때 마신다. 첫 완성 묘약이 이 경우다.
 - 고른 감정의 종류로 받는 미션(감정 5종 모두 고르기 등)은 두지 않는다. 묘약을 받으려고 실제와 다른 감정을 고르면 2.0 대시보드 데이터가 틀어진다.
 - 받은 기록만 `potion`에 남긴다. 방문 묘약은 `visit:1`, `visit:2`처럼 몇 번째인지 적어 UNIQUE로 두 번 받기를 막는다. 수치는 `rules/growth.js`(`POTION_AFFECTION` · `VISIT_PER_POTION` · `HIDDEN_MISSIONS`).
-- Main 「묘약」 버튼은 `/me`의 `potionReady`가 true면 빨간 점을 띄운다(마실 수 있고 받을 것이 있을 때). 점(`Button - Potion/Image - PotionDot`, 기본 꺼짐, 그림 `Main/03_Resources/dot_red` 64²)은 배치했고, 켜는 코드는 아직이다.
+- Main 「묘약」 버튼은 `/me`의 `potionReady`가 true면 빨간 점을 띄운다(마실 수 있고 받을 것이 있을 때). 점은 `Button - Potion/Image - PotionDot`(기본 꺼짐, 그림 `Main/03_Resources/dot_red` 64²)이다.
 
 ### 미니게임 · 랭킹
 - 게임은 **1개**. 매달 새 게임을 만들지 않는다. 「이달의 게임」 12칸 중 이번 달만 활성.
@@ -204,17 +206,21 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 「1일 정각 공개」 = 지난달 month로 조회. 스케줄러 없음.
 
 ### 꽃밭 · 소식
-- 탭마다 `UNIQUE(player_id, date, kind)` 제약으로 하루 1회.
+- 꽃밭 · 소식 각각 `UNIQUE(player_id, date, kind)` 제약으로 하루 1회.
 - 글은 1~100자, 앞뒤 공백은 지운다. 허용 글자는 닉네임과 같다(이모지 · 줄바꿈은 400). 입력칸은 `MultiLineSubmit`(자동 줄바꿈, 엔터로는 줄이 바뀌지 않음)과 100자 제한.
-- 꽃밭은 익명 표시, 소식은 닉네임 표시. 같은 Garden 씬의 탭 2개. 서버에는 둘 다 작성자 저장(신고 대응).
-- 목록은 탭마다 최신 30개, 날짜와 상관없이 보여 주고 넘기기는 없다.
+- 꽃밭은 익명 표시, 소식은 닉네임 표시. 서버에는 둘 다 작성자 저장(신고 대응).
+- 목록은 각각 최신 30개, 날짜와 상관없이 보여 주고 넘기기는 없다.
 - **소식 작성권**: `player.can_post_news`가 1인 사람(DB에서 직접 켠다) + **오늘의 담당 1명**.
   - 담당 후보는 **어제까지 7일 안에 오늘의 감정을 고른 사람** 중 작성권이 없는 사람이다. 그날 날짜의 해시로 1명을 뽑고 저장하지 않는다(`routes/posts.js` `newsPickOf`).
   - 전체에서 뽑으면 오지 않는 사람이 뽑혀 작성권이 버려진다. 오늘을 빼서 하루 동안 담당이 바뀌지 않는다(그날 후보가 탈퇴하는 경우만 예외).
-  - 담당이 되면 Main 확성기에 빨간 점(`/me`의 `newsReady`). 소식을 쓰면 꺼진다.
+  - 담당이 되면 Main 확성기에 빨간 점(`/me`의 `newsReady`, `Group - Top/Button - News/Image - NewsDot`, 기본 꺼짐). 소식을 쓰면 꺼진다.
 - 꽃밭 첫 글은 히든 미션 `first_garden`(묘약). 글로 애정도는 오르지 않는다(성장표는 한 달 기준으로 맞춰 두었고, 도배 유인이 생긴다).
 - 신고 · 삭제 버튼은 없다. 문제 글은 관리자가 DB에서 `DELETE FROM post WHERE id = ?`로 지운다.
-- Main 상단의 꽃은 꽃밭 탭, 확성기는 소식 탭을 열고 Garden 씬으로 간다(어느 탭인지는 `SessionState`로 넘긴다).
+- **화면**: Garden(꽃밭) · News(소식) 씬 2개. Main 상단의 꽃은 Garden, 확성기는 News로 바로 간다. 입구가 따로 있어 탭으로 묶지 않았다.
+  - 두 씬은 배치가 같고(News는 Garden을 복사해 제목 · 배경 · 아이콘 · 문구만 바꿈) 동작도 같아서 스크립트는 `Common/02_Scripts`의 공용 하나로 쓴다. 씬마다 다른 것은 `kind`와 카드 아이콘 · 안내 문구뿐이다.
+  - 쓰기 카드(`Canvas - Main/Image - WriteCard`): `Group - Write`(입력칸 `Input - Body` · 힌트 「N / 100」 · [심기] / [알리기])와 `Group - Done`(못 쓸 때 안내) 중 하나만 켠다. 입력칸은 Login 입력칸을 복제해 키보드 · 커서 설정이 같다.
+  - 목록(`Canvas - Dynamic/Scroll - List/Content`): 꺼 둔 `Item - 0`~`29`를 받은 개수만큼 켜서 다시 쓴다. 카드 높이는 `-(Text - Body의 y) + 본문 높이 + 64`(최소 160)로 코드에서 정하고, Content의 VerticalLayoutGroup 하나가 쌓는다. 글이 없으면 `Text - Empty`.
+  - 글 · 닉네임 글자(`Text - Body` · `Text - Nickname`)는 Rich Text와 `\n` 해석을 껐다. 사람이 쓴 `<size=200>` 같은 태그가 화면을 깨지 않게 한다.
 
 ### 로그
 - 모든 쓰기 API가 `event(player_id, type, ts, payload)` 한 줄. 클라이언트 별도 로그 전송 없음.
@@ -366,7 +372,7 @@ Server/
 | 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 씬마다의 창(설정 · 오늘의 감정 · 결과 등). 기본 꺼짐. GraphicRaycaster 필수 |
 | 확인 창 (공통 프리팹 `Panel - Confirm`) | 3 | 팝업 위에서 「정말 할까요?」를 묻는다(Main 설정 창) |
 | 안내 창 (공통 프리팹 `Panel - Notice`) | 4 | 「준비 중이에요」 · 레벨업 · 완성처럼 알리기만 한다(Main). 하트 응답이 늦게 와서 확인 창이 떠 있는 동안 레벨업 안내가 뜰 수 있어 확인 창과 숫자를 나눴다 |
-| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main · Collection · Potion |
+| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main · Collection · Potion · Garden · News |
 
 같은 순서끼리는 하이어라키에서 뒤에 있어도 위에 그려진다는 보장이 없다(설정 창 뒤에 확인 창이 숨은 적이 있음). 겹쳐 뜰 수 있는 창은 순서 숫자로 나눈다.
 
@@ -386,10 +392,12 @@ Server/
   - 진화 그림(Main에서 1.73배)은 다운로드 예산 때문에 256²를 유지한다.
 - 시안이 없는 화면(오늘의 감정 팝업 · 묘약 · 꽃밭 · 소식)은 기존 톤(파란 손그림 테두리, 흰 카드, 노란 버튼)에 맞춰 직접 그린다. 시안 원본은 기획서(Confluence)에 있고 저장소에는 넣지 않는다.
 - 물결 밑줄(`line_wavy`), 노란 라벨 글로우(`label_glow_yellow`), 흰 박스 버튼(`btn_box_white`), 노란 타원 버튼(`btn_oval_yellow`), 크림색 라벨(`label_glow`)은 시안을 보고 새로 그렸다.
-- 9-slice로 쓰는 것: `frame_card`, `line_wavy`, `label_glow_yellow`, `btn_box_white`.
+- 9-slice로 쓰는 것: `frame_card`, `frame_card_white`, `line_wavy`, `label_glow_yellow`, `btn_box_white`.
 - **캐릭터**: `Character/char_{speciesId 두 자리}_lv{레벨}.png` (예: `char_07_lv3`). 24종 × Lv1~5 = 120장, 256², 단일 스프라이트, 웹 빌드(ASTC)에서 장당 약 29KB(합계 약 3.5MB). 구성과 알별 컨셉은 「규칙 › 성장 밸런스」. 같은 알 안의 3종은 몸통 톤(기본 · 밝게 · 진하게)과 지느러미 색(연두 · 하늘 · 분홍)으로 구분한다.
 - **감정 아이콘 5종**(`Main/03_Resources/Emotion/icon_emotion_*`)과 묘약 버튼 빨간 점(`Main/03_Resources/dot_red`, 64²)은 코드로 그렸다.
-- **묘약** (`Potion/03_Resources`, 코드로 그림): `potion_bottle`(병 테두리 · 눈금 6개, 속은 비움) 위로 `potion_liquid`(흰 몸통 모양)를 보라로 칠해 Filled · Vertical로 7분의 1씩 채운다. 눈금은 내용물 높이를 7등분한 자리다. `icon_potion`은 달성한 히든 미션 아이콘, `frame_card_white`는 `frame_card`의 민트 바탕만 흰색으로 바꾼 9-slice 카드다.
+- **묘약** (`Potion/03_Resources`, 코드로 그림): `potion_bottle`(병 테두리 · 눈금 6개, 속은 비움) 위로 `potion_liquid`(흰 몸통 모양)를 보라로 칠해 Filled · Vertical로 7분의 1씩 채운다. 눈금은 내용물 높이를 7등분한 자리다. `icon_potion`은 달성한 히든 미션 아이콘이다.
+- **흰 카드** `frame_card_white`(`Common/03_Resources/UI`): `frame_card`의 민트 바탕만 흰색으로 바꾼 9-slice 카드. 묘약 · 꽃밭 · 소식이 같이 써서 Common으로 옮겼다.
+- **꽃밭 · 소식**은 새 그림이 없다. 꽃밭 카드는 Main 버튼의 꽃 그림(`btn_flower_pink · sky · mint`)을 돌려 쓰고, 소식 카드는 `icon_megaphone`, 배경은 꽃밭 `grad_green` · 소식 `grad_yellow`.
 - **확성기 아이콘**(`Common/03_Resources/Icon/icon_megaphone`, 142², 코드로 그림): Main 상단 소식 버튼. 다른 아이콘보다 가로로 길어 버튼 크기를 165로 키워 무게를 맞췄다(꽃 · 기어는 130).
 - **게이지**는 이미지 두 장으로 세 겹을 만든다.
   - `gauge_fill`은 흰색 모양이다. Image Color로 칠해 빈 바탕(`#D7DBDC`)과 채움(`#FFFEB1`, Filled · Horizontal)에 한 번씩 쓴다.
@@ -408,7 +416,7 @@ Server/
 |---|---|
 | **1.0** | 씬 1~7. 서버: players · characters · me · tap(하트 저장) · emotions(오늘의 감정). WebGL 빌드 → QR 배포 |
 | 1.1 | 도감 · 미니게임 1개 · 월별 랭킹 |
-| 1.2 | 묘약(미션 1개) · 꽃밭(꽃밭 · 소식 탭) |
+| 1.2 | 묘약 · 꽃밭 · 소식 |
 | 2.0 | Android 빌드 + **Unity Ads**(WebGL 미지원이라 필요) · 대시보드(event 테이블 쿼리) · 인증 |
 
 ---
@@ -426,7 +434,6 @@ Server/
 | Main 하단 메뉴 「기록」 | 「묘약」 | 「기록」 정의가 없음. 상단 꽃 아이콘이 꽃밭 진입점 |
 | Main 상단 홈 아이콘 | 없음 | 이미 홈 화면이라 의미가 겹침 |
 | 묘약 상단 홈 아이콘 | 없음 | Main에서만 들어와서 뒤로가기와 같은 곳으로 감. 도감도 뒤로가기만 있음 |
-| 소식 씬 별도 | 꽃밭 씬의 탭. Main 상단 확성기로 소식 탭을 바로 연다 | 데이터·화면이 같음. 진입점만 따로 둔다 |
 | (없음) | 오늘의 감정 체크인 추가 | 안내문의 「하루에 한 번, 고른 감정 하나가」와 「감정연료」 컨셉을 규칙으로 옮김. 2.0 대시보드의 핵심 데이터 |
 | 하루 고정 횟수 | 하트 하루 5개 충전, 최대 15개 저장 | 못 온 날 손해를 줄여 주 3회 방문자도 약 한 달에 완성 |
 | 성장표 5 / 40 / 60 / 80 / 100 (누적 285) | 같은 구조, 5 / 25 / 35 / 50 / 60 (누적 175) | 원안은 매일 해도 41일. 한 달 주기인 미니게임 · 랭킹에 맞춤 |

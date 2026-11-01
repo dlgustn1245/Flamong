@@ -32,8 +32,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Content/Potion/01_Scenes/Potion.unity
     guid: a1a29d2c15214ccfa3bb592d93886205
-  - enabled: 0
+  - enabled: 1
     path: Assets/Content/Garden/01_Scenes/Garden.unity
     guid: 1661dcd848b24b21af8c1bbb925ed76b
+  - enabled: 1
+    path: Assets/Content/News/01_Scenes/News.unity
+    guid: 668c184bb755b5444b5b81959f1d686e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
