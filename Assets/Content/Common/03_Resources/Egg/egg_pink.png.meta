@@ -118,12 +118,12 @@ TextureImporter:
       name: egg_pink_0
       rect:
         serializedVersion: 2
-        x: 13
-        y: 22
-        width: 102
-        height: 85
+        x: 0
+        y: 0
+        width: 306
+        height: 255
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 31cc9d8688b918541b2ec366b0c4660e
     internalID: 0
     vertices: []
     indices: 

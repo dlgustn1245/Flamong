@@ -118,12 +118,12 @@ TextureImporter:
       name: egg_orange_0
       rect:
         serializedVersion: 2
-        x: 13
-        y: 16
-        width: 102
-        height: 104
+        x: 0
+        y: 0
+        width: 306
+        height: 312
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: b14e28a521d1dd745bdb99be5c819fcf
     internalID: 0
     vertices: []
     indices: 

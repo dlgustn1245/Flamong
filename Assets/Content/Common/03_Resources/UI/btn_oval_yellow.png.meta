@@ -118,12 +118,12 @@ TextureImporter:
       name: btn_oval_yellow_0
       rect:
         serializedVersion: 2
-        x: 3
+        x: 0
         y: 0
-        width: 212
-        height: 133
+        width: 424
+        height: 266
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 1a448cbd138d3c1428800e789259166b
     internalID: 0
     vertices: []
     indices: 

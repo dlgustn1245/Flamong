@@ -370,7 +370,8 @@ Server/
 
 - **디자이너가 따로 없어 지금 그림을 정식으로 쓴다**(2026-11-01). 시안에서 잘라낸 그림은 원본이 약 100px 안팎이라 화면에서 1.7~2.6배로 늘어나 흐리다. 이런 그림은 같은 파일명 · 같은 스프라이트 ID로, 보이는 크기의 1.25배 해상도로 코드로 다시 그린다(시트 방식 그림은 잘라내는 영역도 새 크기로 바꾼다).
   - 1단계 Main (2026-11-01 완료): `heart_tap` · `heart_fill`, `gauge_fill` · `gauge_frame`, `btn_flower_sky · mint · pink`, `icon_flower` · `icon_gear` · `icon_mail` · `icon_close`. 바탕색은 원본에서 그대로 뽑았다.
-  - 2단계 알 고르기 · 부화: 알 8종, `egg_unknown_*`, `icon_triangle`, `btn_oval_yellow`. 3단계: `icon_back`, 작은 하트들, 배경 그라데이션의 세로 띠.
+  - 2단계 알 고르기 · 부화 (2026-11-01 완료): 알 8종은 모양 · 무늬가 제각각이라 새로 그리지 않고, 원본을 3배로 키운 뒤 원본에서 뽑은 색 사이 경계를 다시 세우고 윤곽선만 같은 파란색 · 두께로 새로 그었다. `egg_unknown_pink · yellow`, `icon_triangle`, `btn_oval_yellow`는 새로 그렸다.
+  - 3단계: `icon_back`, 작은 하트들, 배경 그라데이션의 세로 띠.
   - 진화 그림(Main에서 1.73배)은 다운로드 예산 때문에 256²를 유지한다.
 - 시안이 없는 화면(오늘의 감정 팝업 · 묘약 · 꽃밭 · 소식)은 기존 톤(파란 손그림 테두리, 흰 카드, 노란 버튼)에 맞춰 직접 그린다. 시안 원본은 기획서(Confluence)에 있고 저장소에는 넣지 않는다.
 - 물결 밑줄(`line_wavy`), 노란 라벨 글로우(`label_glow_yellow`), 흰 박스 버튼(`btn_box_white`), 노란 타원 버튼(`btn_oval_yellow`), 크림색 라벨(`label_glow`)은 시안을 보고 새로 그렸다.
