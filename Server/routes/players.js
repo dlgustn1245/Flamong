@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { logEvent, playerOf, tx } from '../db.js';
-import { isValidNickname, NICKNAME_MAX } from '../rules/nickname.js';
+import { isValidText, NICKNAME_MAX } from '../rules/text.js';
 import { HEARTS_START, kstDate } from '../rules/growth.js';
 import { hashPassword, isLocked, lockUntil, MAX_LOGIN_FAILS, PASSWORD_PATTERN, verifyPassword } from '../rules/password.js';
 
@@ -20,7 +20,7 @@ export default async function players(app, { db, now }) {
   }, (req) => {
     const { nickname } = req.query;
     const taken = db.prepare('SELECT 1 FROM player WHERE nickname = ?').get(nickname);
-    return { available: isValidNickname(nickname) && !taken };
+    return { available: isValidText(nickname, NICKNAME_MAX) && !taken };
   });
 
   app.post('/players', {
@@ -38,7 +38,7 @@ export default async function players(app, { db, now }) {
     },
   }, (req, reply) => {
     const { team, name, nickname, password } = req.body;
-    if (!isValidNickname(nickname)) return reply.code(400).send({ error: 'nickname_charset' });
+    if (!isValidText(nickname, NICKNAME_MAX)) return reply.code(400).send({ error: 'nickname_charset' });
     const id = randomUUID();
     try {
       db.prepare('INSERT INTO player (id, team, name, nickname, created_at, hearts, hearts_date, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')

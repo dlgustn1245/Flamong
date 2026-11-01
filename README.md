@@ -33,7 +33,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 8 | Collection | 알 탭 8개 × (계열 3종 × 진화 5단계). 도달한 레벨까지 그림, 나머지는 검은 실루엣. 상단 뒤로가기 · 완성 개수. 규칙은 「캐릭터」 | `GET /collection` | 1.1 | 구현. 처음엔 지금 키우는 알 탭을 연다. 탭 글로우 이동 · 칸 그림과 실루엣 · 완성 개수 · 알 이름 · 401 · 오류 창 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 구현. 방문 묘약 카드(병이 7분의 1씩 차오름, 7 / 7이고 마실 수 있을 때만 [받기]) · 히든 미션 카드 3장(숨김 · 받기 · 대기 · 받음) · 받으면 안내 창(레벨업 포함) 뒤 `/missions` 다시 부름 · 409도 다시 부름 · 401 · 오류 창. 상단은 뒤로가기만(홈 아이콘 뺌) |
-| 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회 | `GET/POST /posts?kind=garden\|news` | 1.2 | 빈 씬 |
+| 11 | Garden | 상단 탭 2개. **꽃밭** 탭: 하루 1회 익명 한마디 (대나무숲). **소식** 탭: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 규칙은 「꽃밭 · 소식」 | `GET /posts?kind=`, `POST /posts` | 1.2 | 서버 구현, 화면은 빈 씬 |
 
 **들어갈 곳** (`Common/02_Scripts/Util/EntryRouter.cs`, Title · Intro · Login 로그인 성공 후 모두 이 규칙을 쓴다)
 
@@ -168,9 +168,10 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
   - 개수는 완성(애정도 175)한 종 수다. Lv5여도 게이지를 다 채워야 완성이라 레벨과 따로 센다.
 
 ### 닉네임
-- 1~12자. 허용 글자는 **KS X 1001 완성형 한글 2350자 + ASCII**다. 꾸불림체 폰트 아틀라스와 같은 범위라서, 아틀라스 밖 글자가 □로 보이는 일을 막는다.
-- 서버 `rules/nickname.js`가 검사한다. 범위 밖 글자는 400 `nickname_charset`, 중복은 409 `nickname_taken`.
-- 자모 단독(ㅋㅋ), 「뷁」 같은 완성형 밖 글자, 이모지, 전각 문자는 쓸 수 없다. 자모는 입력 중 표시용으로 폰트 폴백에 있지만 닉네임에는 허용하지 않는다. Login 입력칸도 12자로 제한했다.
+- 1~12자. 허용 글자는 **ASCII + 한글 자모(ㄱ~ㅣ 51자) + 한글 11,172자 전부**다. 폰트(정적 아틀라스 + 자모 폴백 + 동적 폴백)가 그릴 수 있는 범위와 같다. 꽃밭 · 소식 글도 같은 규칙이다.
+- 서버 `rules/text.js`가 검사한다. 범위 밖 글자는 400 `nickname_charset`, 중복은 409 `nickname_taken`.
+- 이모지 · 전각 문자는 폰트에 없어 □로 보이므로 쓸 수 없다. Login 입력칸도 12자로 제한했다.
+- 2026-11-01까지는 완성형 2350자만 받았다(동적 폴백이 없어 「됬」 「햏」이 □로 보였다). 그때 만든 닉네임은 새 규칙에도 맞는다.
 
 ### 캐릭터 새로 키우기 (리셋)
 - 지금 캐릭터 행에 `ended_at`을 기록해 보관한다(지우지 않음, 유저 삭제 아님). 새 `character` 행은 알을 다시 골라 `POST /characters`에서 만든다.
@@ -203,9 +204,16 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 「1일 정각 공개」 = 지난달 month로 조회. 스케줄러 없음.
 
 ### 꽃밭 · 소식
-- `UNIQUE(player_id, date, kind)` 제약으로 하루 1회.
-- 소식 작성권: `player.can_post_news`. 플링커 멤버 true. 「랜덤 1명」은 매일 첫 조회 시 그날 날짜를 시드로 뽑는다(저장 불필요).
+- 탭마다 `UNIQUE(player_id, date, kind)` 제약으로 하루 1회.
+- 글은 1~100자, 앞뒤 공백은 지운다. 허용 글자는 닉네임과 같다(이모지 · 줄바꿈은 400). 입력칸은 `MultiLineSubmit`(자동 줄바꿈, 엔터로는 줄이 바뀌지 않음)과 100자 제한.
 - 꽃밭은 익명 표시, 소식은 닉네임 표시. 같은 Garden 씬의 탭 2개. 서버에는 둘 다 작성자 저장(신고 대응).
+- 목록은 탭마다 최신 30개, 날짜와 상관없이 보여 주고 넘기기는 없다.
+- **소식 작성권**: `player.can_post_news`가 1인 사람(DB에서 직접 켠다) + **오늘의 담당 1명**.
+  - 담당 후보는 **어제까지 7일 안에 오늘의 감정을 고른 사람** 중 작성권이 없는 사람이다. 그날 날짜의 해시로 1명을 뽑고 저장하지 않는다(`routes/posts.js` `newsPickOf`).
+  - 전체에서 뽑으면 오지 않는 사람이 뽑혀 작성권이 버려진다. 오늘을 빼서 하루 동안 담당이 바뀌지 않는다(그날 후보가 탈퇴하는 경우만 예외).
+  - 담당이 되면 Main 확성기에 빨간 점(`/me`의 `newsReady`). 소식을 쓰면 꺼진다.
+- 꽃밭 첫 글은 히든 미션 `first_garden`(묘약). 글로 애정도는 오르지 않는다(성장표는 한 달 기준으로 맞춰 두었고, 도배 유인이 생긴다).
+- 신고 · 삭제 버튼은 없다. 문제 글은 관리자가 DB에서 `DELETE FROM post WHERE id = ?`로 지운다.
 - Main 상단의 꽃은 꽃밭 탭, 확성기는 소식 탭을 열고 Garden 씬으로 간다(어느 탭인지는 `SessionState`로 넘긴다).
 
 ### 로그
@@ -227,7 +235,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ## 데이터 모델 (`Server/schema.sql`)
 
-모든 테이블이 `schema.sql`에 있다. `score` · `post`는 아직 쓰는 API가 없다.
+모든 테이블이 `schema.sql`에 있다. `score`는 아직 쓰는 API가 없다.
 
 ```sql
 player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
@@ -256,7 +264,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 클라이언트(`UnityWebRequest`)는 400 이상이면 본문을 읽지 않고 `onError(상태 코드)`로 보낸다. 그래서 같은 코드 안의 `error` 값은 서버 로그 · 테스트용이고, 클라이언트는 코드 숫자로만 나눈다.
 
-**1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js`, `npm test` 22개 통과). 나머지는 설계만 있다.
+**1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개 · 꽃밭 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 26개 통과). 나머지는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -266,7 +274,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
-| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth, potionReady }` · 알을 아직 안 골랐으면 `speciesId` -1. `potionReady`는 지금 마실 수 있는 묘약이 있는지(Main 빨간 점). 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
+| GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth, potionReady, newsReady }` · 알을 아직 안 골랐으면 `speciesId` -1. `potionReady`는 지금 마실 수 있는 묘약이 있는지(Main 묘약 빨간 점), `newsReady`는 오늘의 소식 담당이고 아직 안 썼는지(Main 확성기 빨간 점). 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
 | POST | `/characters/reset` | `{}` | `{ ok }` · 지금 캐릭터를 끝내 보관(`ended_at`). 남은 하트는 그대로. 캐릭터가 없으면(재시도) 그대로 ok **(구현)** | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
@@ -276,8 +284,8 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | GET | `/rankings?month=YYYY-MM` | - | `[{ nickname, best }]` 상위 20 | 1.1 |
 | GET | `/missions` | - | `{ canDrink, visit: { progress, need }, hidden: [{ id, done, claimed }] }` · `canDrink`는 캐릭터가 있고 완성 전인지. `hidden`은 `first_complete` · `first_game` · `first_garden` 순서 **(구현)** | 1.2 |
 | POST | `/potions/claim` | `{ missionId }` (`visit` · `first_complete` · `first_game` · `first_garden`) | `{ levelUp, growth }` · 애정도 +10. 409: 달성 전 `not_ready` · 이미 받음 `claimed` · 캐릭터 없음 `no_character` · 완성 `completed`. 응답을 못 받고 다시 보내면 409가 오니 `/missions`를 다시 부른다 **(구현)** | 1.2 |
-| GET | `/posts?kind=&date=` | - | `[{ body, nickname? }]` | 1.2 |
-| POST | `/posts` | `{ kind, body }` | `{ ok }` · 중복은 409 | 1.2 |
+| GET | `/posts?kind=garden\|news` | - | `{ canWrite, posts: [{ body, date, nickname }] }` · 최신순 30개. `nickname`은 소식만, 꽃밭은 `""`. `canWrite`는 오늘 아직 안 썼고 (꽃밭이거나 소식 작성권이 있는지) **(구현)** | 1.2 |
+| POST | `/posts` | `{ kind, body }` (`body` 1~100자) | `{ ok }` · 허용 밖 글자 · 공백만 · 100자 초과 400 `body_charset`, 오늘 이미 씀 409 `posted`, 소식 작성권 없음 409 `no_right`. `event`는 꽃밭 `post` · 소식 `news` **(구현)** | 1.2 |
 
 ### `growth` (성장 상태)
 
@@ -338,7 +346,9 @@ Server/
   db.js  schema.sql             node:sqlite · logEvent · tx(트랜잭션) · playerOf(X-Player-Id → 플레이어, 없으면 401)
   routes/players.js             가입 · 닉네임 확인 · 수정 · 탈퇴 (라우트 + JSON 스키마)
   routes/character.js           /me · /characters · /tap · /emotions · /collection
-  rules/nickname.js             순수 함수 (DB · HTTP 모름)
+  routes/potion.js              /missions · /potions/claim · 미션 상태(missionsOf)
+  routes/posts.js               /posts · 오늘의 소식 담당(newsPickOf)
+  rules/text.js                 닉네임 · 글 허용 글자 (순수 함수, DB · HTTP 모름)
   rules/password.js             비밀번호 해시 · 확인 · 로그인 잠금
   rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜
   rules/species.js              알 → 캐릭터 뽑기
@@ -386,7 +396,8 @@ Server/
   - 맨 위에 `gauge_frame`(파란 테두리 + 눈금)을 올린다.
 - 공통 색: 글자·외곽선 파랑 `#2F60F6`, 노란 버튼 `#EEFD88`, 스크롤 막대 `#F6EF8C`.
 - **폰트**: 배달의민족 꾸불림체(`BMKkubulimTTF SDF`). 2048² 정적 아틀라스이고, 문자 목록은 `Font/CharSet_KSX1001.txt`(ASCII 95 + 완성형 2350 + 기호 24)다.
-  - 폴백 `BMKkubulimTTF Jamo SDF`: 단독 자모 ㄱ~ㅣ 51자, 512×256 정적 아틀라스. 입력 중인 「ㄱ」 같은 글자가 □로 보이지 않게 한다. 본 아틀라스와 같은 35pt · 여백 5로 구워 글자 크기가 같다.
+  - 폴백 1 `BMKkubulimTTF Jamo SDF`: 단독 자모 ㄱ~ㅣ 51자, 512×256 정적 아틀라스. 입력 중인 「ㄱ」 같은 글자가 □로 보이지 않게 한다. 본 아틀라스와 같은 35pt · 여백 5로 구워 글자 크기가 같다.
+  - 폴백 2 `BMKkubulimTTF Dynamic SDF`(2026-11-01): 원본 TTF(2.9MB)에서 필요한 글자만 실행 중에 굽는 동적 아틀라스(512², 차면 장을 더함). 정적 아틀라스 밖 한글 8,822자(「됬」 「햏」, 입력 중의 「잏」)를 그린다. 같은 35pt · 여백 5라 글자 모양 수치가 본 아틀라스와 똑같다. 「Clear Dynamic Data on Build」를 켜서 에디터에서 구운 글자는 빌드에 들어가지 않는다. 비용은 다운로드 약 +1.34MB(Brotli 후) · 힙 약 +3~4MB.
   - 라이선스: SIL OFL 1.1 (`Font/OFL.txt`). 게임에 넣고 수정 · 재배포할 수 있고, 폰트 파일만 따로 파는 것은 금지다. 빌드를 배포할 때 이 파일을 빌드 폴더에 같이 올린다.
 
 ---
@@ -424,7 +435,6 @@ Server/
 
 ## 미정 (폰 테스트 · 배포 때 정할 것)
 
-- **한글 동적 폰트 폴백.** 아틀라스 밖 한글 8,822자(「잏」 「앜」 등)가 □로 보인다. TTF를 동적 폴백으로 넣으면 다 보이고, 비용은 다운로드 +1.34MB(Brotli 후) · 힙 +3~4MB다. 라이선스는 문제없다. 폰 테스트에서 입력 중 □가 거슬리거나 1.2 꽃밭 · 소식(자유 글)을 만들 때 넣는다. 넣으면 닉네임 허용 범위를 넓힐지도 함께 정한다.
 - **입력 설정을 새 Input System 하나로.** 옛 `Input`을 쓰던 Title을 버튼으로 바꿔서 코드에는 옛 `Input`이 없다. 다만 TMP 입력칸의 한글 조합(IME)이 새 Input System만으로 동작하는지 확인하지 못해 「둘 다」(`activeInputHandler: 2`)로 두었다. 첫 빌드에서 가입 화면 한글 입력을 확인한 뒤 바꾼다.
 - **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 12.53MB로 예산 안이다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 배경음을 넣은 뒤 15MB를 넘으면 Crunch 압축 → 어드레서블(플레이어당 5장만 받음) 순으로 줄인다.
 - 서버 호스팅 위치. 배포는 맨 마지막에 한다. 그때 AWS Lightsail 서울 또는 Cloudflare Tunnel 중에서 정한다.

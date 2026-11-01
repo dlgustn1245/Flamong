@@ -88,6 +88,7 @@ namespace ServerData
 		public int speciesId;
 		public bool emotionToday;
 		public bool potionReady;
+		public bool newsReady;   // 오늘의 소식 담당이고 아직 안 씀 (확성기 빨간 점)
 		public Growth growth;
 	}
 	
@@ -129,7 +130,30 @@ namespace ServerData
 	{
 		public string missionId;
 	}
-	
+
+	// GET /posts?kind=garden|news
+	[Serializable]
+	public class PostsBody
+	{
+		public bool canWrite;
+		public PostItem[] posts;   // 최신순 30개
+	}
+
+	[Serializable]
+	public class PostItem
+	{
+		public string body;
+		public string date;       // KST YYYY-MM-DD
+		public string nickname;   // 소식만. 꽃밭은 ""
+	}
+
+	// POST /posts. 응답은 OkBody
+	public class PostRequestBody
+	{
+		public string kind;   // "garden" | "news"
+		public string body;
+	}
+
 	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)
 	public class EmptyBody { }
 }

@@ -2,6 +2,7 @@ import { logEvent, playerOf, tx } from '../db.js';
 import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
 import { missionsOf } from './potion.js';
+import { newsReadyOf } from './posts.js';
 
 /**
  * 내 캐릭터 · 하트 · 오늘의 감정. 모든 경로가 X-Player-Id 헤더를 요구한다.
@@ -34,6 +35,7 @@ export default async function character(app, { db, now }) {
       emotionToday: Boolean(getEmotion.get(p.id, today)),
       growth: growthOf(rechargeHearts(p.hearts, p.hearts_date, today), c ? c.affection : 0),
       potionReady: missionsOf(db, p.id, c).ready,   // Main 묘약 버튼의 빨간 점
+      newsReady: newsReadyOf(db, p.id, today),      // Main 확성기의 빨간 점 (오늘의 소식 담당)
     };
   });
 

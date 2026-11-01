@@ -38,7 +38,7 @@ export function playerOf(db, req, reply) {
     reply.code(401).send({ error: 'no_player' });
     return null;
   }
-  const player = db.prepare('SELECT id, team, name, nickname, hearts, hearts_date FROM player WHERE id = ?').get(id);
+  const player = db.prepare('SELECT id, team, name, nickname, hearts, hearts_date, can_post_news FROM player WHERE id = ?').get(id);
   if (!player) {
     reply.code(401).send({ error: 'unknown_player' });
     return null;

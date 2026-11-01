@@ -45,9 +45,11 @@ test('삭제 → 수정은 401 → 같은 닉네임 재가입 200 · event 는 �
   assert.equal(db.prepare("SELECT count(*) n FROM event WHERE type = 'delete'").get().n, 1);
 });
 
-test('아틀라스 밖 글자 닉네임은 400', async () => {
+test('닉네임: 한글 11172자 · 자모는 되고 이모지는 400', async () => {
   const app = buildApp({ db: openDb(':memory:'), now: fixed });
-  const res = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: '뷁' } });
+  const ok = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: '뷁됬ㅋㅋ' } });
+  assert.equal(ok.statusCode, 200);
+  const res = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: '😀' } });
   assert.equal(res.statusCode, 400);
   assert.equal(res.json().error, 'nickname_charset');
 });
