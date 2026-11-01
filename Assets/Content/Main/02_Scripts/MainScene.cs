@@ -47,6 +47,7 @@ public class MainScene : MonoBehaviour
     public Slider bgmSlider;
     public Slider sfxSlider;
 
+    public Button newsButton;
     public Button gardenButton;
     public Button collectionButton;
     public Button potionButton;
@@ -107,6 +108,7 @@ public class MainScene : MonoBehaviour
                 WithdrawCharacter);
         });
         
+        newsButton.onClick.AddListener(ShowComingSoon);
         gardenButton.onClick.AddListener(ShowComingSoon);
         collectionButton.onClick.AddListener(() =>
         {
@@ -214,6 +216,7 @@ public class MainScene : MonoBehaviour
         contact.onClick.RemoveAllListeners();
         bgmSlider.onValueChanged.RemoveAllListeners();
         sfxSlider.onValueChanged.RemoveAllListeners();
+        newsButton.onClick.RemoveAllListeners();
         gardenButton.onClick.RemoveAllListeners();
         potionButton.onClick.RemoveAllListeners();
         collectionButton.onClick.RemoveAllListeners();

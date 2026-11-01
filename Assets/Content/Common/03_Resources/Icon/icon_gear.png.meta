@@ -118,12 +118,12 @@ TextureImporter:
       name: icon_gear_0
       rect:
         serializedVersion: 2
-        x: 30
-        y: 29
-        width: 68
-        height: 71
+        x: 0
+        y: 0
+        width: 157
+        height: 164
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 2054e69b99fb0ea4aab64d5788301898
     internalID: 0
     vertices: []
     indices: 

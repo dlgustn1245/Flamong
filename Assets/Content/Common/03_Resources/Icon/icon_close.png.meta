@@ -118,12 +118,12 @@ TextureImporter:
       name: icon_close_0
       rect:
         serializedVersion: 2
-        x: 43
-        y: 43
-        width: 41
-        height: 42
+        x: 0
+        y: 0
+        width: 98
+        height: 100
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -140,7 +140,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: 8a4159fed3ebb3b47b89e9322f1099d8
     internalID: 0
     vertices: []
     indices: 
