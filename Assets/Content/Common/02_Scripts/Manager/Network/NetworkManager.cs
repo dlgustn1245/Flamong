@@ -10,7 +10,11 @@ using UnityEngine.Networking;
 public class NetworkManager : Singleton<NetworkManager>
 {
 	// 서버 주소는 여기 한 곳에만. 배포할 때 이 줄만 바꾼다
+#if UNITY_EDITOR
 	public const string BASE_URL = "http://localhost:3000";
+#else
+	public const string BASE_URL = "https://flamong.lhsdev.info/api";
+#endif
 
 	public IEnumerator GetRequest<TResponse>(
 		string url,

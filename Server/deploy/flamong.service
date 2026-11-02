@@ -1,0 +1,19 @@
+[Unit]
+Description=Flamong API
+After=network.target
+
+[Service]
+User=flamong
+WorkingDirectory=/var/lib/flamong
+ExecStart=/usr/bin/node /opt/flamong/server/index.js
+Restart=always
+Environment=NODE_ENV=production
+# DB 에 실명 · 팀이 있어 서비스 계정만 읽게 한다
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/flamong
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

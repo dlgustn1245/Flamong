@@ -235,6 +235,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
   - 계정마다 **5번 틀리면 10분 잠금**(429 `locked`). 4자리는 1만 가지뿐이라 마구 넣어 보기를 막는다. 잠그면서 횟수는 0으로 돌린다.
   - 없는 닉네임도 틀린 비밀번호와 같은 401 `login_failed`를 준다.
   - 잊어버리면 되찾는 방법은 아직 없다(관리자가 DB에서 처리). 잠금은 남이 일부러 틀려서 내 계정을 10분 막을 수도 있다는 한계가 있다.
+- **IP당 횟수 제한**(`rules/rateLimit.js`, `index.js`의 `LIMITS`): 가입 10분 30번 · 닉네임 확인 1분 60번 · 로그인 10분 60번. 넘으면 429 `rate_limited`. 가짜 계정 도배와 닉네임 훑기를 막는다. 회사 와이파이는 직원이 모두 같은 IP로 나가서 넉넉하게 잡았다. 메모리에만 세므로 서버를 다시 켜면 초기화된다.
 - 팀 · 이름은 프로필일 뿐 검증하지 않는다. 슬랙 OAuth 등은 2.0 이후 결정.
 - **명단 대조 없이 누구나 가입한다**(2026-11-01 확정). 임직원 명단을 받을 방법이 없다. 사내에 QR로만 알리는 주소라 외부 유입이 적고, 문제 계정은 관리자가 DB에서 정리한다.
 
@@ -265,7 +266,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 
 ## API
 
-모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400.
+모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400. 가입 · 닉네임 확인 · 로그인은 IP당 횟수를 넘으면 429 `rate_limited`(「인증」).
 본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
 응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
@@ -360,6 +361,8 @@ Server/
   rules/password.js             비밀번호 해시 · 확인 · 로그인 잠금
   rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜
   rules/species.js              알 → 캐릭터 뽑기
+  rules/rateLimit.js            IP당 횟수 제한 (가입 · 닉네임 확인 · 로그인)
+  deploy/                       Oracle VM 설정: setup.sh(처음 한 번) · flamong.service(systemd) · Caddyfile(HTTPS · /api · 웹 빌드)
   test/*.test.js                node:test
   requests.http                 수동 테스트 (gitignore, 로컬 전용)
 ```

@@ -1,0 +1,23 @@
+flamong.lhsdev.info {
+	# includeSubDomains 는 넣지 않는다. 같은 도메인의 포트폴리오(GitHub Pages)에 영향이 가지 않게
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		-Server
+	}
+	handle_path /api/* {
+		reverse_proxy 127.0.0.1:3000
+	}
+	handle {
+		root * /var/www/flamong
+		# Unity Brotli 빌드: .br 파일에 압축 헤더와 원래 형식을 붙인다
+		@br path *.br
+		header @br Content-Encoding br
+		@wasm path *.wasm.br
+		header @wasm Content-Type application/wasm
+		@js path *.js.br
+		header @js Content-Type application/javascript
+		file_server
+	}
+}
