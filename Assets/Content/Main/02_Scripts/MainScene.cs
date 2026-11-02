@@ -46,8 +46,9 @@ public class MainScene : MonoBehaviour
     
     public Slider bgmSlider;
     public Slider sfxSlider;
-
+    
     public Button newsButton;
+    public GameObject newsButtonDot;
     public Button gardenButton;
     public Button collectionButton;
     public Button potionButton;
@@ -108,8 +109,14 @@ public class MainScene : MonoBehaviour
                 WithdrawCharacter);
         });
         
-        newsButton.onClick.AddListener(ShowComingSoon);
-        gardenButton.onClick.AddListener(ShowComingSoon);
+        newsButton.onClick.AddListener(() =>
+        {
+            SceneLoader.Load(SceneName.NewsScene);
+        });
+        gardenButton.onClick.AddListener(() =>
+        {
+            SceneLoader.Load(SceneName.GardenScene);
+        });
         collectionButton.onClick.AddListener(() =>
         {
             SceneLoader.Load(SceneName.CollectionScene);
@@ -307,6 +314,7 @@ public class MainScene : MonoBehaviour
         ShowCharacter(speciesId, response.growth.level);
         Apply(response.growth);
         potionDot.SetActive(response.potionReady);
+        newsButtonDot.SetActive(response.newsReady);
         if (!response.emotionToday)
         {
             emotionPanel.SetActive(true);

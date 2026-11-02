@@ -34,8 +34,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 8 | Collection | 알 탭 8개 × (계열 3종 × 진화 5단계). 도달한 레벨까지 그림, 나머지는 검은 실루엣. 상단 뒤로가기 · 완성 개수. 규칙은 「캐릭터」 | `GET /collection` | 1.1 | 구현. 처음엔 지금 키우는 알 탭을 연다. 탭 글로우 이동 · 칸 그림과 실루엣 · 완성 개수 · 알 이름 · 401 · 오류 창 |
 | 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 구현. 방문 묘약 카드(병이 7분의 1씩 차오름, 7 / 7이고 마실 수 있을 때만 [받기]) · 히든 미션 카드 3장(숨김 · 받기 · 대기 · 받음) · 받으면 안내 창(레벨업 포함) 뒤 `/missions` 다시 부름 · 409도 다시 부름 · 401 · 오류 창. 상단은 뒤로가기만(홈 아이콘 뺌) |
-| 11 | Garden | 꽃밭: 하루 1회 익명 한마디(대나무숲). 위에 쓰기 카드, 아래에 최신 30개. 규칙 · 화면은 「꽃밭 · 소식」 | `GET /posts?kind=garden`, `POST /posts` | 1.2 | 서버 · 화면 배치 완료, 스크립트 아직 |
-| 12 | News | 소식: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 화면은 꽃밭과 같다 | `GET /posts?kind=news`, `POST /posts` | 1.2 | 서버 · 화면 배치 완료, 스크립트 아직 |
+| 11 | Garden | 꽃밭: 하루 1회 익명 한마디(대나무숲). 위에 쓰기 카드, 아래에 최신 30개. 규칙 · 화면은 「꽃밭 · 소식」 | `GET /posts?kind=garden`, `POST /posts` | 1.2 | 구현(`Common/02_Scripts/PostScene`). 응답 전엔 쓰기 · 다 씀 카드 둘 다 끔 · 공백만이면 버튼 꺼짐 · 보내는 동안 버튼 꺼짐 · 400 안내 창 · 409 다시 부름 · 401 · 오류 창(다시 보내기) |
+| 12 | News | 소식: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 화면은 꽃밭과 같다 | `GET /posts?kind=news`, `POST /posts` | 1.2 | 구현. 꽃밭과 같은 `PostScene`(`kind = news`) |
 
 **들어갈 곳** (`Common/02_Scripts/Util/EntryRouter.cs`, Title · Intro · Login 로그인 성공 후 모두 이 규칙을 쓴다)
 
@@ -149,7 +149,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 레벨은 게이지 옆 「Lv」 하나로만 보여준다. 시안의 왼쪽 위 「Lv」는 중복이라 뺐다.
 - 게이지는 **현재 레벨 안에서의 진행률** `levelProgress ÷ levelNeed`다. 레벨이 오르면 0에서 다시 시작한다. 눈금 3개는 25 · 50 · 75% 장식이다.
   - 감정 · 하트로 애정도가 오르면 이전 값에서 `gaugeFillTime`(0.5초) 동안 차오른다. 레벨업이면 끝까지 채운 뒤 0에서 새 레벨 값까지 다시 차오른다. Main에 들어올 때(`/me`)는 바로 맞춘다.
-- 게임 · 꽃밭 · 소식 버튼은 해당 버전 전까지 「준비 중이에요」 안내만 띄운다.
+- 게임 버튼은 1.1 전까지 「준비 중이에요」 안내만 띄운다. 꽃밭 · 소식 버튼은 Garden · News로 간다.
 - 하트 파티클은 Main의 **20개 풀**을 돌려 쓴다. 터치마다 1개, 하트 전달 때 5개, 레벨업 때 10개를 더 띄운다. 초당 4번 연타 중 레벨업해도 떠 있던 4개 + 16개 = 20개로 딱 맞는다. 더 빠르게 누르면 가장 오래된(거의 사라진) 하트부터 다시 쓴다.
 
 ### 캐릭터
@@ -210,7 +210,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 글은 1~100자, 앞뒤 공백은 지운다. 허용 글자는 닉네임과 같다(이모지 · 줄바꿈은 400). 입력칸은 `MultiLineSubmit`(자동 줄바꿈, 엔터로는 줄이 바뀌지 않음)과 100자 제한.
 - 꽃밭은 익명 표시, 소식은 닉네임 표시. 서버에는 둘 다 작성자 저장(신고 대응).
 - 목록은 각각 최신 30개, 날짜와 상관없이 보여 주고 넘기기는 없다.
-- **소식 작성권**: `player.can_post_news`가 1인 사람(DB에서 직접 켠다) + **오늘의 담당 1명**.
+- 「하루」는 한국 시간 0시에 바뀐다. 매일 초기화되는 것은 쓸 수 있는 권리뿐이고, 글은 지우지 않는다(작성자가 탈퇴하면 그 사람 글만 지운다).
+- **소식 작성권**: `player.can_post_news`가 1인 사람(운영진, DB에서 `UPDATE player SET can_post_news = 1 WHERE nickname = ?`로 직접 켠다. 화면 · API 없음) + **오늘의 담당 1명**.
   - 담당 후보는 **어제까지 7일 안에 오늘의 감정을 고른 사람** 중 작성권이 없는 사람이다. 그날 날짜의 해시로 1명을 뽑고 저장하지 않는다(`routes/posts.js` `newsPickOf`).
   - 전체에서 뽑으면 오지 않는 사람이 뽑혀 작성권이 버려진다. 오늘을 빼서 하루 동안 담당이 바뀌지 않는다(그날 후보가 탈퇴하는 경우만 예외).
   - 담당이 되면 Main 확성기에 빨간 점(`/me`의 `newsReady`, `Group - Top/Button - News/Image - NewsDot`, 기본 꺼짐). 소식을 쓰면 꺼진다.
@@ -218,7 +219,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 신고 · 삭제 버튼은 없다. 문제 글은 관리자가 DB에서 `DELETE FROM post WHERE id = ?`로 지운다.
 - **화면**: Garden(꽃밭) · News(소식) 씬 2개. Main 상단의 꽃은 Garden, 확성기는 News로 바로 간다. 입구가 따로 있어 탭으로 묶지 않았다.
   - 두 씬은 배치가 같고(News는 Garden을 복사해 제목 · 배경 · 아이콘 · 문구만 바꿈) 동작도 같아서 스크립트는 `Common/02_Scripts`의 공용 하나로 쓴다. 씬마다 다른 것은 `kind`와 카드 아이콘 · 안내 문구뿐이다.
-  - 쓰기 카드(`Canvas - Main/Image - WriteCard`): `Group - Write`(입력칸 `Input - Body` · 힌트 「N / 100」 · [심기] / [알리기])와 `Group - Done`(못 쓸 때 안내) 중 하나만 켠다. 입력칸은 Login 입력칸을 복제해 키보드 · 커서 설정이 같다.
+  - 쓰기 카드(`Canvas - Main/Image - WriteCard`): `Group - Write`(입력칸 `Input - Body` · 고정 안내 `Text - Hint` · 글자 수 `Text - Count` 「N / 100」 · [심기] / [알리기])와 `Group - Done`(못 쓸 때 안내) 중 하나만 켠다. 입력칸은 Login 입력칸을 복제해 키보드 · 커서 설정이 같다. 입력칸 뒤에 글줄 간격(줄 간격 22, 약 52)에 맞춘 연한 물결 줄 5개(`Image - Line 1`~`5`, 짝수 줄은 좌우 반전)를 깔아 편지지처럼 글이 줄 위에 앉는다. 100자는 4줄을 넘지 않아 입력칸이 스크롤되지 않는다(스크롤되면 글과 줄이 어긋난다).
   - 목록(`Canvas - Dynamic/Scroll - List/Content`): 꺼 둔 `Item - 0`~`29`를 받은 개수만큼 켜서 다시 쓴다. 카드 높이는 `-(Text - Body의 y) + 본문 높이 + 64`(최소 160)로 코드에서 정하고, Content의 VerticalLayoutGroup 하나가 쌓는다. 글이 없으면 `Text - Empty`.
   - 글 · 닉네임 글자(`Text - Body` · `Text - Nickname`)는 Rich Text와 `\n` 해석을 껐다. 사람이 쓴 `<size=200>` 같은 태그가 화면을 깨지 않게 한다.
 
@@ -291,7 +292,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | GET | `/missions` | - | `{ canDrink, visit: { progress, need }, hidden: [{ id, done, claimed }] }` · `canDrink`는 캐릭터가 있고 완성 전인지. `hidden`은 `first_complete` · `first_game` · `first_garden` 순서 **(구현)** | 1.2 |
 | POST | `/potions/claim` | `{ missionId }` (`visit` · `first_complete` · `first_game` · `first_garden`) | `{ levelUp, growth }` · 애정도 +10. 409: 달성 전 `not_ready` · 이미 받음 `claimed` · 캐릭터 없음 `no_character` · 완성 `completed`. 응답을 못 받고 다시 보내면 409가 오니 `/missions`를 다시 부른다 **(구현)** | 1.2 |
 | GET | `/posts?kind=garden\|news` | - | `{ canWrite, posts: [{ body, date, nickname }] }` · 최신순 30개. `nickname`은 소식만, 꽃밭은 `""`. `canWrite`는 오늘 아직 안 썼고 (꽃밭이거나 소식 작성권이 있는지) **(구현)** | 1.2 |
-| POST | `/posts` | `{ kind, body }` (`body` 1~100자) | `{ ok }` · 허용 밖 글자 · 공백만 · 100자 초과 400 `body_charset`, 오늘 이미 씀 409 `posted`, 소식 작성권 없음 409 `no_right`. `event`는 꽃밭 `post` · 소식 `news` **(구현)** | 1.2 |
+| POST | `/posts` | `{ kind, body }` (`body` 1~100자) | `{ ok }` · 허용 밖 글자 · 공백만 400 `body_charset`, 100자 초과는 스키마 검사 400, 오늘 이미 씀 409 `posted`, 소식 작성권 없음 409 `no_right`. `event`는 꽃밭 `post` · 소식 `news` **(구현)** | 1.2 |
 
 ### `growth` (성장 상태)
 
@@ -406,6 +407,7 @@ Server/
 - **폰트**: 배달의민족 꾸불림체(`BMKkubulimTTF SDF`). 2048² 정적 아틀라스이고, 문자 목록은 `Font/CharSet_KSX1001.txt`(ASCII 95 + 완성형 2350 + 기호 24)다.
   - 폴백 1 `BMKkubulimTTF Jamo SDF`: 단독 자모 ㄱ~ㅣ 51자, 512×256 정적 아틀라스. 입력 중인 「ㄱ」 같은 글자가 □로 보이지 않게 한다. 본 아틀라스와 같은 35pt · 여백 5로 구워 글자 크기가 같다.
   - 폴백 2 `BMKkubulimTTF Dynamic SDF`(2026-11-01): 원본 TTF(2.9MB)에서 필요한 글자만 실행 중에 굽는 동적 아틀라스(512², 차면 장을 더함). 정적 아틀라스 밖 한글 8,822자(「됬」 「햏」, 입력 중의 「잏」)를 그린다. 같은 35pt · 여백 5라 글자 모양 수치가 본 아틀라스와 똑같다. 「Clear Dynamic Data on Build」를 켜서 에디터에서 구운 글자는 빌드에 들어가지 않는다. 비용은 다운로드 약 +1.34MB(Brotli 후) · 힙 약 +3~4MB.
+  - 한글 줄바꿈(2026-11-02): `TMP Settings`의 `Use Modern Hangul Line Breaking Rules`를 켜서 칸 끝에서 글자 단위가 아니라 띄어쓰기 단위로 줄을 바꾼다(「키웠 / 어요」 → 「끝까지 / 키웠어요」). 전체 씬 글자를 켜기 전후로 비교해 바뀐 곳은 묘약 히든 미션 설명 3개뿐이었다.
   - 라이선스: SIL OFL 1.1 (`Font/OFL.txt`). 게임에 넣고 수정 · 재배포할 수 있고, 폰트 파일만 따로 파는 것은 금지다. 빌드를 배포할 때 이 파일을 빌드 폴더에 같이 올린다.
 
 ---

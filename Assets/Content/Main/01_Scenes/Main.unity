@@ -8116,6 +8116,7 @@ MonoBehaviour:
   bgmSlider: {fileID: 2033110845}
   sfxSlider: {fileID: 598501924}
   newsButton: {fileID: 201192437}
+  newsButtonDot: {fileID: 1772223833}
   gardenButton: {fileID: 1007945814}
   collectionButton: {fileID: 36935848}
   potionButton: {fileID: 1718199776}
