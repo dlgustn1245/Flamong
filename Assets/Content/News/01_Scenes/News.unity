@@ -11031,6 +11031,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PostScene
   kind: news
+  noticeComment: "\uC18C\uC2DD\uC744 \uC804\uD588\uC5B4\uC694"
   noticePanel: {fileID: 1060496537}
   errorPanel: {fileID: 1514048008}
   backButton: {fileID: 918567516}

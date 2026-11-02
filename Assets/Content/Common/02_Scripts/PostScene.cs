@@ -7,6 +7,7 @@ using UnityEngine.UI;
 public class PostScene : MonoBehaviour
 {
     public string kind;
+    public string noticeComment;
     
     public NoticePanel noticePanel;
     public ErrorPanel errorPanel;
@@ -72,14 +73,7 @@ public class PostScene : MonoBehaviour
     void OnSuccessPostMessage(OkBody response)
     {
         print($"OnSuccessPostMessage: {JsonUtility.ToJson(response)}");
-        if (kind == "garden")
-        {
-            noticePanel.Show("꽃을 심었어요");
-        }
-        else
-        {
-            noticePanel.Show("소식을 전했어요");
-        }
+        noticePanel.Show(noticeComment);
         GetPost();
     }
 

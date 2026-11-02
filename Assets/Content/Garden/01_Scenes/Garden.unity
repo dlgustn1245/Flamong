@@ -11039,6 +11039,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PostScene
   kind: garden
+  noticeComment: "\uAF43\uC744 \uC2EC\uC5C8\uC5B4"
   noticePanel: {fileID: 1060496537}
   errorPanel: {fileID: 1514048008}
   backButton: {fileID: 918567516}
