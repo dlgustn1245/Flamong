@@ -91,6 +91,7 @@ public class PotionScene : MonoBehaviour
 
     void OnSuccessClaimPotion(TapBody response)
     {
+        print($"Post Potions Success: {JsonUtility.ToJson(response)}");
         noticePanel.Show(response.levelUp
             ? $"묘약을 마셨어요!\n레벨이 올랐어요 (Lv {response.growth.level})"
             : "묘약을 마셨어요!\n애정도가 10 올랐어요");
@@ -128,10 +129,12 @@ public class PotionScene : MonoBehaviour
 
     void OnSuccessGetMissions(MissionsBody response)
     {
+        print($"Get Missions Success: {JsonUtility.ToJson(response)}");
         potionBottle.fillAmount = response.visit.progress / (float)response.visit.need;
         claimButton.interactable = response.canDrink && 
                                    response.visit.progress >=  response.visit.need;
-        visitCountText.text = $"{response.visit.progress} / {response.visit.need}";
+        // int 그대로 넘기면 SetText(ReadOnlySpan<char>, start, length)와 겹쳐 모호해진다
+        visitCountText.SetText("{0} / {1}", (float)response.visit.progress, (float)response.visit.need);
         SetHiddenMissions(response.hidden, response.canDrink);
     }
 

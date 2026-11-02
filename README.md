@@ -269,7 +269,8 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
 응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
-클라이언트(`UnityWebRequest`)는 400 이상이면 본문을 읽지 않고 `onError(상태 코드)`로 보낸다. 그래서 같은 코드 안의 `error` 값은 서버 로그 · 테스트용이고, 클라이언트는 코드 숫자로만 나눈다.
+클라이언트(`NetworkManager`)는 400 이상이면 `onError(상태 코드, 본문)`으로 보낸다(본문이 없는 연결 실패 · 시간 초과는 Unity 오류 문구). 본문의 `error` 값은 로그로 찍기만 하고, 화면 분기는 코드 숫자로만 나눈다.
+- 씬 스크립트는 성공이면 받은 값(`JsonUtility.ToJson`)을, 실패면 코드와 본문을 `print`로 찍는다. 가입 · 로그인 응답의 `playerId`는 웹 빌드 브라우저 콘솔에 남지 않게 앞 6자리만 찍는다.
 
 **1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개 · 꽃밭 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 26개 통과). 나머지는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.

@@ -176,7 +176,7 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessPostEmotion(TapBody response)
     {
-        print("Success Post Emotion");
+        print($"Success Post Emotion: {JsonUtility.ToJson(response)}");
         foreach (var emotionButton in emotionButtons)
         {
             emotionButton.interactable = true;
@@ -269,7 +269,7 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessDeleteMe(OkBody response)
     {
-        print("Delete Me Success");
+        print($"Delete Me Success: {JsonUtility.ToJson(response)}");
         LogOut();
     }
 
@@ -287,13 +287,13 @@ public class MainScene : MonoBehaviour
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
     void OnSuccessResetCharacter(OkBody response)
     {
-        print("Reset Character Success");
+        print($"Reset Character Success: {JsonUtility.ToJson(response)}");
         SceneLoader.Load(SceneName.EggSelectScene);
     }
 
     void OnFailResetCharacter(long code, string error)
     {
-        print("Reset Character Fail");
+        print($"Reset Character Failed: {code} {error}");
         if (code == 401)
         {
             EntryRouter.GoToLogin();
@@ -310,6 +310,7 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessGetMe(MeBody response)
     {
+        print($"Get Me Success: {JsonUtility.ToJson(response)}");
         speciesId = response.speciesId;
         ShowCharacter(speciesId, response.growth.level);
         Apply(response.growth);
@@ -346,7 +347,7 @@ public class MainScene : MonoBehaviour
 
     void OnFailGetMe(long code, string error)
     {
-        print($"Get Me Failed: {error}");
+        print($"Get Me Failed: {code} {error}");
         if (code == 401)   // 서버가 모르는 계정
         {
             EntryRouter.GoToLogin();
@@ -420,7 +421,7 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessPatchPlayer(OkBody response)
     {
-        print("Patch Player Success");
+        print($"Patch Player Success: {JsonUtility.ToJson(response)}");
         if (!string.IsNullOrEmpty(currTeam.text))
         {
             SessionState.Instance.team = currTeam.text;
@@ -434,7 +435,7 @@ public class MainScene : MonoBehaviour
 
     void OnFailPatchPlayer(long code, string error)
     {
-        print($"Patch Player Failed: {error}");
+        print($"Patch Player Failed: {code} {error}");
         if (code == 401)   // 서버가 모르는 계정
         {
             EntryRouter.GoToLogin();
@@ -453,6 +454,7 @@ public class MainScene : MonoBehaviour
 
     void OnSuccessTap(TapBody response)
     {
+        print($"Tap Success: {JsonUtility.ToJson(response)}");
         heartTaps = 0;
         PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, 0);
         heartParticles.Emit(5);
@@ -512,7 +514,7 @@ public class MainScene : MonoBehaviour
 
     void OnFailTap(long code, string error)
     {
-        print($"Tap Failed: {error}");
+        print($"Tap Failed: {code} {error}");
         Init();
     }
 

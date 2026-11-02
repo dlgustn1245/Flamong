@@ -34,6 +34,7 @@ public static class EntryRouter
             $"{NetworkManager.BASE_URL}/me",
             me =>
             {
+                Debug.Log($"Enter Success: {JsonUtility.ToJson(me)}");
                 session.team = me.team;
                 session.playerName = me.name;
                 session.nickName = me.nickname;

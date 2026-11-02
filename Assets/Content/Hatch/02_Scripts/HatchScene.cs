@@ -61,6 +61,7 @@ public class HatchScene : MonoBehaviour
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
     void OnSuccessPostCharacter(PostCharacterResponseBody response)
     {
+        print($"Post Character Success: {JsonUtility.ToJson(response)}");
         int speciesId = response.speciesId;
         if (speciesId >= 0 && speciesId < characterSprites.Length)
         {
@@ -71,7 +72,7 @@ public class HatchScene : MonoBehaviour
 
     void OnFailPostCharacter(long code, string error)
     {
-        print("Server Error");
+        print($"Post Character Failed: {code} {error}");
         if (code == 401)   // 서버가 모르는 계정
         {
             EntryRouter.GoToLogin();

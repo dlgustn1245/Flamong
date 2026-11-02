@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using ServerData;
 using TMPro;
@@ -36,7 +35,7 @@ public class PostScene : MonoBehaviour
         
         inputField.onValueChanged.AddListener(body =>
         {
-            countText.text = $"{body.Length} / 100";
+            countText.SetText("{0} / 100", body.Length);
             writeButton.interactable = !string.IsNullOrWhiteSpace(body);
         });
 
@@ -72,7 +71,15 @@ public class PostScene : MonoBehaviour
 
     void OnSuccessPostMessage(OkBody response)
     {
-        print("OnSuccessPostMessage");
+        print($"OnSuccessPostMessage: {JsonUtility.ToJson(response)}");
+        if (kind == "garden")
+        {
+            noticePanel.Show("꽃을 심었어요");
+        }
+        else
+        {
+            noticePanel.Show("소식을 전했어요");
+        }
         GetPost();
     }
 
@@ -110,7 +117,7 @@ public class PostScene : MonoBehaviour
 
     void OnSuccessGetPost(PostsBody response)
     {
-        print("OnSuccessGetPost");
+        print($"OnSuccessGetPost: {JsonUtility.ToJson(response)}");
         writePanel.SetActive(response.canWrite);
         donePanel.SetActive(!response.canWrite);
         

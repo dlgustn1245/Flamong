@@ -104,6 +104,7 @@ public class LoginScene : MonoBehaviour
 
     void OnSuccessCheckNickName(CheckNickNameResponseBody response)
     {
+        print($"Check NickName Success: {JsonUtility.ToJson(response)}");
         checkButtonClicked = false;
         if (response.available)
         {
@@ -122,7 +123,7 @@ public class LoginScene : MonoBehaviour
     void OnFailCheckNickName(long code, string response)
     {
         checkButtonClicked = false;
-        print($"Check NickName Failed: {response}");
+        print($"Check NickName Failed: {code} {response}");
         ShowResult("확인하지 못했어요.\n잠시 후 다시 시도해주세요.", false);
     }
 
@@ -165,6 +166,8 @@ public class LoginScene : MonoBehaviour
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
     void OnSuccessPostPlayer(PostPlayerResponseBody response)
     {
+        // playerId 는 사실상 로그인 열쇠라 웹 빌드 브라우저 콘솔에 남지 않게 앞 6자리만 찍는다
+        print($"Post Player Success: playerId={response.playerId.Substring(0, 6)}…");
         SessionState.Instance.playerId = response.playerId;
         SessionState.Instance.team = teamField.text;
         SessionState.Instance.playerName = nameField.text;
@@ -175,7 +178,7 @@ public class LoginScene : MonoBehaviour
 
     void OnFailPostPlayer(long code, string response)
     {
-        print($"Post Player Failed: {response}");
+        print($"Post Player Failed: {code} {response}");
         ShowResult("가입하지 못했어요.\n잠시 후 다시 시도해주세요.", false);
     }
 
@@ -206,6 +209,7 @@ public class LoginScene : MonoBehaviour
 
     void OnSuccessLogin(PostPlayerResponseBody response)
     {
+        print($"Login Success: playerId={response.playerId.Substring(0, 6)}…");
         SessionState.Instance.playerId = response.playerId;
         SessionState.Instance.SavePlayerId();
         // 갈 곳은 다시 접속할 때와 같은 규칙 (EntryRouter)

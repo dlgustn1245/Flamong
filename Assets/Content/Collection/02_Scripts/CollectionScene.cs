@@ -87,17 +87,17 @@ public class CollectionScene : MonoBehaviour
 
     void OnSuccessGetCollection(CollectionBody response)
     {
-        print("Get Collection Success");
+        print($"Get Collection Success: {JsonUtility.ToJson(response)}");
         completed = response.completed;
         speciesId = response.speciesId;
         levels = response.levels;
         OnClickEggTab(speciesId >= 0 ? speciesId / 3 : 0);
-        countText.SetText($"{completed.Length} / 24");
+        countText.SetText("{0} / 24", completed.Length);
     }
 
     void OnFailGetCollection(long code, string error)
     {
-        print($"Get Collection Failed: {error}");
+        print($"Get Collection Failed: {code} {error}");
         if (code == 401)   // 서버가 모르는 계정
         {
             EntryRouter.GoToLogin();

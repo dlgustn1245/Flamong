@@ -89,7 +89,9 @@ public class NetworkManager : Singleton<NetworkManager>
 
 			if (request.result != UnityWebRequest.Result.Success)
 			{
-				onError?.Invoke(request.responseCode, request.error);
+				// 서버가 본문({"error":"posted"} 등)을 보냈으면 그것을, 연결 실패 · 시간 초과면 Unity 오류 문구를 넘긴다
+				string errorBody = request.downloadHandler.text;
+				onError?.Invoke(request.responseCode, string.IsNullOrEmpty(errorBody) ? request.error : errorBody);
 				yield break;
 			}
 
