@@ -105,6 +105,10 @@ InitTestScene*.unity*
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
 
+# Performance Testing 패키지가 빌드 중에 만들었다가 지우는 파일. Resources 폴더는 두지 않는다(CLAUDE.md)
+/[Aa]ssets/Resources/
+/[Aa]ssets/Resources.meta
+
 # Server (Node.js)
 /Server/node_modules/
 /Server/*.db

@@ -49,6 +49,7 @@ test('글: 이모지 · 공백만 · 줄바꿈 · 101자 · 모르는 kind 는 4
   const { app } = setup();
   const h = await signup(app, 'max');
   assert.deepEqual(await call(app, 'POST', '/posts', h, { kind: 'garden', body: '좋아요😀' }), { code: 400, body: { error: 'body_charset' } });
+  assert.deepEqual(await call(app, 'POST', '/posts', h, { kind: 'garden', body: '탷 됬' }), { code: 400, body: { error: 'body_charset' } });   // 탷은 폰트에 모양이 없다
   assert.equal((await call(app, 'POST', '/posts', h, { kind: 'garden', body: '   ' })).code, 400);
   assert.equal((await call(app, 'POST', '/posts', h, { kind: 'garden', body: '한 줄\n두 줄' })).code, 400);
   assert.equal((await call(app, 'POST', '/posts', h, { kind: 'garden', body: '가'.repeat(101) })).code, 400);

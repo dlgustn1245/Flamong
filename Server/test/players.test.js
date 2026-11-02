@@ -45,13 +45,17 @@ test('삭제 → 수정은 401 → 같은 닉네임 재가입 200 · event 는 �
   assert.equal(db.prepare("SELECT count(*) n FROM event WHERE type = 'delete'").get().n, 1);
 });
 
-test('닉네임: 한글 11172자 · 자모는 되고 이모지는 400', async () => {
+test('닉네임: 폰트가 그리는 한글 2780자 · 자모는 되고, 폰트에 모양이 없는 글자(탷) · 이모지는 400', async () => {
   const app = buildApp({ db: openDb(':memory:'), now: fixed });
   const ok = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: '뷁됬ㅋㅋ' } });
   assert.equal(ok.statusCode, 200);
-  const res = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: '😀' } });
-  assert.equal(res.statusCode, 400);
-  assert.equal(res.json().error, 'nickname_charset');
+  for (const nickname of ['😀', '탷']) {
+    const res = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname } });
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.json().error, 'nickname_charset');
+  }
+  const check = await app.inject({ method: 'GET', url: '/players/check?nickname=%ED%83%B7' });
+  assert.equal(check.json().available, false);
 });
 
 test('스키마 검증 실패와 없는 경로도 같은 형식', async () => {
