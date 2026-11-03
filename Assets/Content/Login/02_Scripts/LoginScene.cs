@@ -84,7 +84,7 @@ public class LoginScene : MonoBehaviour
         }
         if (string.IsNullOrEmpty(teamField.text) ||
             string.IsNullOrEmpty(nameField.text) ||
-            string.IsNullOrEmpty(nickNameField.text))
+            string.IsNullOrWhiteSpace(nickNameField.text))
         {
             ShowResult("팀 · 이름 · 닉네임을\n모두 적어주세요.", false);
             return;
@@ -95,8 +95,15 @@ public class LoginScene : MonoBehaviour
             return;
         }
 
+        // 앞뒤 공백은 실수로 보고 지운다. 서버는 앞뒤 공백 · 이어진 공백이 있는 닉네임을 받지 않는다
+        checkedNickName = nickNameField.text.Trim();
+        // 서버는 이어진 공백도 그냥 「쓸 수 없음」으로만 돌려줘서, 이유를 알 수 있게 여기서 먼저 알린다
+        if (checkedNickName.Contains("  "))
+        {
+            ShowResult("닉네임에 공백을\n이어서 쓸 수 없어요.", false);
+            return;
+        }
         checkButtonClicked = true;
-        checkedNickName = nickNameField.text;
         StartCoroutine(NetworkManager.Instance.GetRequest<CheckNickNameResponseBody>(
             $"{NetworkManager.BASE_URL}/players/check?nickname={UnityWebRequest.EscapeURL(checkedNickName)}",
             OnSuccessCheckNickName,
@@ -112,7 +119,7 @@ public class LoginScene : MonoBehaviour
         if (response.available)
         {
             ShowResult(
-                $"[{checkedNickName}]\n사용할 수 있는 닉네임이에요.\n이 닉네임으로 할까요?",
+                $"[{checkedNickName}]\n사용할 수 있는 닉네임이에요.\n다른 기기에서도 이 닉네임으로\n로그인해요.\n이 닉네임으로 할까요?",
                 true);
         }
         else
@@ -174,7 +181,7 @@ public class LoginScene : MonoBehaviour
         SessionState.Instance.playerId = response.playerId;
         SessionState.Instance.team = teamField.text;
         SessionState.Instance.playerName = nameField.text;
-        SessionState.Instance.nickName = nickNameField.text;
+        SessionState.Instance.nickName = checkedNickName;   // 보낸 값. 응답 전에 입력칸을 고쳐도 서버 값과 어긋나지 않게
         SessionState.Instance.SavePlayerId();
         SceneLoader.Load(SceneName.EggSelectScene);
     }
@@ -197,7 +204,7 @@ public class LoginScene : MonoBehaviour
         {
             return;
         }
-        if (string.IsNullOrEmpty(loginNickNameField.text) ||
+        if (string.IsNullOrWhiteSpace(loginNickNameField.text) ||
             loginPasswordField.text.Length < 4)
         {
             ShowResult("닉네임과 비밀번호\n(숫자 4~6자리)를 적어주세요.", false);
@@ -230,7 +237,12 @@ public class LoginScene : MonoBehaviour
         print($"Login Failed: {code} {error}");
         if (code == 401)
         {
-            ShowResult("닉네임이나 비밀번호가\n맞지 않아요.", false);
+            ShowResult("닉네임이나 비밀번호가\n맞지 않아요.\n기억나지 않으면 운영자에게\n알려 주세요.", false);
+        }
+        // 429 는 계정 잠금(locked)과 IP 횟수 제한(rate_limited) 두 가지다. 회사 와이파이는 모두 같은 IP 라 안 틀린 사람도 rate_limited 를 받는다
+        else if (code == 429 && error != null && error.Contains("rate_limited"))
+        {
+            ShowResult("요청이 많아요.\n잠시 후 다시 시도해주세요.", false);
         }
         else if (code == 429)
         {

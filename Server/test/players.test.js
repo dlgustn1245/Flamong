@@ -58,6 +58,28 @@ test('닉네임: 폰트가 그리는 한글 2780자 · 자모는 되고, 폰트�
   assert.equal(check.json().available, false);
 });
 
+test('닉네임: 앞뒤 · 이어진 공백은 400, 대소문자만 다르면 409 · 확인 false, 로그인은 공백 · 대소문자를 봐준다', async () => {
+  const db = openDb(':memory:');
+  const app = buildApp({ db, now: fixed });
+  for (const nickname of [' max', 'max ', 'ma  x']) {
+    const res = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname } });
+    assert.equal(res.statusCode, 400, `"${nickname}"`);
+    assert.equal(res.json().error, 'nickname_charset');
+  }
+  assert.equal((await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: 'Max' } })).statusCode, 200);
+  const dup = await app.inject({ method: 'POST', url: '/players', payload: { ...body, nickname: 'max' } });
+  assert.equal(dup.statusCode, 409);
+  assert.equal(dup.json().error, 'nickname_taken');
+  assert.equal((await app.inject({ method: 'GET', url: '/players/check?nickname=MAX' })).json().available, false);
+  assert.equal((await app.inject({ method: 'GET', url: '/players/check?nickname=max%20' })).json().available, false);
+  assert.equal((await app.inject({ method: 'GET', url: '/players/check?nickname=m%20ax' })).json().available, true);   // 가운데 공백 하나는 된다
+  assert.equal((await app.inject({ method: 'GET', url: '/players/check?nickname=m+ax' })).json().available, true);     // 클라 EscapeURL 은 공백을 + 로 보낸다
+  assert.equal((await app.inject({ method: 'GET', url: '/players/check?nickname=MAX+' })).json().available, false);
+  const login = await app.inject({ method: 'POST', url: '/players/login', payload: { nickname: ' mAX ', password: body.password } });
+  assert.equal(login.statusCode, 200);
+  assert.equal(login.json().playerId, db.prepare('SELECT id FROM player').get().id);
+});
+
 test('팀 · 이름: 폰트에 모양이 없는 글자(슽)는 가입 · 수정 모두 400 profile_charset, 행은 그대로', async () => {
   const db = openDb(':memory:');
   const app = buildApp({ db, now: fixed });

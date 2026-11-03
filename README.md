@@ -174,6 +174,9 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
   - 꾸불림체 TTF는 한글 11,172자 모두에 자리는 있지만, 8,392자(「탷」 「쀍」 「갂」 등)는 모양이 비어 공백처럼 보인다(2026-11-03 확인). 그래서 그 글자는 받지 않는다.
   - `hangul.txt`는 TTF에서 너비 · 높이가 0이 아닌 한글을 뽑은 목록이다. 폰트를 바꾸면 다시 뽑는다.
 - 서버 `rules/text.js`가 검사한다. 범위 밖 글자는 400 `nickname_charset`, 중복은 409 `nickname_taken`.
+- 앞뒤 공백 · 이어진 공백은 받지 않는다(400 `nickname_charset`). 대소문자만 다른 닉네임(「Max」 「max」)은 같은 닉네임으로 보고 막는다(`schema.sql`의 `player_nickname_nocase` 인덱스, 2026-11-03). 소식 카드에서 똑같이 보이는 다른 계정이 생기지 않게 하려는 것이다.
+  - 가입 화면은 앞뒤 공백을 지우고 보낸다. 로그인은 앞뒤 공백 · 대소문자를 봐준다.
+  - 가입 화면 힌트: 「소식 · 랭킹에 보이고, 로그인할 때도 써요. 본인이 드러나지 않게 지어 주세요.」 가입 확인 창에는 「다른 기기에서는 이 닉네임으로 로그인해요.」를 함께 띄운다.
 - 팀 · 이름(1~20자)도 같은 글자 규칙이다(2026-11-03). 범위 밖이면 가입 · 정보 수정 모두 400 `profile_charset`. 가입 화면은 「쓸 수 없는 글자가 있어요」 결과 창, 설정 창은 안내 창을 띄운다.
   - 「테스트」를 치는 도중에 잠깐 생기는 「테슽」처럼, 입력 중 글자가 빈칸으로 보였다가 다 치면 제대로 보이는 것은 정상이다.
 - 이모지 · 전각 문자는 폰트에 없어 □로 보이므로 쓸 수 없다. Login 입력칸도 12자로 제한했다.
@@ -215,7 +218,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 꽃밭은 익명 표시, 소식은 닉네임 표시. 서버에는 둘 다 작성자 저장(신고 대응).
 - 목록은 각각 최신 30개, 날짜와 상관없이 보여 주고 넘기기는 없다.
 - 「하루」는 한국 시간 0시에 바뀐다. 매일 초기화되는 것은 쓸 수 있는 권리뿐이고, 글은 지우지 않는다(작성자가 탈퇴하면 그 사람 글만 지운다).
-- **소식 작성권**: `player.can_post_news`가 1인 사람(운영진, DB에서 `UPDATE player SET can_post_news = 1 WHERE nickname = ?`로 직접 켠다. 화면 · API 없음) + **오늘의 담당 1명**.
+- **소식 작성권**: `player.can_post_news`가 1인 사람(운영진, DB에서 직접 켠다. 화면 · API 없음. 명령은 「인증」 → 「운영자 복구」) + **오늘의 담당 1명**.
   - 담당 후보는 **어제까지 7일 안에 오늘의 감정을 고른 사람** 중 작성권이 없는 사람이다. 그날 날짜의 해시로 1명을 뽑고 저장하지 않는다(`routes/posts.js` `newsPickOf`).
   - 전체에서 뽑으면 오지 않는 사람이 뽑혀 작성권이 버려진다. 오늘을 빼서 하루 동안 담당이 바뀌지 않는다(그날 후보가 탈퇴하는 경우만 예외).
   - 담당이 되면 Main 확성기에 빨간 점(`/me`의 `newsReady`, `Group - Top/Button - News/Image - NewsDot`, 기본 꺼짐). 소식을 쓰면 꺼진다.
@@ -238,7 +241,24 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
   - 비밀번호는 `node:crypto` scrypt 해시로만 저장한다(`rules/password.js`). 원문은 어디에도 남지 않는다.
   - 계정마다 **5번 틀리면 10분 잠금**(429 `locked`). 4자리는 1만 가지뿐이라 마구 넣어 보기를 막는다. 잠그면서 횟수는 0으로 돌린다.
   - 없는 닉네임도 틀린 비밀번호와 같은 401 `login_failed`를 준다.
-  - 잊어버리면 되찾는 방법은 아직 없다(관리자가 DB에서 처리). 잠금은 남이 일부러 틀려서 내 계정을 10분 막을 수도 있다는 한계가 있다.
+  - 잊어버리면 화면에서 되찾는 방법은 없고, 운영자가 DB에서 처리한다(아래 「운영자 복구」). 로그인 실패 창이 「기억나지 않으면 운영자에게 알려 주세요」를 안내한다. 잠금은 남이 일부러 틀려서 내 계정을 10분 막을 수도 있다는 한계가 있다. 다만 막히는 것은 다시 로그인할 때뿐이고, 쓰던 기기는 playerId로 계속 들어간다.
+  - 로그인 아이디를 닉네임과 따로 두는 안 · 이름(실명) 로그인 안은 검토 후 기각했다(2026-11-03). 실명은 동명이인 · 추측 · PC 한글 입력 문제가 있고, 따로 둔 아이디는 가입 중복 확인으로 훑을 수 있어 숨기는 효과가 작고 외울 것만 늘어난다. 닉네임 로그인을 유지하고 위 「닉네임」의 정규화(공백 · 대소문자)로 보강했다. 아이디를 다시 볼 때는 닉네임 바꾸기 기능 · PC 정식 지원 · 실제 계정 도용이 생겼을 때다.
+- **운영자 복구**(서버에 SSH로 접속해 실행)
+  - 명령 끝의 `--`는 지우지 않는다. `-`로 시작하는 닉네임을 node가 자기 옵션으로 읽지 않게 한다.
+  - 쓰는 명령이 `database is locked`로 끝나면 서버가 마침 쓰던 순간이라 다시 실행하면 된다. 서버를 멈출 필요는 없다.
+  - 닉네임 찾아 주기: 본인 확인(직접 만나서) 뒤 이름으로 찾는다. 이름은 앞뒤 공백까지 그대로 저장돼 있어 `trim`으로 비교한다. 동명이인은 팀 · 가입일로 가린다.
+    ```bash
+    sudo -u flamong node -e "const db=new (require('node:sqlite').DatabaseSync)('/var/lib/flamong/flamong.db',{readOnly:true});console.log(db.prepare('SELECT nickname, team, created_at FROM player WHERE trim(name) = trim(?)').all(process.argv[1]))" -- '이름'
+    ```
+  - 비밀번호 새로 정해 주기(잠금도 함께 푼다): `/opt/flamong/server`에서 실행한다. 가입과 같은 규칙(숫자 4~6자리)이 아니면 바꾸지 않고 멈춘다.
+    ```bash
+    cd /opt/flamong/server && sudo -u flamong node --input-type=module -e "import { DatabaseSync } from 'node:sqlite'; import { hashPassword, PASSWORD_PATTERN } from './rules/password.js'; const [nick, pw] = process.argv.slice(1); if (!new RegExp(PASSWORD_PATTERN).test(pw)) throw new Error('비밀번호는 숫자 4~6자리'); const db = new DatabaseSync('/var/lib/flamong/flamong.db', { timeout: 5000 }); console.log(db.prepare('UPDATE player SET password_hash = ?, login_fails = 0, locked_until = NULL WHERE nickname = ? COLLATE NOCASE').run(hashPassword(pw), nick).changes)" -- '닉네임' '새비밀번호'
+    ```
+    - `1`이 나오면 바뀐 것이다. `0`이면 그 닉네임이 없다. 새 비밀번호는 본인에게 직접 알려 준다. 비밀번호 변경 화면은 없다.
+  - 소식 작성권 켜기(운영진): 끄려면 `1`을 `0`으로.
+    ```bash
+    sudo -u flamong node -e "const db=new (require('node:sqlite').DatabaseSync)('/var/lib/flamong/flamong.db',{timeout:5000});console.log(db.prepare('UPDATE player SET can_post_news = 1 WHERE nickname = ? COLLATE NOCASE').run(process.argv[1]).changes)" -- '닉네임'
+    ```
 - **IP당 횟수 제한**(`rules/rateLimit.js`, `index.js`의 `LIMITS`): 가입 10분 30번 · 닉네임 확인 1분 60번 · 로그인 10분 60번. 넘으면 429 `rate_limited`. 가짜 계정 도배와 닉네임 훑기를 막는다. 회사 와이파이는 직원이 모두 같은 IP로 나가서 넉넉하게 잡았다. 메모리에만 세므로 서버를 다시 켜면 초기화된다.
 - 팀 · 이름은 프로필일 뿐 검증하지 않는다. 슬랙 OAuth 등은 2.0 이후 결정.
 - **명단 대조 없이 누구나 가입한다**(2026-11-01 확정). 임직원 명단을 받을 방법이 없다. 사내에 QR로만 알리는 주소라 외부 유입이 적고, 문제 계정은 관리자가 DB에서 정리한다.
@@ -253,6 +273,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
              hearts INT, hearts_date TEXT,           -- 저장된 하트와 그 기준일(KST). 가입 때 5개 · 가입일
              password_hash TEXT, login_fails INT DEFAULT 0, locked_until TEXT NULL)   -- 로그인 (「인증」)
+             UNIQUE INDEX player_nickname_nocase (nickname COLLATE NOCASE)  -- 대소문자만 다른 닉네임 금지 (「닉네임」)
 character   (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
              started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
              UNIQUE INDEX one_active_character (player_id) WHERE ended_at IS NULL  -- 활성은 1개
@@ -270,21 +291,21 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 
 ## API
 
-모든 요청: `X-Player-Id` 헤더 (players 생성 · check 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400. 가입 · 닉네임 확인 · 로그인은 IP당 횟수를 넘으면 429 `rate_limited`(「인증」).
+모든 요청: `X-Player-Id` 헤더 (players 생성 · check · login 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400. 가입 · 닉네임 확인 · 로그인은 IP당 횟수를 넘으면 429 `rate_limited`(「인증」).
 본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
 응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
 클라이언트(`NetworkManager`)는 400 이상이면 `onError(상태 코드, 본문)`으로 보낸다(본문이 없는 연결 실패 · 시간 초과는 Unity 오류 문구). 본문의 `error` 값은 로그로 찍기만 하고, 화면 분기는 코드 숫자로만 나눈다.
 - 씬 스크립트는 성공이면 받은 값(`JsonUtility.ToJson`)을, 실패면 코드와 본문을 `print`로 찍는다. 가입 · 로그인 응답의 `playerId`는 웹 빌드 브라우저 콘솔에 남지 않게 앞 6자리만 찍는다.
 
-**1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개 · 꽃밭 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 26개 통과). 나머지는 설계만 있다.
+**1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개 · 꽃밭 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 30개 통과). 나머지는 설계만 있다.
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
 |---|---|---|---|---|
-| GET | `/players/check?nickname=` | - | `{ available }` · 중복이거나 허용 글자 밖이면 false **(구현)** | 1.0 |
+| GET | `/players/check?nickname=` | - | `{ available }` · 중복(대소문자 무시)이거나, 허용 글자 밖 · 앞뒤 공백 · 이어진 공백이면 false **(구현)** | 1.0 |
 | POST | `/players` | `{ team, name, nickname, password }` | `{ playerId }` · 중복 409 · 닉네임 글자 400 `nickname_charset` · 팀 · 이름 글자 400 `profile_charset` · 비밀번호가 숫자 4~6자리가 아니면 400 **(구현)** | 1.0 |
-| POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
+| POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 닉네임은 앞뒤 공백을 지우고 대소문자를 무시해 찾는다 · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
 | PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` · 글자 400 `profile_charset` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
 | GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth, potionReady, newsReady }` · 알을 아직 안 골랐으면 `speciesId` -1. `potionReady`는 지금 마실 수 있는 묘약이 있는지(Main 묘약 빨간 점), `newsReady`는 오늘의 소식 담당이고 아직 안 썼는지(Main 확성기 빨간 점). 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |

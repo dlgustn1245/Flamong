@@ -19,3 +19,12 @@ export function isValidText(s, max) {
   }
   return true;
 }
+
+/**
+ * 닉네임: 허용 글자 + 앞뒤 공백 · 이어진 공백 금지. 「max」와 「max 」가 소식 카드에서 똑같이 보이는 다른 계정이 되지 않게.
+ * 대소문자만 다른 닉네임(「Max」와 「max」)은 schema.sql 의 NOCASE 유일 인덱스가 막는다
+ * @param {string} s
+ */
+export function isValidNickname(s) {
+  return isValidText(s, NICKNAME_MAX) && s === s.trim() && !s.includes('  ');
+}

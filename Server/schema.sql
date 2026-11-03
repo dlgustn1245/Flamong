@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS player (
   login_fails   INTEGER NOT NULL DEFAULT 0,
   locked_until  TEXT                    -- 로그인 잠금이 풀리는 시각 (ISO). NULL 이면 잠금 없음
 );
+-- 대소문자만 다른 닉네임(「Max」 「max」)을 막는다. 로그인 · 중복 확인도 COLLATE NOCASE 로 찾는다(routes/players.js)
+CREATE UNIQUE INDEX IF NOT EXISTS player_nickname_nocase ON player(nickname COLLATE NOCASE);
 
 CREATE TABLE IF NOT EXISTS character (
   id         INTEGER PRIMARY KEY,

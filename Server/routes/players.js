@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { logEvent, playerOf, tx } from '../db.js';
-import { isValidText, NICKNAME_MAX, PROFILE_MAX } from '../rules/text.js';
+import { isValidNickname, isValidText, NICKNAME_MAX, PROFILE_MAX } from '../rules/text.js';
 import { HEARTS_START, kstDate } from '../rules/growth.js';
 import { hashPassword, isLocked, lockUntil, MAX_LOGIN_FAILS, PASSWORD_PATTERN, verifyPassword } from '../rules/password.js';
 
@@ -19,8 +19,8 @@ export default async function players(app, { db, now }) {
     },
   }, (req) => {
     const { nickname } = req.query;
-    const taken = db.prepare('SELECT 1 FROM player WHERE nickname = ?').get(nickname);
-    return { available: isValidText(nickname, NICKNAME_MAX) && !taken };
+    const taken = db.prepare('SELECT 1 FROM player WHERE nickname = ? COLLATE NOCASE').get(nickname);
+    return { available: isValidNickname(nickname) && !taken };
   });
 
   app.post('/players', {
@@ -38,7 +38,7 @@ export default async function players(app, { db, now }) {
     },
   }, (req, reply) => {
     const { team, name, nickname, password } = req.body;
-    if (!isValidText(nickname, NICKNAME_MAX)) return reply.code(400).send({ error: 'nickname_charset' });
+    if (!isValidNickname(nickname)) return reply.code(400).send({ error: 'nickname_charset' });
     // 팀 · 이름도 폰트가 그리는 글자만. 안 그러면 저장은 되는데 설정 창에 빈칸으로 보인다
     if (!isValidText(team, PROFILE_MAX) || !isValidText(name, PROFILE_MAX)) return reply.code(400).send({ error: 'profile_charset' });
     const id = randomUUID();
@@ -66,8 +66,10 @@ export default async function players(app, { db, now }) {
       },
     },
   }, (req, reply) => {
-    const { nickname, password } = req.body;
-    const p = db.prepare('SELECT id, password_hash, login_fails, locked_until FROM player WHERE nickname = ?').get(nickname);
+    const { password } = req.body;
+    // 앞뒤 공백 · 대소문자는 실수로 보고 봐준다. 가입 때 같은 규칙으로 막아서 다른 계정과 겹치지 않는다
+    const nickname = req.body.nickname.trim();
+    const p = db.prepare('SELECT id, password_hash, login_fails, locked_until FROM player WHERE nickname = ? COLLATE NOCASE').get(nickname);
     if (!p) return reply.code(401).send({ error: 'login_failed' });
     const t = now();
     if (isLocked(p.locked_until, t)) return reply.code(429).send({ error: 'locked' });

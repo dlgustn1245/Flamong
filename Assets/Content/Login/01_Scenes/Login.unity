@@ -3400,7 +3400,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uAF43\uBC2D\uCEE4\uBBA4\uB2C8\uD2F0\uC5D0\uC11C \uC4F0\uC77C \uB2C9\uB124\uC784\uC785\uB2C8\uB2E4. \uC775\uBA85\uC744\uC704\uD574\n\uBCF8\uC778\uC774 \uCD94\uC815\uB418\uC9C0\uC54A\uAC8C \uC368\uC8FC\uC138\uC694."
+  m_text: "\uC18C\uC2DD \xB7 \uB7AD\uD0B9\uC5D0 \uBCF4\uC774\uACE0, \uB85C\uADF8\uC778\uD560 \uB54C\uB3C4 \uC368\uC694.\n\uBCF8\uC778\uC774 \uB4DC\uB7EC\uB098\uC9C0 \uC54A\uAC8C \uC9C0\uC5B4 \uC8FC\uC138\uC694."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: c2504b56d579e9148964f4a37c3d913b, type: 2}
   m_sharedMaterial: {fileID: -2977952071287031489, guid: c2504b56d579e9148964f4a37c3d913b, type: 2}
@@ -5974,7 +5974,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4294336559
   m_fontColor: {r: 0.18431373, g: 0.3764706, b: 0.9647059, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -5987,7 +5987,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
