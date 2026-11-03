@@ -8,6 +8,7 @@ public class LoginScene : MonoBehaviour
 {
     public Button signUp, login;
     public GameObject signUpPanel, loginPanel;
+    public GameObject pcNotice;   // 「PC에서는 한글을 입력할 수 없어요」
     
     [Header("가입 패널")]
     public TMP_InputField teamField;
@@ -34,6 +35,8 @@ public class LoginScene : MonoBehaviour
 
     void Start()
     {
+        // Unity 웹 빌드는 PC 브라우저의 한글 조합(IME)을 받지 못한다. 폰은 폰 키보드로 입력돼 괜찮다
+        pcNotice.SetActive(!Application.isMobilePlatform);
         resultPanel.SetActive(false);
         checkButton.onClick.AddListener(OnClickCheck);
         yesButton.onClick.AddListener(OnClickYes);

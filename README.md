@@ -26,7 +26,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 |---|---|---|---|---|---|
 | 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState · SoundManager 싱글톤이 이 씬에 있음. 좌상단 `Text - Version`에 `v{Player Settings Version} · {buildGUID 앞 6자리}`(에디터는 `editor`). buildGUID는 빌드마다 바뀌어 배포된 빌드가 최신인지 알아볼 수 있다. 기능 묶음을 올릴 때 Version을 로드맵 번호에 맞춘다(지금 1.2.0) |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro`. 다음 → 들어갈 곳으로 | `GET /me` | 1.0 | 구현 |
-| 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내 |
+| 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내. PC 브라우저(`!Application.isMobilePlatform`)에서는 아래쪽에 「PC에서는 한글을 입력할 수 없어요. 휴대폰으로 접속해 주세요.」(`Text - PcNotice`)를 띄운다 |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 고른 알에서 멈춤 → 커짐 · 흔들림 · 번쩍임 → 결과 창(캐릭터 그림) · 오류 창 구현(「캐릭터 › Hatch 연출」) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 꽃(→꽃밭) · 확성기(→소식) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · 캐릭터 그림(`speciesId * 5 + level - 1`번 진화 그림, 레벨업하면 바로 바뀜) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`) · 레벨업/완성 · 「준비 중」 안내(`Panel - Notice`) · 오늘의 감정(`Panel - Emotion` → `POST /emotions`, 레벨업이면 안내 창) · 감정 버튼 아이콘(코드로 그린 그림, `Main/03_Resources/Emotion`) · 묘약 버튼 빨간 점(`/me`의 `potionReady`) · 확성기 빨간 점 배치(`newsReady`, 켜는 코드는 아직) |
@@ -457,7 +457,7 @@ Server/
 
 - **입력 설정은 「둘 다」(`activeInputHandler: 2`) 유지(2026-11-03 결정).**
   - 코드에는 옛 `Input`이 없다. 하지만 이 설정으로 **폰 브라우저 한글 입력이 되는 것을 확인했다**(배포 빌드 `v1.2.0`). 새 Input System 하나로 바꾸면 얻는 것은 작고, 바꿀 때마다 폰 확인을 다시 해야 해서 그대로 둔다.
-  - **PC 브라우저에서는 한글이 입력되지 않는다.** Unity 웹 빌드가 데스크톱 IME를 지원하지 않는 한계다(Unity 6 매뉴얼 「IME Input」에서 Web은 미지원). 주 대상이 폰이라 받아들인다. PC 지원이 필요해지면 입력칸 위에 브라우저 입력칸을 겹치는 방식(WebGLInput 패키지 또는 직접 만든 `.jslib`)을 검토한다.
+  - **PC 브라우저에서는 한글이 입력되지 않는다.** Unity 웹 빌드가 데스크톱 IME를 지원하지 않는 한계다(Unity 6 매뉴얼 「IME Input」에서 Web은 미지원). 주 대상이 폰이라 받아들이고, Login 화면에 PC 안내를 띄운다. PC 지원이 필요해지면 입력칸 위에 브라우저 입력칸을 겹치는 방식(WebGLInput 패키지 또는 직접 만든 `.jslib`)을 검토한다.
 - **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 12.96MB(여유 2.04MB)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 배경음을 넣은 뒤 15MB를 넘으면 Crunch 압축 → 어드레서블(플레이어당 5장만 받음) 순으로 줄인다.
 - 서버 호스팅 위치. 배포는 맨 마지막에 한다. 그때 AWS Lightsail 서울 또는 Cloudflare Tunnel 중에서 정한다.
 
