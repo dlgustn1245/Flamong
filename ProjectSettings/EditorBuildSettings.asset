@@ -26,9 +26,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Content/Collection/01_Scenes/Collection.unity
     guid: da205fe3c3b04c97ae50c80cd944883a
-  - enabled: 0
+  - enabled: 1
     path: Assets/Content/Game/01_Scenes/Game.unity
     guid: 3c2e800e722145c598142212a97fb7f4
+  - enabled: 1
+    path: Assets/Content/Tidy/01_Scenes/Tidy.unity
+    guid: 72a9e7a4fdc7c734eaf6b3902e3bcd5d
   - enabled: 1
     path: Assets/Content/Potion/01_Scenes/Potion.unity
     guid: a1a29d2c15214ccfa3bb592d93886205

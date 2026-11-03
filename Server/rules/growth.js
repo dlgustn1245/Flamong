@@ -12,6 +12,8 @@ export const EMOTION_AFFECTION = 2;
 // 피로 · 스트레스 · 성취감 · 몰입 · 평온
 export const EMOTIONS = ['tired', 'stress', 'achievement', 'focus', 'calm'];
 
+export const GAME_AFFECTION = 2;   // 미니게임 하루 첫 판. 게임 종류와 상관없이 하루 한 번
+
 export const POTION_AFFECTION = 10;
 export const VISIT_PER_POTION = 7;   // 오늘의 감정을 고른 날 7일마다 1개. 연속이 아니라 누적
 // 히든 미션. 한 번씩만 받는다. 순서가 Potion 씬 카드 순서다

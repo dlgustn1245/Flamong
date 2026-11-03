@@ -4,7 +4,6 @@
 Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브라우저 대상.
 1인 개발, 일정 없음. 서버는 Node.js 24(Fastify) + 내장 SQLite(`node:sqlite`)로 직접 구현.
 
-- 기획서 원본: https://seobukcorp.atlassian.net/wiki/spaces/Plinqer/pages/74711134 (로그인 필요)
 - 규칙·예산: [CLAUDE.md](CLAUDE.md)
 - 이 문서가 씬 · 규칙 · API · 데이터 모델의 **단일 출처**다. 기획서와 다르게 정한 것은 「기획서와 다른 점」에 적는다.
 
@@ -16,7 +15,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 1 홈 → 2 안내문 → 3 로그인 → 4 알 선택 → 5 캐릭터 랜덤 → 6 홈화면
                                                           ├─ 7 설정
                                                           ├─ 8 도감
-                                                          ├─ 9 게임
+                                                          ├─ 9 게임 (이달의 게임 달력 → 마음 정리)
                                                           ├─ 10 묘약
                                                           ├─ 11 꽃밭
                                                           └─ 12 소식
@@ -29,10 +28,11 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내. PC 브라우저(`!Application.isMobilePlatform`)에서는 아래쪽에 「PC에서는 한글을 입력할 수 없어요. 휴대폰으로 접속해 주세요.」(`Text - PcNotice`)를 띄운다 |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 고른 알에서 멈춤 → 커짐 · 흔들림 · 번쩍임 → 결과 창(캐릭터 그림) · 오류 창 구현(「캐릭터 › Hatch 연출」) |
-| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 꽃(→꽃밭) · 확성기(→소식) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · 캐릭터 그림(`speciesId * 5 + level - 1`번 진화 그림, 레벨업하면 바로 바뀜) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`) · 레벨업/완성 · 「준비 중」 안내(`Panel - Notice`) · 오늘의 감정(`Panel - Emotion` → `POST /emotions`, 레벨업이면 안내 창) · 감정 버튼 아이콘(코드로 그린 그림, `Main/03_Resources/Emotion`) · 묘약 버튼 빨간 점(`/me`의 `potionReady`) · 확성기 빨간 점 배치(`newsReady`, 켜는 코드는 아직) |
+| 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 꽃(→꽃밭) · 확성기(→소식) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · 캐릭터 그림(`speciesId * 5 + level - 1`번 진화 그림, 레벨업하면 바로 바뀜) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`) · 레벨업/완성 안내(`Panel - Notice`) · 게임 버튼(→ Game 달력) · 오늘의 감정(`Panel - Emotion` → `POST /emotions`, 레벨업이면 안내 창) · 감정 버튼 아이콘(코드로 그린 그림, `Common/03_Resources/Emotion`) · 묘약 버튼 빨간 점(`/me`의 `potionReady`) · 확성기 빨간 점 배치(`newsReady`, 켜는 코드는 아직) |
 | 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 · 회원 탈퇴. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset`, `DELETE /players/me` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 회원 탈퇴는 맨 아래 흐린 밑줄 글씨(실수로 누르지 않게) → 되돌릴 수 없다는 확인 창 → `DELETE /players/me` → 로그아웃과 같이 저장값을 지우고 Title, 이미 없는 계정(401)이면 Login 구현. 소리는 배경음 · 효과음 슬라이더 · `SoundManager`(Title) 연결까지, 소리 파일은 아직. 문의하기는 「손편지로 부탁드립니다」 안내 창(`Panel - Contact`, 설정 창 안. 아주 작은 글씨로 주소를 적은 이스터 에그, 화면 아무 곳이나 누르면 닫힘) 구현 |
 | 8 | Collection | 알 탭 8개 × (계열 3종 × 진화 5단계). 도달한 레벨까지 그림, 나머지는 검은 실루엣. 상단 뒤로가기 · 완성 개수. 규칙은 「캐릭터」 | `GET /collection` | 1.1 | 구현. 처음엔 지금 키우는 알 탭을 연다. 탭 글로우 이동 · 칸 그림과 실루엣 · 완성 개수 · 알 이름 · 401 · 오류 창 |
-| 9 | Game | 미니게임 1개 + 이번 달 · 지난달 랭킹 | `POST /scores`, `GET /rankings?month=` | 1.1 | 빈 씬 |
+| 9 | Game | 「이달의 게임」 달력 12칸. 이번 달 칸 → 그달 게임, 지난 달 칸 → 그달 랭킹. 규칙 · 화면은 「미니게임 · 랭킹」 | `GET /games/months`, `GET /rankings?month=` | 1.1 | 서버 · 달력 칸 채우기 · 지난 달 랭킹 창(공용 `RankingPanel`) 구현 |
+| 9-1 | Tidy | 미니게임 「마음 정리」. 30초 동안 감정을 서랍에 정리 → 결과 · 이번 달 랭킹 | `POST /games/start`, `POST /scores`, `GET /rankings` | 1.1 | 서버 · 한 판(`TidyGame`) · 멈춤 · 결과 창 · 랭킹 구현. 에디터에서 봇으로 한 판 확인, 웹 빌드 · 폰 확인은 아직 |
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 구현. 방문 묘약 카드(병이 7분의 1씩 차오름, 7 / 7이고 마실 수 있을 때만 [받기]) · 히든 미션 카드 3장(숨김 · 받기 · 대기 · 받음) · 받으면 안내 창(레벨업 포함) 뒤 `/missions` 다시 부름 · 409도 다시 부름 · 401 · 오류 창. 상단은 뒤로가기만(홈 아이콘 뺌) |
 | 11 | Garden | 꽃밭: 하루 1회 익명 한마디(대나무숲). 위에 쓰기 카드, 아래에 최신 30개. 규칙 · 화면은 「꽃밭 · 소식」 | `GET /posts?kind=garden`, `POST /posts` | 1.2 | 구현(`Common/02_Scripts/PostScene`). 응답 전엔 쓰기 · 다 씀 카드 둘 다 끔 · 공백만이면 버튼 꺼짐 · 보내는 동안 버튼 꺼짐 · 400 안내 창 · 409 다시 부름 · 401 · 오류 창(다시 보내기) |
 | 12 | News | 소식: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 화면은 꽃밭과 같다 | `GET /posts?kind=news`, `POST /posts` | 1.2 | 구현. 꽃밭과 같은 `PostScene`(`kind = news`) |
@@ -43,7 +43,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 |---|---|
 | 기기에 저장된 `playerId` 없음 | Login |
 | `/me` 200, `speciesId` -1 (가입만 하고 알을 안 고름) | EggSelect |
-| `/me` 200 | Main (팀 · 이름 · 닉네임 · `speciesId`를 `SessionState`에) |
+| `/me` 200 | Main (팀 · 이름 · 닉네임을 `SessionState`에. `speciesId` · `level`은 Main이 `/me`로 넣는다) |
 | `/me` 401 (서버가 모르는 계정: DB 초기화 · 탈퇴) | 저장된 `playerId`와 쓰다 만 터치 수(`HeartsTaps`)를 지우고 Login. Main · Hatch에서 요청이 401이어도 같다(`EntryRouter.GoToLogin`) |
 | `/me` 404 (없는 주소: `BASE_URL` 실수 등) | 오류 창 → 다시 시도. 계정 문제가 아니므로 `playerId`는 지우지 않는다 |
 | 서버에 닿지 못함 (응답 코드 0 등) | 오류 창 → 다시 시도. **`playerId`는 지우지 않는다**(서버가 잠깐 꺼졌을 뿐일 수 있음) |
@@ -149,7 +149,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 레벨은 게이지 옆 「Lv」 하나로만 보여준다. 시안의 왼쪽 위 「Lv」는 중복이라 뺐다.
 - 게이지는 **현재 레벨 안에서의 진행률** `levelProgress ÷ levelNeed`다. 레벨이 오르면 0에서 다시 시작한다. 눈금 3개는 25 · 50 · 75% 장식이다.
   - 감정 · 하트로 애정도가 오르면 이전 값에서 `gaugeFillTime`(0.5초) 동안 차오른다. 레벨업이면 끝까지 채운 뒤 0에서 새 레벨 값까지 다시 차오른다. Main에 들어올 때(`/me`)는 바로 맞춘다.
-- 게임 버튼은 1.1 전까지 「준비 중이에요」 안내만 띄운다. 꽃밭 · 소식 버튼은 Garden · News로 간다.
+- 게임 버튼은 Game(「이달의 게임」 달력)으로 간다. 꽃밭 · 소식 버튼은 Garden · News로 간다.
 - 하트 파티클은 Main의 **20개 풀**을 돌려 쓴다. 터치마다 1개, 하트 전달 때 5개, 레벨업 때 10개를 더 띄운다. 초당 4번 연타 중 레벨업해도 떠 있던 4개 + 16개 = 20개로 딱 맞는다. 더 빠르게 누르면 가장 오래된(거의 사라진) 하트부터 다시 쓴다.
 
 ### 캐릭터
@@ -208,9 +208,81 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - Main 「묘약」 버튼은 `/me`의 `potionReady`가 true면 빨간 점을 띄운다(마실 수 있고 받을 것이 있을 때). 점은 `Button - Potion/Image - PotionDot`(기본 꺼짐, 그림 `Main/03_Resources/dot_red` 64²)이다.
 
 ### 미니게임 · 랭킹
-- 게임은 **1개**. 매달 새 게임을 만들지 않는다. 「이달의 게임」 12칸 중 이번 달만 활성.
-- `score(player_id, month, best_score)`. 랭킹 = 해당 월 정렬.
-- 「1일 정각 공개」 = 지난달 month로 조회. 스케줄러 없음.
+- **운영은 「이달의 게임」**(2026-11-03 확정). 게임은 「마음 정리」(`tidy`) 하나로 시작해 하나씩 늘린다.
+  - 한 달에 한 게임만 랭킹에 오른다(달마다 상위 20). 새 게임이 준비된 달에만 바꾸고, 없으면 같은 게임을 잇는다. 지난 게임은 연습용으로 남긴다.
+  - 그달의 게임은 `rules/game.js`의 `GAME_OF_MONTH` 표(`[시작 달, 게임]`)가 정한다. 지금은 `['2026-11', 'tidy']` 한 줄이라 2026-10 이전(출시 전)은 게임이 없다. 새 게임을 올릴 때 한 줄을 더해 배포한다. 연습용 점수(랭킹에 오르지 않음)는 두 번째 게임 때 만든다.
+- **화면은 씬 2개**(2026-11-03, 기획서 「이달의 게임」 12칸 화면을 따름).
+  - **Game = 「이달의 게임」 달력**: 올해(KST) 1~12월 칸 12개를 3 × 4로 깔아 둔다. Main 게임 버튼이 여기로 온다. `GET /games/months` 한 번으로 칸을 채운다.
+
+    | 달 | 칸 | 누르면 |
+    |---|---|---|
+    | 이번 달 | 흰 카드(`Image - Now`) + 게임 이름 + 「도전 중 · 최고 N점」(기록이 없으면 「도전 중 · 기록 없음」) | 그 게임 씬(지금은 Tidy) |
+    | 지난 달 | 민트 카드 + 게임 이름 + 「N등 · M점」(기록이 없으면 「기록 없음」) | 그달 랭킹 창(`GET /rankings?month=`) |
+    | 출시 전 달 | 흐리게(`CanvasGroup` 알파 0.45), 비움 | 없음 |
+    | 다음 달 이후 | 흐리게 「?」 | 없음 |
+
+    - 해가 바뀌면 새 12칸이다. 지난해 기록은 DB에 남고, 연도 넘기기는 필요해지면 더한다.
+    - 세로 위치는 화면 가운데 기준이라 화면비가 달라도 칸이 가운데에 모인다. 시안은 제목이 뒤로가기 아래 줄이지만, 다른 화면처럼 뒤로가기 줄에 두었다.
+  - **Tidy = 「마음 정리」 플레이**(아래). 뒤로가기는 달력으로 간다. [랭킹]은 이번 달만 보여 준다(지난 달은 달력에서 본다).
+    - [랭킹]은 준비 화면 · 결과 창에서만 보인다. **[뒤로]는 늘 보이고, 판 중(처음 3 · 2 · 1이 끝난 뒤 ~ 30초 끝)에는 멈춤 버튼이다.** 그 밖에는 바로 달력으로 간다(처음 세는 중에는 아직 누른 것이 없어 잃는 게 없다).
+    - **멈춤**: `Time.timeScale = 0`으로 판 전체(판 시계 · 연출)를 멈추고, 줄(`Group - Field`)을 가린 채 확인 창(「그만할까요? 이번 판은 기록되지 않아요」)을 띄운다.
+      - [네]: 점수를 보내지 않고 달력으로 간다. 서버에는 시작 기록만 남고 다음 시작이 덮는다. 씬이 넘어가는 몇 프레임 사이에 판이 끝나 점수가 가지 않게 `TidyGame`을 먼저 끈다.
+      - [아니요]: 실제 시간으로 3 · 2 · 1을 센 뒤 이어서 한다. 세는 동안에도 줄은 가린 채이고 누름 · [뒤로]는 무시한다.
+      - 줄을 가리는 이유: 멈춘 채 줄이 보이면 멈췄다 이어 가기를 되풀이하며 다음 감정을 외울 수 있다.
+      - `TidyScene.OnDestroy`가 `Time.timeScale = 1`로 되돌린다(멈춘 채 다른 길로 씬을 떠나도 다음 씬이 멈춰 있지 않게).
+      - 10분 넘게 멈춰 두면 서버가 그 판을 받지 않는다(409 → 「이번 판은 기록되지 않았어요」).
+  - 랭킹 창은 두 씬이 같이 쓰는 공통 프리팹 `Panel - Ranking`(순서 2)이다. 제목 「N월 랭킹」 · 게임 이름 · 20줄(`Row - 0`~`19`를 미리 깔아 둠) · 내 줄 표시(`Image - MyRow`) · 「내 기록」. Dim은 Raycast를 켜 아래 버튼을 막는다.
+- **하루 첫 판 애정도 +2**(`GAME_AFFECTION`): 오늘(KST) 받은 점수가 없으면 첫 판이다. 게임 종류와 상관없이 하루 한 번이고, 시작만 하고 그만둔 판은 세지 않는다. 캐릭터가 없으면(새로 키우는 중) 점수만 남는다. 레벨은 점수에 영향이 없다.
+- **오늘 고른 감정 보너스는 없다.** 고른 감정이 게임에 영향을 주면 실제와 다른 감정을 고를 이유가 생겨 2.0 대시보드가 틀어진다. 같은 이유로 서랍 감정은 5종 균등 무작위이고, 게임 기록(`event` payload)에 감정 이름을 남기지 않는다.
+
+**마음 정리 규칙.** 수치는 `rules/game.js`의 `TIDY` 한 곳에 있다. 시작 응답 `rules`로 클라이언트에 내려 주어 웹 빌드 없이 서버만 바꿔 조정한다.
+
+| 수치 | 값 |
+|---|---|
+| 판 | 카운트다운 3초(`countdownSec`) + 30초(`durationSec`) |
+| 하는 일 | 가운데 세로 줄 맨 아래 감정을, 같은 감정이 붙은 왼쪽 · 오른쪽 서랍 쪽(화면 절반)을 눌러 넣는다 |
+| 점수 | 정답마다, 맞히기 전 콤보가 0~9면 1점 · 10~29면 2점 · 30 이상이면 3점(`comboAt` [10, 30]). 틀려도 빼지 않는다 |
+| 오답 | 콤보 0, 입력 잠금 0.6초(`lockMs`) |
+| 서랍 | 10개 맞힐 때마다(`changeEvery`) 한쪽 감정이 바뀐다. 좌우를 번갈아 바꾸고(첫 쪽만 무작위), 새 감정은 지금 두 서랍에 없는 3종 중 하나 |
+| 줄 | 좌우 50:50, 같은 쪽 연속 최대 4개(`maxRun`), 첫 두 개는 서로 다른 쪽. 보이는 칸은 5개(맨 아래 + 미리 보기 4) |
+| 입력 | 누르는 순간 판정. 받아들이는 입력 사이는 최소 0.1초(`minTapMs`). PC는 마우스만 |
+
+- **줄 만드는 법**: 아이콘은 줄에 들어갈 때 자기 순번 i로 단계(i ÷ 10)가 정해지고, 그 단계의 서랍 짝 중 하나로 만든다. 서랍이 바뀌어도 이미 줄에 있는 아이콘은 다시 칠하지 않는다. 맨 아래 아이콘의 순번은 지금까지 맞힌 수와 같아서, 맨 아래는 늘 지금 두 서랍 중 하나와 맞는다.
+- **서랍 예고**: 다음 단계 아이콘(새 감정)이 줄 맨 위 칸에 보이는 순간(맞힌 수를 10으로 나눈 나머지가 6 이상)부터 바뀔 서랍이 깜빡인다. 맞힌 개수로 바뀌어서 「1초 전」을 미리 알 수 없다. 처음 하는 사람에겐 약 4초, 고수에겐 약 1초 예고다.
+- **잠금이 0.6초인 이유**: 0.4초면 보지 않고 「왼쪽부터 누르고 틀리면 오른쪽」으로 막누르는 쪽이 보통 실력과 같은 점수(71점)가 나온다. 0.6초면 막누르기 57 · 보통 70으로 갈린다.
+- **판 시계는 `Time.deltaTime`을 더한 값**이다(timeScale을 따른다). 남은 시간 · 입력 잠금 · 연타 간격 · 연출이 모두 이 시계를 써서 멈춤 한 줄로 판 전체가 멈춘다. 카운트다운만 실제 시간(`WaitForSecondsRealtime`)이다(멈춘 중에 다시 세야 해서).
+  - 판 시계는 실제 시간보다 빨라질 일이 없어(렉에도 `deltaTime`은 0.333초에서 잘린다) 서버의 「시작 뒤 32초 이상」 검사는 그대로 성립한다.
+  - 브라우저 탭을 숨기면 Unity가 멈춰 판도 멈춘다. 화면이 안 보이니 미리 읽을 수도 없다.
+- **한 판 흐름**(`TidyGame`): `StartGame(rules, onEnd)` → 판 만들기 → 3 · 2 · 1(줄은 보임) → 「시작!」 0.5초 → 30초 → 「그만!」 · `onEnd(점수)` 한 번. `TidyScene`이 `POST /scores` → 결과 창. [다시 하기]는 결과 창만 닫고 준비 화면을 거치지 않고 바로 시작을 보내며, 같은 판 배열을 다시 써서 새 판을 만든다. 날기 시간은 `minTapMs` 이하여야 한다(날던 아이콘이 도착 전에 맨 위 칸으로 다시 쓰이지 않게).
+  - 연출(날기 0.1초 · 내려오기 0.08초 · 서랍 팝 · 누른 쪽 서랍 눌림 · 오답 흔들기 · 바뀔 서랍 깜빡임 · 배율 팝)은 모두 `Update`의 float 타이머로 하고, 탭마다 코루틴을 만들지 않는다.
+  - 2026-11-04 에디터에서 테스트 봇으로 확인:
+    - 점수: 화면 점수가 봇이 따로 계산한 점수와 같다(193개 정답 · 517점).
+    - 판 진행: 오답 잠금, 멈춤 중 시간 · 누름 정지, 다시 세는 중 [뒤로] 무시, 다시 세기 3.0초, 결과 창.
+    - 다시 하기: [다시 하기]는 준비 화면 깜빡임 없이 판을 초기화한다.
+    - 버튼 순서: [시작] 직후 [랭킹]은 숨겨진다. [랭킹] 직후 [시작]을 누르면 랭킹 창이 열리지 않는다.
+    - 나가기: 멈춤 → [네]로 나가면 `TidyGame`이 꺼진다. 서버에는 `game_play`만 남고 점수는 없다.
+  - 할당: Profiler의 `BehaviourUpdate`(스크립트 `Update` 전체)로 판 한 번(2,392프레임)을 쟀다.
+    - `TidyGame.Update`는 1초에 한 번 62B만 할당한다. TMP `SetText(형식, 값)`이 에디터에서만 인스펙터용 문자열을 만들기 때문이다(`TMP_Text.cs`의 `#if UNITY_EDITOR`). 그래서 빌드에서는 0이다.
+    - 판 끝(점수 보내기 · 로그)에서 한 번 약 5KB를 할당한다. 누름 경로의 `new`는 구조체뿐이다.
+  - 봇이 Profiler 분석으로 에디터를 멈춘 직후 같은 프레임에 두 번 누르면, 둘째 누름은 0.1초 연타 제한에 막힌다(정상). 그래서 봇으로 점수를 맞출 때는 분석을 멈춤 중에만 한다.
+- 예상 점수(시뮬레이션 2,000판): 처음 약 30 · 보통 70 · 잘함 120 · 고수 210 · 사람 한계 약 320.
+- **화면**(Tidy 씬): 준비(규칙 카드 · 이번 달 기록 · [시작]) → 카운트다운 → 플레이 → 결과 창(점수 · 이번 달 최고 · 등수 · 「다음 등수까지 N점」 · 애정도) → 랭킹 창(이번 달). 캐릭터는 준비 화면에서만 보이고 판 · 결과 창 중에는 숨긴다(레벨이 오르면 준비 화면으로 돌아갈 때 새 그림). 새 그림은 없다(배경 `grad_pink`).
+  - `Canvas - Main`(움직이지 않는 것): 배경, 화면 전체를 덮는 투명 누름 영역 `Area - Tap`(여기에 `TidyGame`이 붙어 누른 x가 화면 절반보다 왼쪽이면 왼쪽 서랍으로 본다. BG 바로 뒤라 뒤의 버튼이 먼저 눌린다. 버튼 대신 화면 절반인 이유는 30초 연타에 겨누기가 필요 없고, 손을 뗄 때가 아니라 누르는 순간 판정하기 때문), [뒤로] · 제목 · [랭킹], `Group - Board`(서랍 틀 2개 · 안내 한 줄, 판 · 결과 창 중에 켬), `Group - Ready`(규칙 카드 · 이번 달 기록 · [시작]), `Panel - Result`(2), 랭킹 창 2 · 확인 창 3 · 안내 창 4 · 오류 창 5.
+  - `Canvas - Dynamic`(움직이는 것, Raycaster 없음): 캐릭터, `Group - Play`(점수 · 시간 막대(Main 게이지 복사) · 남은 초 · 콤보 · 「2배」 · `Group - Field`(서랍 감정 아이콘과 이름 · 줄 아이콘 `Image - Icon 0`~`5`) · 카운트다운). `Group - Field`는 화면 아래 가운데 기준 묶음이라 줄 칸 위치가 화면비와 상관없다. 키가 큰 폰에서 늘어난 높이는 시간 막대와 캐릭터 사이 빈칸이 받는다.
+  - 줄 칸(맨 아래 = 0번): y 330 · 530 · 680 · 830 · 980, 크기 1 · 0.7 · 0.7 · 0.7 · 0.7, 투명도 1 · 1 · 0.8 · 0.6 · 0.4. 아이콘 6개 중 남는 1개는 서랍으로 날아가는 중인 것이다.
+
+**랭킹 · 점수 검증** (`routes/games.js`)
+- `score(player_id, game, month, best_score)`: 게임 · 달마다 개인 최고 한 줄이고, 높은 점수일 때만 바뀐다. 점수는 서버가 받은 시각(KST)의 달에 들어간다. 그래서 지난달 랭킹은 1일 0시 정각에 확정된다(스케줄러 없음).
+- 동점은 같은 등수(1, 1, 3)이고, 목록 안에서는 그달 먼저 참여한 사람이 위다. 20위 밖이어도 내 등수 · 최고 · 다음 등수까지 점수(바로 위 점수 − 내 최고, 1등이면 0)를 준다. 탈퇴하면 점수도 지워져 지난달 목록에서도 빠진다.
+- **한 번 시작에 점수 한 번**: 새 표 없이 `event`로 판정한다.
+  - `POST /games/start`가 `game_play`를 남긴다. 새 시작은 앞의 시작을 덮는다.
+  - `POST /scores`는 마지막 게임 기록이 `game_play`이고, 그때부터 32초 이상 10분 이하일 때만 받는다. 32초는 카운트다운 3 + 30에서 서버 시계 보정 여유 1초를 뺀 값이다. 클라이언트는 시작 응답을 받은 뒤 카운트다운을 시작하므로 서버가 잰 시간이 늘 더 길다.
+  - 점수는 0~863이다. 863은 입력 간격 0.1초로 30초에 누를 수 있는 301번(+1은 프레임 오차 여유)을 모두 맞힌 규칙상 최대다. 상한 안의 조작은 막지 못하고 운영자가 지운다(「인증 › 운영자 복구」).
+  - 응답을 못 받고 다시 보낸 점수(마지막 기록이 이미 `game_score`)는 쓰지 않고 200 · 애정도 0으로 그 점수가 들어간 달의 기록을 돌려준다(말일 밤에 보내고 1일에 다시 보내도 지난달 기록). 첫 요청이 이미 기록됐는데 「기록되지 않았어요」가 뜨지 않게 한다. 클라이언트는 `levelUp`과 상관없이 응답의 `growth.level`로 캐릭터 그림을 맞춘다(첫 요청이 올린 레벨).
+  - 판 상태가 `event`에 있어 서버가 다시 켜져도 이어진다. 시작에서 10분 안에 다시 켜지면 기록되고, 넘으면 409 `expired`다.
+  - 0점 판(시작하고 그냥 기다림)도 기록되어 +2 · 묘약 `first_game`을 받는다. 하루 한 번이라 막지 않는다.
+- 게임 시작은 횟수 제한이 없다(`PATCH /players/me`와 같다). 도배가 실제로 생기면 플레이어별 제한을 넣는다.
+- 판 수치를 달 중간에 바꾸면 그달 랭킹에 규칙이 다른 기록이 섞인다. 실가입자가 생긴 뒤에는 1일에 맞춰 배포한다.
 
 ### 꽃밭 · 소식
 - 꽃밭 · 소식 각각 `UNIQUE(player_id, date, kind)` 제약으로 하루 1회.
@@ -233,6 +305,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 ### 로그
 - 모든 쓰기 API가 `event(player_id, type, ts, payload)` 한 줄. 클라이언트 별도 로그 전송 없음.
 - type: `login · login_fail · profile(정보 수정, 바뀐 뒤의 팀) · hatch · tap · emotion · game_play · game_score · potion · reset · post · news · delete`.
+- 게임: `game_play`는 `{ game }`, `game_score`는 `{ game, score, ms }`(ms = 서버가 잰 시작부터 점수까지). 감정 이름은 넣지 않는다(「미니게임 · 랭킹」).
 - 탈퇴(`DELETE /players/me`) 시에도 `event`는 지우지 않는다. 탈퇴자 포함 활동 통계가 대시보드 목적이고, `player` 행이 사라지면 이름·팀과 더 이상 연결되지 않는다.
 
 ### 인증
@@ -259,6 +332,10 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
     ```bash
     sudo -u flamong node -e "const db=new (require('node:sqlite').DatabaseSync)('/var/lib/flamong/flamong.db',{timeout:5000});console.log(db.prepare('UPDATE player SET can_post_news = 1 WHERE nickname = ? COLLATE NOCASE').run(process.argv[1]).changes)" -- '닉네임'
     ```
+  - 게임 점수 지우기(조작 의심): 그달(KST `YYYY-MM`) 한 사람의 기록을 지운다. `1`이면 지운 것, `0`이면 없다. 다시 플레이하면 새로 쌓인다.
+    ```bash
+    sudo -u flamong node -e "const db=new (require('node:sqlite').DatabaseSync)('/var/lib/flamong/flamong.db',{timeout:5000});console.log(db.prepare('DELETE FROM score WHERE month = ? AND player_id = (SELECT id FROM player WHERE nickname = ? COLLATE NOCASE)').run(process.argv[1], process.argv[2]).changes)" -- '2026-11' '닉네임'
+    ```
 - **IP당 횟수 제한**(`rules/rateLimit.js`, `index.js`의 `LIMITS`): 가입 10분 30번 · 닉네임 확인 1분 60번 · 로그인 10분 60번. 넘으면 429 `rate_limited`. 가짜 계정 도배와 닉네임 훑기를 막는다. 회사 와이파이는 직원이 모두 같은 IP로 나가서 넉넉하게 잡았다. 메모리에만 세므로 서버를 다시 켜면 초기화된다.
 - 팀 · 이름은 프로필일 뿐 검증하지 않는다. 슬랙 OAuth 등은 2.0 이후 결정.
 - **명단 대조 없이 누구나 가입한다**(2026-11-01 확정). 임직원 명단을 받을 방법이 없다. 사내에 QR로만 알리는 주소라 외부 유입이 적고, 문제 계정은 관리자가 DB에서 정리한다.
@@ -267,7 +344,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 ## 데이터 모델 (`Server/schema.sql`)
 
-모든 테이블이 `schema.sql`에 있다. `score`는 아직 쓰는 API가 없다.
+모든 테이블이 `schema.sql`에 있다.
 
 ```sql
 player      (id TEXT PK, team, name, nickname UNIQUE, can_post_news INT DEFAULT 0, created_at,
@@ -278,14 +355,16 @@ character   (id INTEGER PK, player_id, species_id INT, affection INT DEFAULT 0,
              started_at, ended_at NULL)              -- ended_at NULL 인 것이 활성
              UNIQUE INDEX one_active_character (player_id) WHERE ended_at IS NULL  -- 활성은 1개
 emotion_log (player_id, date, emotion,              UNIQUE(player_id, date))   -- 오늘의 감정, 하루 1회
-score       (player_id, month, best_score INT,      UNIQUE(player_id, month))
+score       (player_id, game, month, best_score INT,  UNIQUE(player_id, game, month))   -- 게임 · 달(KST)마다 개인 최고 (「미니게임 · 랭킹」)
 post       (id INTEGER PK, player_id, date, kind, body,  UNIQUE(player_id, date, kind))
 potion     (player_id, mission_id, claimed_at,     UNIQUE(player_id, mission_id))   -- 받은 묘약. 방문 묘약은 'visit:N'
 event      (id INTEGER PK, player_id, type, ts, payload TEXT)
+            INDEX event_player (player_id)          -- 플레이어의 마지막 게임 기록 찾기
 ```
 
 - 하트 충전은 스케줄러 없이 `min(15, hearts + 5 × (오늘 − hearts_date))`로 계산한다(`rules/growth.js` `rechargeHearts`). 언제 계산해도 같은 값이라 `GET /me`는 계산만 하고 저장하지 않는다. 하트를 쓰는 `POST /tap`이 (계산값 − 1, 오늘)을 함께 저장한다.
 - 스키마를 바꾼 뒤에는 기존 `Server/flamong.db*`를 지우고 서버를 다시 켠다. `CREATE TABLE IF NOT EXISTS`는 이미 있는 테이블에 열을 더하지 않는다. 마이그레이션 도구는 두지 않는다(실사용자 생기기 전까지).
+  - 비어 있는 표 하나만 바뀌면 그 표만 `DROP TABLE`하고 다시 켜도 된다. 테스트 계정이 남는다. 2026-11-03 `score`에 `game` 열을 넣을 때 이렇게 했다.
 
 ---
 
@@ -298,7 +377,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 클라이언트(`NetworkManager`)는 400 이상이면 `onError(상태 코드, 본문)`으로 보낸다(본문이 없는 연결 실패 · 시간 초과는 Unity 오류 문구). 본문의 `error` 값은 로그로 찍기만 하고, 화면 분기는 코드 숫자로만 나눈다.
 - 씬 스크립트는 성공이면 받은 값(`JsonUtility.ToJson`)을, 실패면 코드와 본문을 `print`로 찍는다. 가입 · 로그인 응답의 `playerId`는 웹 빌드 브라우저 콘솔에 남지 않게 앞 6자리만 찍는다.
 
-**1.0 서버 API 10개, 1.1의 `/collection`, 1.2의 묘약 2개 · 꽃밭 2개가 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 30개 통과). 나머지는 설계만 있다.
+**1.0 서버 API 10개, 1.1의 `/collection` · 게임 4개, 1.2의 묘약 2개 · 꽃밭 2개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/games.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 40개 통과).
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -314,8 +393,10 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
 | POST | `/emotions` | `{ emotion }` | `{ levelUp, growth }` · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
 | GET | `/collection` | - | `{ levels: [24], completed: [speciesId…], speciesId }` · `levels[speciesId]` = 도달한 최고 레벨(0 = 없음, 지금 캐릭터 · 완성한 캐릭터만), `completed` = 완성한 종 오름차순, `speciesId` = 지금 캐릭터(없으면 -1) **(구현)** | 1.1 |
-| POST | `/scores` | `{ score }` | `{ best, rank, levelUp, growth }` · 하루 첫 플레이면 애정도 +2 반영 | 1.1 |
-| GET | `/rankings?month=YYYY-MM` | - | `[{ nickname, best }]` 상위 20 | 1.1 |
+| POST | `/games/start` | `{ game }` (`tidy`) | `{ rules }` · 한 판의 수치(`durationSec` · `countdownSec` · `minTapMs` · `lockMs` · `changeEvery` · `maxRun` · `comboAt`). `game_play`를 남긴다. 새 시작은 앞의 시작을 덮는다. 모르는 게임 400 **(구현)** | 1.1 |
+| POST | `/scores` | `{ score }` (0~863 정수) | `{ best, rank, gap, gain, levelUp, growth }` · 이번 달(KST) 이 게임의 내 최고 · 등수(동점은 같은 등수) · 다음 등수까지 점수(1등 0) · 오른 애정도(하루 첫 판 +2, 게임 무관). 409: 시작 없음 `not_started` · 시작 뒤 32초 전 `too_fast` · 10분 넘음 `expired`. 이미 받은 판을 다시 보내면 쓰지 않고 200 · `gain` 0 **(구현)** | 1.1 |
+| GET | `/rankings?month=YYYY-MM` | - | `{ month, game, top: [{ rank, nickname, best }], rank, best, gap }` · 그달 이달의 게임 랭킹. `month`를 빼면 이번 달(KST). `top`은 상위 20, `rank` · `best` · `gap`은 내 기록(없으면 0). 출시 전 달 · 다음 달 이후는 `game` `""` · 빈 목록. 형식이 틀린 달 400 **(구현)** | 1.1 |
+| GET | `/games/months` | - | `{ current, months: [{ month, game, best, rank }] }` · 「이달의 게임」 달력 12칸. 올해(KST) 1~12월의 게임과 내 최고 · 등수(없으면 0). 출시 전 달 · 다음 달 이후는 `game` `""`. `current`는 이번 달 **(구현)** | 1.1 |
 | GET | `/missions` | - | `{ canDrink, visit: { progress, need }, hidden: [{ id, done, claimed }] }` · `canDrink`는 캐릭터가 있고 완성 전인지. `hidden`은 `first_complete` · `first_game` · `first_garden` 순서 **(구현)** | 1.2 |
 | POST | `/potions/claim` | `{ missionId }` (`visit` · `first_complete` · `first_game` · `first_garden`) | `{ levelUp, growth }` · 애정도 +10. 409: 달성 전 `not_ready` · 이미 받음 `claimed` · 캐릭터 없음 `no_character` · 완성 `completed`. 응답을 못 받고 다시 보내면 409가 오니 `/missions`를 다시 부른다 **(구현)** | 1.2 |
 | GET | `/posts?kind=garden\|news` | - | `{ canWrite, posts: [{ body, date, nickname }] }` · 최신순 30개. `nickname`은 소식만, 꽃밭은 `""`. `canWrite`는 오늘 아직 안 썼고 (꽃밭이거나 소식 작성권이 있는지) **(구현)** | 1.2 |
@@ -370,12 +451,14 @@ Assets/Content/Common/
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · NoticePanel · EntryRouter(들어갈 곳)
+                                · GameList(게임 id → 이름 · 씬. 이 빌드가 모르는 게임이면 null) · RankingPanel(한 달 랭킹 창)
                                 · WebKeyboard(.cs + .jslib, 웹 빌드 전용. Unity 폰 키보드는 비밀번호 칸이면 NumberPad를 무시하므로, type=password 가 되는 순간 inputmode=numeric 을 붙여 숫자 키패드를 띄운다)
   02_Scripts/Editor/            에디터 전용(빌드에 안 들어감). BuildVersionPrompt: Build 버튼을 누르면 버전 입력 창을 띄우고 그 값을 Player Settings Version 에 넣은 뒤 빌드
-  03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character
+  03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character · Emotion
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
-                                · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일))
+                                · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일, [아니요]를 누르면 할 일(없으면 닫기만)))
                                 · Panel - Notice(문구와 [확인]만 있는 안내 창, NoticePanel.Show(문구))
+                                · Panel - Ranking(한 달 랭킹 창 20줄, RankingPanel.ShowRankingBoard(Board). Game 달력 · Tidy가 같이 쓴다)
 Assets/Settings/                URP · Input System (Unity 생성)
 Server/
   index.js                      Fastify 조립 · 에러 형식 { error } · now() 주입
@@ -384,10 +467,12 @@ Server/
   routes/character.js           /me · /characters · /tap · /emotions · /collection
   routes/potion.js              /missions · /potions/claim · 미션 상태(missionsOf)
   routes/posts.js               /posts · 오늘의 소식 담당(newsPickOf)
+  routes/games.js               /games/start · /scores · /rankings · /games/months (한 판 검증은 event 로)
   rules/text.js · hangul.txt    닉네임 · 글 허용 글자 (순수 함수, DB · HTTP 모름). hangul.txt 는 폰트가 그리는 한글 2,780자
   rules/password.js             비밀번호 해시 · 확인 · 로그인 잠금
   rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜
   rules/species.js              알 → 캐릭터 뽑기
+  rules/game.js                 미니게임 수치 단일 출처(TIDY) · 점수 상한 · 최소 시간 · 이달의 게임 표(GAME_OF_MONTH)
   rules/rateLimit.js            IP당 횟수 제한 (가입 · 닉네임 확인 · 로그인)
   deploy/                       Oracle VM 설정: setup.sh(처음 한 번) · flamong.service(systemd) · Caddyfile(HTTPS · /api · 웹 빌드)
   test/*.test.js                node:test
@@ -401,10 +486,10 @@ Server/
 |---|---|---|
 | Canvas - Main | 0 | 배경 · 제목 · 고정 버튼 |
 | Canvas - Dynamic | 1 | 스크롤 목록, 회전하는 알처럼 매 프레임 움직이는 것만 |
-| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 씬마다의 창(설정 · 오늘의 감정 · 결과 등). 기본 꺼짐. GraphicRaycaster 필수 |
-| 확인 창 (공통 프리팹 `Panel - Confirm`) | 3 | 팝업 위에서 「정말 할까요?」를 묻는다(Main 설정 창) |
-| 안내 창 (공통 프리팹 `Panel - Notice`) | 4 | 「준비 중이에요」 · 레벨업 · 완성처럼 알리기만 한다(Main). 하트 응답이 늦게 와서 확인 창이 떠 있는 동안 레벨업 안내가 뜰 수 있어 확인 창과 숫자를 나눴다 |
-| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main · Collection · Potion · Garden · News |
+| 팝업 (Main 아래 하위 Canvas) | 2 (Override Sorting) | 씬마다의 창(설정 · 오늘의 감정 · 결과 등)과 공통 프리팹 `Panel - Ranking`(Game · Tidy). 기본 꺼짐. GraphicRaycaster 필수 |
+| 확인 창 (공통 프리팹 `Panel - Confirm`) | 3 | 팝업 위에서 「정말 할까요?」를 묻는다(Main 설정 창 · Tidy 판 중 [뒤로]) |
+| 안내 창 (공통 프리팹 `Panel - Notice`) | 4 | 레벨업 · 완성(Main), 「이번 판은 기록되지 않았어요」(Tidy)처럼 알리기만 한다. 하트 응답이 늦게 와서 확인 창이 떠 있는 동안 레벨업 안내가 뜰 수 있어 확인 창과 숫자를 나눴다 |
+| 오류 창 (공통 프리팹 `Panel - Error`) | 5 | 무엇이 떠 있든 맨 위. Title · Intro · Hatch · Main · Collection · Game · Tidy · Potion · Garden · News |
 
 같은 순서끼리는 하이어라키에서 뒤에 있어도 위에 그려진다는 보장이 없다(설정 창 뒤에 확인 창이 숨은 적이 있음). 겹쳐 뜰 수 있는 창은 순서 숫자로 나눈다.
 
@@ -426,7 +511,7 @@ Server/
 - 물결 밑줄(`line_wavy`), 노란 라벨 글로우(`label_glow_yellow`), 흰 박스 버튼(`btn_box_white`), 노란 타원 버튼(`btn_oval_yellow`), 크림색 라벨(`label_glow`)은 시안을 보고 새로 그렸다.
 - 9-slice로 쓰는 것: `frame_card`, `frame_card_white`, `line_wavy`, `label_glow_yellow`, `btn_box_white`.
 - **캐릭터**: `Character/char_{speciesId 두 자리}_lv{레벨}.png` (예: `char_07_lv3`). 24종 × Lv1~5 = 120장, 256², 단일 스프라이트, 웹 빌드(ASTC)에서 장당 약 29KB(합계 약 3.5MB). 구성과 알별 컨셉은 「규칙 › 성장 밸런스」. 같은 알 안의 3종은 몸통 톤(기본 · 밝게 · 진하게)과 지느러미 색(연두 · 하늘 · 분홍)으로 구분한다.
-- **감정 아이콘 5종**(`Main/03_Resources/Emotion/icon_emotion_*`)과 묘약 버튼 빨간 점(`Main/03_Resources/dot_red`, 64²)은 코드로 그렸다.
+- **감정 아이콘 5종**(`Common/03_Resources/Emotion/icon_emotion_*`)과 묘약 버튼 빨간 점(`Main/03_Resources/dot_red`, 64²)은 코드로 그렸다. 감정 아이콘은 Main 감정 버튼과 Tidy 서랍 · 줄이 같이 써서 2026-11-03 Common으로 옮겼다(GUID 그대로).
 - **묘약** (`Potion/03_Resources`, 코드로 그림): `potion_bottle`(병 테두리 · 눈금 6개, 속은 비움) 위로 `potion_liquid`(흰 몸통 모양)를 보라로 칠해 Filled · Vertical로 7분의 1씩 채운다. 눈금은 내용물 높이를 7등분한 자리다. `icon_potion`은 달성한 히든 미션 아이콘이다.
 - **흰 카드** `frame_card_white`(`Common/03_Resources/UI`): `frame_card`의 민트 바탕만 흰색으로 바꾼 9-slice 카드. 묘약 · 꽃밭 · 소식이 같이 써서 Common으로 옮겼다.
 - **꽃밭 · 소식**은 새 그림이 없다. 꽃밭 카드는 Main 버튼의 꽃 그림(`btn_flower_pink · sky · mint`)을 돌려 쓰고, 소식 카드는 `icon_megaphone`, 배경은 꽃밭 `grad_green` · 소식 `grad_yellow`.
@@ -451,7 +536,7 @@ Server/
 | 버전 | 내용 |
 |---|---|
 | **1.0** | 씬 1~7. 서버: players · characters · me · tap(하트 저장) · emotions(오늘의 감정). WebGL 빌드 → QR 배포 |
-| 1.1 | 도감 · 미니게임 1개 · 월별 랭킹 |
+| 1.1 | 도감 · 미니게임 「마음 정리」 · 「이달의 게임」 랭킹 |
 | 1.2 | 묘약 · 꽃밭 · 소식 |
 | 2.0 | Android 빌드 + **Unity Ads**(WebGL 미지원이라 필요) · 대시보드(event 테이블 쿼리) · 인증 |
 
@@ -462,7 +547,7 @@ Server/
 | 기획서 | 여기 | 이유 |
 |---|---|---|
 | 1.0에 12씬 + 게임 + 랭킹 + 꽃밭 전부 | 1.0은 씬 1~7 | 1인 개발. 성장 루프부터 |
-| 매달 새 미니게임 | 게임 1개, 월별 랭킹 리셋만 | 지속 제작 비용 |
+| 매달 새 미니게임 | 「이달의 게임」: 「마음 정리」로 시작해 하나씩 늘린다. 랭킹은 한 달에 한 게임이고, 새 게임은 준비된 달에만 바꾸며 없으면 같은 게임을 잇는다 | 1인 개발이라 매달 새로 만들 수 없다 |
 | 탭 5회마다 로그 수집 | 서버가 모든 쓰기를 event로 기록 | 하루 5탭이면 배치 의미 없음 |
 | 임직원 리스트 대조 로그인 | 프로필 입력만, 인증은 추후 | 이름만으로는 인증이 안 됨. 슬랙 OAuth를 2.0에 검토 |
 | 광고 연계(2.0) | Android 빌드 + Unity Ads | Unity Ads가 WebGL 미지원 |
@@ -470,6 +555,7 @@ Server/
 | Main 하단 메뉴 「기록」 | 「묘약」 | 「기록」 정의가 없음. 상단 꽃 아이콘이 꽃밭 진입점 |
 | Main 상단 홈 아이콘 | 없음 | 이미 홈 화면이라 의미가 겹침 |
 | 묘약 상단 홈 아이콘 | 없음 | Main에서만 들어와서 뒤로가기와 같은 곳으로 감. 도감도 뒤로가기만 있음 |
+| 이달의 게임 상단 홈 아이콘 · 뒤로가기 아래 줄의 제목 | 홈 아이콘 없음, 제목은 뒤로가기 줄 | 묘약과 같은 이유. 제목 줄은 다른 화면과 맞춤 |
 | (없음) | 오늘의 감정 체크인 추가 | 안내문의 「하루에 한 번, 고른 감정 하나가」와 「감정연료」 컨셉을 규칙으로 옮김. 2.0 대시보드의 핵심 데이터 |
 | 하루 고정 횟수 | 하트 하루 5개 충전, 최대 15개 저장 | 못 온 날 손해를 줄여 주 3회 방문자도 약 한 달에 완성 |
 | 성장표 5 / 40 / 60 / 80 / 100 (누적 285) | 같은 구조, 5 / 25 / 35 / 50 / 60 (누적 175) | 원안은 매일 해도 41일. 한 달 주기인 미니게임 · 랭킹에 맞춤 |
@@ -481,7 +567,7 @@ Server/
 - **입력 설정은 「둘 다」(`activeInputHandler: 2`) 유지(2026-11-03 결정).**
   - 코드에는 옛 `Input`이 없다. 하지만 이 설정으로 **폰 브라우저 한글 입력이 되는 것을 확인했다**(배포 빌드 `v1.2.0`). 새 Input System 하나로 바꾸면 얻는 것은 작고, 바꿀 때마다 폰 확인을 다시 해야 해서 그대로 둔다.
   - **PC 브라우저에서는 한글이 입력되지 않는다.** Unity 웹 빌드가 데스크톱 IME를 지원하지 않는 한계다(Unity 6 매뉴얼 「IME Input」에서 Web은 미지원). 주 대상이 폰이라 받아들이고, Login 화면에 PC 안내를 띄운다. PC 지원이 필요해지면 입력칸 위에 브라우저 입력칸을 겹치는 방식(WebGLInput 패키지 또는 직접 만든 `.jslib`)을 검토한다.
-- **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 12.96MB(여유 2.04MB)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 배경음을 넣은 뒤 15MB를 넘으면 Crunch 압축 → 어드레서블(플레이어당 5장만 받음) 순으로 줄인다.
+- **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 12.98MB(여유 2.02MB)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 배경음을 넣은 뒤 15MB를 넘으면 Crunch 압축 → 어드레서블(플레이어당 5장만 받음) 순으로 줄인다.
 - 서버 호스팅 위치. 배포는 맨 마지막에 한다. 그때 AWS Lightsail 서울 또는 Cloudflare Tunnel 중에서 정한다.
 
 ---
@@ -504,3 +590,4 @@ Server/
 | 2026-11-03 | 1.0.0 버전 입력 창 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | Build 버튼 → 버전 입력 창(`BuildVersionPrompt`, 에디터 전용이라 빌드 크기 영향 없음)으로 Version을 1.0.0으로 넣고 빌드. 코드가 그대로라 `.wasm`은 다시 만들지 않았다. 폰에서 Title 버전 글자가 바뀐 것을 확인 |
 | 2026-11-03 | 1.0.0 닉네임 보강 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | 가입 · 로그인 닉네임 공백 정리와 안내 문구(「닉네임」 · 「인증」). 빌드 오류 0, 경고 3은 같은 TMP 안내. 배포 사이트에서 `index.html`이 가리키는 해시 파일 4개가 모두 200. 폰에서 힌트 · 이어진 공백 안내 · 가입 확인 문구 · 대문자와 뒤 공백 로그인 · 로그인 실패 문구를 모두 확인 |
 | 2026-11-03 | 1.0.0 숫자 키패드 빌드 (소리 없음) | 12.96 (`.data.br` 6.29 + `.wasm.br` 6.67) | - | 비밀번호 칸 숫자 키패드(`WebKeyboard.jslib`). `.jslib`가 들어가 `framework.js`가 0.2KB 늘었다. 빌드 오류 0, 경고 3은 같은 TMP 안내. 폰에서 가입 · 로그인 비밀번호 칸에 숫자 키패드가 뜨는 것을 확인 |
+| 2026-11-04 | 1.0.0 이달의 게임 빌드 (소리 없음) | 12.98 (`.data.br` 6.29 + `.wasm.br` 6.69) | - | 씬 12개(Game 달력 · Tidy 마음 정리 추가). 빌드 오류 0, 경고 3은 같은 TMP 안내. `.wasm` +0.02MB는 게임 · 달력 · 랭킹 코드, `.data`는 새 씬 둘(압축 전 97 · 93KB)이고 감정 아이콘은 Main 것을 같이 쓴다. 예산 15MB까지 여유 2.02MB. 배포 사이트에서 `index.html`이 가리키는 해시 파일 4개가 모두 200. 에디터에서 봇 없이 Main → Game → Tidy를 돌 때 텍스처는 Main 145.64 · Game 105.78 · Tidy 142.91MB(에디터 텍스처 포함)로 매번 같고, Mono 힙은 82.5~83.4MB. 봇으로 3바퀴 더 돈 측정도 늘지 않음(Memory Profiler 스냅샷 `Flamong_Tidy_Main_0` · `_4`). 폰 확인은 아직 |

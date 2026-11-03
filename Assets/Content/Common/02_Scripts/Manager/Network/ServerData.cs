@@ -153,6 +153,85 @@ namespace ServerData
 		public string kind;   // "garden" | "news"
 		public string body;
 	}
+	
+	// POST /games/start
+	public class GameStartRequestBody
+	{
+		public string game;   // GameList.Tidy
+	}
+
+	[Serializable]
+	public class GameStartBody
+	{
+		public GameRules rules;
+	}
+
+	// 한 판의 수치. 서버 rules/game.js 가 정해 내려 준다(클라이언트에 적어 두지 않는다)
+	[Serializable]
+	public class GameRules
+	{
+		public int durationSec;    // 판 길이 (초)
+		public int countdownSec;   // 카운트다운 (초)
+		public int minTapMs;       // 받아들이는 입력 사이 최소 간격
+		public int lockMs;         // 틀린 뒤 입력 잠금
+		public int changeEvery;    // 맞힌 개수가 이 수의 배수가 될 때마다 서랍 한쪽이 바뀐다
+		public int maxRun;         // 같은 쪽 연속 최대
+		public int[] comboAt;      // 맞히기 전 콤보가 이 값 이상이면 1점씩 더한다
+	}
+
+	// POST /scores
+	public class ScoreRequestBody
+	{
+		public int score;
+	}
+
+	[Serializable]
+	public class ScoreBody
+	{
+		public int best;        // 이번 달 이 게임의 내 최고
+		public int rank;        // 동점은 같은 등수
+		public int gap;         // 다음 등수까지 점수. 1등이면 0
+		public int gain;        // 이번에 오른 애정도. 하루 첫 판이 아니면 0
+		public bool levelUp;
+		public Growth growth;
+	}
+
+	// GET /rankings?month=YYYY-MM
+	[Serializable]
+	public class Board
+	{
+		public string month;    // YYYY-MM
+		public string game;     // 출시 전 달 · 다음 달 이후는 ""
+		public RankRow[] top;   // 상위 20
+		public int rank;        // 내 등수. 기록이 없으면 0
+		public int best;        // 내 최고
+		public int gap;         // 다음 등수까지 점수
+	}
+
+	[Serializable]
+	public class RankRow
+	{
+		public int rank;
+		public string nickname;
+		public int best;
+	}
+
+	// GET /games/months
+	[Serializable]
+	public class MonthsBody
+	{
+		public string current;       // 이번 달 YYYY-MM
+		public MonthItem[] months;   // 올해 1~12월
+	}
+
+	[Serializable]
+	public class MonthItem
+	{
+		public string month;   // YYYY-MM
+		public string game;    // 출시 전 달 · 다음 달 이후는 ""
+		public int best;
+		public int rank;       // 기록이 없으면 0. 0점 판도 기록이라 best 로 판단하지 않는다
+	}
 
 	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)
 	public class EmptyBody { }

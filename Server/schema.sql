@@ -35,9 +35,10 @@ CREATE TABLE IF NOT EXISTS emotion_log (
 
 CREATE TABLE IF NOT EXISTS score (
   player_id  TEXT NOT NULL,
-  month      TEXT NOT NULL,           -- YYYY-MM
+  game       TEXT NOT NULL,           -- rules/game.js GAMES. 지금은 tidy(마음 정리)
+  month      TEXT NOT NULL,           -- KST YYYY-MM. 점수를 받은 서버 시각 기준
   best_score INTEGER NOT NULL,
-  UNIQUE(player_id, month)
+  UNIQUE(player_id, game, month)      -- 게임 · 달마다 개인 최고 한 줄
 );
 
 CREATE TABLE IF NOT EXISTS post (
@@ -63,3 +64,5 @@ CREATE TABLE IF NOT EXISTS event (
   ts        TEXT NOT NULL,
   payload   TEXT
 );
+-- 플레이어의 마지막 게임 기록을 찾는다(routes/games.js). id 가 rowid 라 인덱스 안에서 이미 id 순이다
+CREATE INDEX IF NOT EXISTS event_player ON event(player_id);

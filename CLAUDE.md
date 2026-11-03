@@ -6,7 +6,6 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
 
 -   **타겟 해상도**: 1080 x 1920 (세로). QR로 접속하는 **모바일 브라우저**가 주 대상.
 -   **타겟 환경**: 사내 임직원 폰. 저사양 안드로이드까지 동작해야 함.
--   **기획서**: https://seobukcorp.atlassian.net/wiki/spaces/Plinqer/pages/74711134 (로그인 필요)
 
 ------------------------------------------------------------------------
 
@@ -101,7 +100,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 
 -   **매 프레임 움직이는 UI**(스크롤 목록, 회전)는 `Canvas - Dynamic`(그리기 순서 1)에 따로 둔다. 캔버스 안의 하나가 바뀌면 그 캔버스 전체가 다시 그려지기 때문이다.
 -   **팝업**은 `Canvas - Main` 아래 하위 Canvas(Override Sorting, 순서 2) + GraphicRaycaster로 만들고 기본은 꺼 둔다. GraphicRaycaster가 없으면 버튼이 눌리지 않는다.
-    공통 프리팹은 확인 창(`Panel - Confirm`) 3, 안내 창(`Panel - Notice`) 4, 오류 창(`Panel - Error`) 5. 같은 순서끼리는 위아래가 보장되지 않으므로 겹쳐 뜰 수 있는 창은 숫자를 나눈다.
+    공통 프리팹은 랭킹 창(`Panel - Ranking`) 2, 확인 창(`Panel - Confirm`) 3, 안내 창(`Panel - Notice`) 4, 오류 창(`Panel - Error`) 5. 같은 순서끼리는 위아래가 보장되지 않으므로 겹쳐 뜰 수 있는 창은 숫자를 나눈다.
 -   모든 캔버스는 `Vertex Color Always In Gamma Color Space`를 켠다. 프로젝트가 Linear라서 꺼져 있으면 UI 색을 8비트 Linear로 바꾸며 어두운 색이 뭉개진다.
     코드(`AddComponent<Canvas>`)로 만든 캔버스는 꺼진 채로 생기므로 `SerializedObject`로 `m_VertexColorAlwaysGammaSpace`를 켠다.
 -   누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다. 장식 이미지·글자는 Raycast Target을 끈다.

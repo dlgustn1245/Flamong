@@ -5,6 +5,7 @@ import players from './routes/players.js';
 import character from './routes/character.js';
 import potion from './routes/potion.js';
 import posts from './routes/posts.js';
+import games from './routes/games.js';
 import { isLimited, pruneHits } from './rules/rateLimit.js';
 
 // 가입 · 닉네임 확인 · 로그인만 막는다. 회사 와이파이는 직원이 모두 같은 IP 로 나가 넉넉하게 잡는다
@@ -50,6 +51,7 @@ export function buildApp({ db = openDb(), now = () => new Date() } = {}) {
   app.register(character, { db, now });
   app.register(potion, { db, now });
   app.register(posts, { db, now });
+  app.register(games, { db, now });
   return app;
 }
 

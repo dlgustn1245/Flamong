@@ -125,7 +125,10 @@ public class MainScene : MonoBehaviour
         {
             SceneLoader.Load(SceneName.PotionScene);
         });
-        gameButton.onClick.AddListener(ShowComingSoon);
+        gameButton.onClick.AddListener(() =>
+        {
+            SceneLoader.Load(SceneName.GameScene);
+        });
         
         for (int i = 0; i < emotionButtons.Length; i++)
         {
@@ -147,11 +150,6 @@ public class MainScene : MonoBehaviour
         
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
-    }
-
-    void ShowComingSoon()
-    {
-        noticePanel.Show("준비 중이에요");
     }
 
     void PostEmotion(string emotion)
@@ -311,7 +309,7 @@ public class MainScene : MonoBehaviour
     void OnSuccessGetMe(MeBody response)
     {
         print($"Get Me Success: {JsonUtility.ToJson(response)}");
-        speciesId = response.speciesId;
+        speciesId = SessionState.Instance.speciesId = response.speciesId;
         ShowCharacter(speciesId, response.growth.level);
         Apply(response.growth);
         potionDot.SetActive(response.potionReady);
@@ -360,6 +358,7 @@ public class MainScene : MonoBehaviour
     {
         touchCountText.SetText("남은 하트: {0}", growth.hearts);
         loveLevelText.SetText("Lv {0}", growth.level);
+        SessionState.Instance.level = growth.level;
         SetHeartHintText(growth);
         isCompleted = growth.completed;
         gaugeFill.fillAmount = (float)growth.levelProgress / growth.levelNeed;

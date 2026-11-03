@@ -4,6 +4,8 @@ public class SessionState : Singleton<SessionState>
 {
     public static readonly string HEART_TAPS_KEY = "HeartsTaps";
     public string playerId;
+    public int speciesId = -1;
+    public int level = 1;
     public int eggIdx;
 
     public string team;
