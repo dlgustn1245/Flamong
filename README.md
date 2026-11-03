@@ -370,6 +370,7 @@ Assets/Content/Common/
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · NoticePanel · EntryRouter(들어갈 곳)
+                                · WebKeyboard(.cs + .jslib, 웹 빌드 전용. Unity 폰 키보드는 비밀번호 칸이면 NumberPad를 무시하므로, type=password 가 되는 순간 inputmode=numeric 을 붙여 숫자 키패드를 띄운다)
   02_Scripts/Editor/            에디터 전용(빌드에 안 들어감). BuildVersionPrompt: Build 버튼을 누르면 버전 입력 창을 띄우고 그 값을 Player Settings Version 에 넣은 뒤 빌드
   03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
@@ -502,3 +503,4 @@ Server/
 | 2026-11-03 | 1.2.0 해시 파일 이름 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | iPhone Safari 로딩 중 `TypeError: … GLctx.depthMask` 대응. 빌드 파일 이름이 늘 같고 서버에 캐시 지시가 없어서, Safari가 예전 `framework.js`와 새 `wasm`을 섞어 불러온 것으로 보인다(사이트 데이터를 지우니 해결). `Name Files As Hashes`를 켜 빌드마다 파일 이름이 바뀌게 하고, Caddy에서 `/Build/*`는 1년 캐시(`immutable`), 나머지는 `no-cache`로 했다. 예전 이름은 404. iPhone Safari에서 사이트 데이터를 지우지 않고 새 빌드 ID가 뜨는 것과, 다시 열 때 더 빨리 뜨는 것(캐시)을 확인했다 |
 | 2026-11-03 | 1.0.0 버전 입력 창 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | Build 버튼 → 버전 입력 창(`BuildVersionPrompt`, 에디터 전용이라 빌드 크기 영향 없음)으로 Version을 1.0.0으로 넣고 빌드. 코드가 그대로라 `.wasm`은 다시 만들지 않았다. 폰에서 Title 버전 글자가 바뀐 것을 확인 |
 | 2026-11-03 | 1.0.0 닉네임 보강 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | 가입 · 로그인 닉네임 공백 정리와 안내 문구(「닉네임」 · 「인증」). 빌드 오류 0, 경고 3은 같은 TMP 안내. 배포 사이트에서 `index.html`이 가리키는 해시 파일 4개가 모두 200. 폰에서 힌트 · 이어진 공백 안내 · 가입 확인 문구 · 대문자와 뒤 공백 로그인 · 로그인 실패 문구를 모두 확인 |
+| 2026-11-03 | 1.0.0 숫자 키패드 빌드 (소리 없음) | 12.96 (`.data.br` 6.29 + `.wasm.br` 6.67) | - | 비밀번호 칸 숫자 키패드(`WebKeyboard.jslib`). `.jslib`가 들어가 `framework.js`가 0.2KB 늘었다. 빌드 오류 0, 경고 3은 같은 TMP 안내. 폰에서 가입 · 로그인 비밀번호 칸에 숫자 키패드가 뜨는 것을 확인 |
