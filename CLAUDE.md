@@ -27,7 +27,8 @@ Flamong(플라몽) — 사내 감정 캐릭터 키우기 웹 게임. Unity 6000.
     -   스크립트를 고치면 재컴파일 동안 MCP 연결이 잠시 끊긴다. 확인은 컴파일이 끝난 뒤에 한다.
     -   패키지를 지우면 `Unity_RunCommand`가 지워진 DLL을 찾다 초기화에 실패하고, 에디터를 다시 켤 때까지 계속 실패한다. 패키지 제거는 마지막에 하고 사용자에게 재시작을 부탁한다.
     -   확인용으로 씬을 바꿨다면 저장하지 말고 `EditorSceneManager.OpenScene`으로 다시 열어 버린다.
--   빌드: File → Build Profiles → `Web - Mobile`. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
+-   빌드: File → Build Profiles → `Web - Mobile`. Build를 누르면 버전 입력 창(`Common/02_Scripts/Editor/BuildVersionPrompt`)이 뜨고, 그 값이 Title 버전 글자가 된다. 빌드 후 `Build Report`의 크기와 힙 피크를 README에 기록.
+-   웹 빌드 파일 이름은 해시(`Name Files As Hashes`)이고, 서버(Caddy)는 `/Build/*`를 1년 캐시한다. 이 설정을 끄면 Safari가 예전 파일과 새 파일을 섞어 로딩 중에 오류가 난다.
 -   Player Settings는 Project Settings → Player 한 곳에서 고친다. `Web - Mobile` 프로필은 Player Settings 사본 없이 ASTC · 코드 최적화 같은 플랫폼 설정만 갖는다.
     Build Profiles 창에서 「Customize player settings」를 누르거나 `BuildProfile.CreateBuildProfile`로 프로필을 만들면 사본이 생겨 전역과 따로 움직인다. 사본은 에디터 메모리에 남아 저장할 때마다 파일에 다시 쓰이므로, 지우려면 프로필을 비활성화하고 파일을 지운 뒤 사본 없는 파일(같은 GUID)로 다시 읽는다.
 -   서버: `Server/`에서 `npm start` (실행) · `npm test` (node:test). 패키지 추가는 사용자 확인 후.

@@ -24,7 +24,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 | # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
 |---|---|---|---|---|---|
-| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState · SoundManager 싱글톤이 이 씬에 있음. 좌상단 `Text - Version`에 `v{Player Settings Version} · {buildGUID 앞 6자리}`(에디터는 `editor`). buildGUID는 빌드마다 바뀌어 배포된 빌드가 최신인지 알아볼 수 있다. 기능 묶음을 올릴 때 Version을 로드맵 번호에 맞춘다(지금 1.2.0) |
+| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState · SoundManager 싱글톤이 이 씬에 있음. 좌상단 `Text - Version`에 `v{Player Settings Version} · {buildGUID 앞 6자리}`(에디터는 `editor`). buildGUID는 빌드마다 바뀌어 배포된 빌드가 최신인지 알아볼 수 있다. Version은 Build 버튼을 누를 때 뜨는 입력 창(`BuildVersionPrompt`)에서 정한다(지금 1.0.0) |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro`. 다음 → 들어갈 곳으로 | `GET /me` | 1.0 | 구현 |
 | 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내. PC 브라우저(`!Application.isMobilePlatform`)에서는 아래쪽에 「PC에서는 한글을 입력할 수 없어요. 휴대폰으로 접속해 주세요.」(`Text - PcNotice`)를 띄운다 |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
@@ -349,6 +349,7 @@ Assets/Content/Common/
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · NoticePanel · EntryRouter(들어갈 곳)
+  02_Scripts/Editor/            에디터 전용(빌드에 안 들어감). BuildVersionPrompt: Build 버튼을 누르면 버전 입력 창을 띄우고 그 값을 Player Settings Version 에 넣은 뒤 빌드
   03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
                                 · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일))
@@ -477,3 +478,5 @@ Server/
 | 2026-11-03 | 1.2 폰트 정적화 빌드 (소리 없음) | **12.96** (`.data.br` 6.29 + `.wasm.br` 6.67) | - | 동적 폰트 폴백(TTF 압축 전 2.8MB)을 정적 `Extra SDF`(430자, 1024², 압축 전 1.0MB)로 바꿔 `.data` −1.18MB. 예산 15MB까지 여유 2.04MB. 코드가 그대로라 `.wasm`은 다시 만들지 않았고 경고 0. 배포 사이트 꽃밭 카드에서 「됬 뷁 똠 햏」 확인. JS 힙 24.2MB(PC Chrome, Title → 안내 → 로그인 → Main → 꽃밭). WASM 힙은 Diagnostics를 꺼서 이번엔 재지 못했다(폰트 원본이 빠져 지난번 140.2MB보다 줄었을 것으로 본다) |
 | 2026-11-03 | 1.2.0 버전 표시 빌드 (소리 없음) | 12.98 (`.data.br` 6.29 + `.wasm.br` 6.68) | - | Title 좌상단 버전 표시(`v1.2.0 · 빌드 ID`), 가입 · 정보 수정 400 안내. 빌드 오류 0, 경고 3은 같은 TMP 안내. 배포 사이트 Title에서 버전 글자 확인 |
 | 2026-11-03 | 1.2.0 PC 안내 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | Login 화면 PC 한글 입력 불가 안내(`Text - PcNotice`). 배포 사이트를 PC 브라우저로 열어 안내 확인 |
+| 2026-11-03 | 1.2.0 해시 파일 이름 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | iPhone Safari 로딩 중 `TypeError: … GLctx.depthMask` 대응. 빌드 파일 이름이 늘 같고 서버에 캐시 지시가 없어서, Safari가 예전 `framework.js`와 새 `wasm`을 섞어 불러온 것으로 보인다(사이트 데이터를 지우니 해결). `Name Files As Hashes`를 켜 빌드마다 파일 이름이 바뀌게 하고, Caddy에서 `/Build/*`는 1년 캐시(`immutable`), 나머지는 `no-cache`로 했다. 예전 이름은 404. iPhone Safari에서 사이트 데이터를 지우지 않고 새 빌드 ID가 뜨는 것과, 다시 열 때 더 빨리 뜨는 것(캐시)을 확인했다 |
+| 2026-11-03 | 1.0.0 버전 입력 창 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | Build 버튼 → 버전 입력 창(`BuildVersionPrompt`, 에디터 전용이라 빌드 크기 영향 없음)으로 Version을 1.0.0으로 넣고 빌드. 코드가 그대로라 `.wasm`은 다시 만들지 않았다. 폰에서 Title 버전 글자가 바뀐 것을 확인 |
