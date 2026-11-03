@@ -58,6 +58,23 @@ test('닉네임: 폰트가 그리는 한글 2780자 · 자모는 되고, 폰트�
   assert.equal(check.json().available, false);
 });
 
+test('팀 · 이름: 폰트에 모양이 없는 글자(슽)는 가입 · 수정 모두 400 profile_charset, 행은 그대로', async () => {
+  const db = openDb(':memory:');
+  const app = buildApp({ db, now: fixed });
+  for (const payload of [{ ...body, team: '테슽' }, { ...body, name: '슽' }]) {
+    const res = await app.inject({ method: 'POST', url: '/players', payload });
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.json().error, 'profile_charset');
+  }
+  const { playerId } = (await app.inject({ method: 'POST', url: '/players', payload: body })).json();
+  const headers = { 'x-player-id': playerId };
+  const bad = await app.inject({ method: 'PATCH', url: '/players/me', headers, payload: { name: '테슽' } });
+  assert.equal(bad.statusCode, 400);
+  assert.equal(bad.json().error, 'profile_charset');
+  assert.equal((await app.inject({ method: 'PATCH', url: '/players/me', headers, payload: { team: '테스트' } })).statusCode, 200);
+  assert.deepEqual({ ...db.prepare('SELECT team, name FROM player').get() }, { team: '테스트', name: body.name });
+});
+
 test('스키마 검증 실패와 없는 경로도 같은 형식', async () => {
   const app = buildApp({ db: openDb(':memory:'), now: fixed });
   const bad = await app.inject({ method: 'POST', url: '/players', payload: { team: '플링커' } });

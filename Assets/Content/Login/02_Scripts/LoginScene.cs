@@ -179,6 +179,11 @@ public class LoginScene : MonoBehaviour
     void OnFailPostPlayer(long code, string response)
     {
         print($"Post Player Failed: {code} {response}");
+        if (code == 400)
+        {
+            ShowResult("팀 · 이름 · 닉네임에\n쓸 수 없는 글자가 있어요.", false);
+            return;
+        }
         ShowResult("가입하지 못했어요.\n잠시 후 다시 시도해주세요.", false);
     }
 

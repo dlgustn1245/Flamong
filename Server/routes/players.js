@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { logEvent, playerOf, tx } from '../db.js';
-import { isValidText, NICKNAME_MAX } from '../rules/text.js';
+import { isValidText, NICKNAME_MAX, PROFILE_MAX } from '../rules/text.js';
 import { HEARTS_START, kstDate } from '../rules/growth.js';
 import { hashPassword, isLocked, lockUntil, MAX_LOGIN_FAILS, PASSWORD_PATTERN, verifyPassword } from '../rules/password.js';
 
@@ -29,8 +29,8 @@ export default async function players(app, { db, now }) {
         type: 'object',
         required: ['team', 'name', 'nickname', 'password'],
         properties: {
-          team: { type: 'string', minLength: 1, maxLength: 20 },
-          name: { type: 'string', minLength: 1, maxLength: 20 },
+          team: { type: 'string', minLength: 1, maxLength: PROFILE_MAX },
+          name: { type: 'string', minLength: 1, maxLength: PROFILE_MAX },
           nickname: { type: 'string', minLength: 1, maxLength: NICKNAME_MAX },
           password: { type: 'string', pattern: PASSWORD_PATTERN },
         },
@@ -39,6 +39,8 @@ export default async function players(app, { db, now }) {
   }, (req, reply) => {
     const { team, name, nickname, password } = req.body;
     if (!isValidText(nickname, NICKNAME_MAX)) return reply.code(400).send({ error: 'nickname_charset' });
+    // 팀 · 이름도 폰트가 그리는 글자만. 안 그러면 저장은 되는데 설정 창에 빈칸으로 보인다
+    if (!isValidText(team, PROFILE_MAX) || !isValidText(name, PROFILE_MAX)) return reply.code(400).send({ error: 'profile_charset' });
     const id = randomUUID();
     try {
       db.prepare('INSERT INTO player (id, team, name, nickname, created_at, hearts, hearts_date, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
@@ -92,14 +94,17 @@ export default async function players(app, { db, now }) {
       body: {
         type: 'object',
         properties: {
-          team: { type: 'string', minLength: 1, maxLength: 20 },
-          name: { type: 'string', minLength: 1, maxLength: 20 },
+          team: { type: 'string', minLength: 1, maxLength: PROFILE_MAX },
+          name: { type: 'string', minLength: 1, maxLength: PROFILE_MAX },
         },
       },
     },
   }, (req, reply) => {
     const p = playerOf(db, req, reply);
     if (!p) return reply;
+    for (const v of [req.body.team, req.body.name]) {
+      if (v !== undefined && !isValidText(v, PROFILE_MAX)) return reply.code(400).send({ error: 'profile_charset' });
+    }
     const team = req.body.team ?? p.team;
     db.prepare('UPDATE player SET team = ?, name = ? WHERE id = ?').run(team, req.body.name ?? p.name, p.id);
     logEvent(db, p.id, 'profile', { team }, now);

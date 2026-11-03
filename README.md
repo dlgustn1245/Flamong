@@ -24,7 +24,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 
 | # | 씬 | 하는 일 | 서버 호출 | 버전 | 현재 상태 |
 |---|---|---|---|---|---|
-| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState · SoundManager 싱글톤이 이 씬에 있음 |
+| 1 | Title | 타이틀. 탭하면 Intro, 「다시 안 보기」를 눌렀던 사람은 바로 들어갈 곳으로(아래 「들어갈 곳」) | `GET /me` | 1.0 | 구현. NetworkManager · SessionState · SoundManager 싱글톤이 이 씬에 있음. 좌상단 `Text - Version`에 `v{Player Settings Version} · {buildGUID 앞 6자리}`(에디터는 `editor`). buildGUID는 빌드마다 바뀌어 배포된 빌드가 최신인지 알아볼 수 있다. 기능 묶음을 올릴 때 Version을 로드맵 번호에 맞춘다(지금 1.2.0) |
 | 2 | Intro | 페르소나 소개 문구. 「다시 안 보기」는 PlayerPrefs `NeverShowIntro`. 다음 → 들어갈 곳으로 | `GET /me` | 1.0 | 구현 |
 | 3 | Login | 「가입 \| 로그인」 탭. **가입**: 팀 · 이름 · 숫자 비밀번호 · 닉네임 입력 → 닉네임 중복확인 → 결과 팝업(네/아니요 · 닫기) → 가입 → EggSelect. **로그인**(다른 기기 · 브라우저): 닉네임 + 비밀번호 → `/me`로 갈 곳 결정 | `GET /players/check`, `POST /players`, `POST /players/login` | 1.0 | 구현. 가입 · 로그인 모두 `playerId`를 `SessionState`와 PlayerPrefs에 저장하고 앱 시작 때 불러온다. 로그인 실패는 401 · 429 · 연결 실패를 다른 문구로 안내 |
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
@@ -174,6 +174,8 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
   - 꾸불림체 TTF는 한글 11,172자 모두에 자리는 있지만, 8,392자(「탷」 「쀍」 「갂」 등)는 모양이 비어 공백처럼 보인다(2026-11-03 확인). 그래서 그 글자는 받지 않는다.
   - `hangul.txt`는 TTF에서 너비 · 높이가 0이 아닌 한글을 뽑은 목록이다. 폰트를 바꾸면 다시 뽑는다.
 - 서버 `rules/text.js`가 검사한다. 범위 밖 글자는 400 `nickname_charset`, 중복은 409 `nickname_taken`.
+- 팀 · 이름(1~20자)도 같은 글자 규칙이다(2026-11-03). 범위 밖이면 가입 · 정보 수정 모두 400 `profile_charset`. 가입 화면은 「쓸 수 없는 글자가 있어요」 결과 창, 설정 창은 안내 창을 띄운다.
+  - 「테스트」를 치는 도중에 잠깐 생기는 「테슽」처럼, 입력 중 글자가 빈칸으로 보였다가 다 치면 제대로 보이는 것은 정상이다.
 - 이모지 · 전각 문자는 폰트에 없어 □로 보이므로 쓸 수 없다. Login 입력칸도 12자로 제한했다.
 - 2026-11-01까지는 완성형 2350자만 받았고, 11-01 ~ 11-03에는 11,172자를 받았다. 그 사이 배포 서버에 실제 가입자는 없었다.
 
@@ -281,9 +283,9 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
 |---|---|---|---|---|
 | GET | `/players/check?nickname=` | - | `{ available }` · 중복이거나 허용 글자 밖이면 false **(구현)** | 1.0 |
-| POST | `/players` | `{ team, name, nickname, password }` | `{ playerId }` · 중복 409 · 글자 400 · 비밀번호가 숫자 4~6자리가 아니면 400 **(구현)** | 1.0 |
+| POST | `/players` | `{ team, name, nickname, password }` | `{ playerId }` · 중복 409 · 닉네임 글자 400 `nickname_charset` · 팀 · 이름 글자 400 `profile_charset` · 비밀번호가 숫자 4~6자리가 아니면 400 **(구현)** | 1.0 |
 | POST | `/players/login` | `{ nickname, password }` | `{ playerId }` · 틀리거나 없는 닉네임 401 `login_failed` · 5번 틀리면 10분 동안 429 `locked` **(구현)** | 1.0 |
-| PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` **(구현)** | 1.0 |
+| PATCH | `/players/me` | `{ team?, name? }` | `{ ok }` · 글자 400 `profile_charset` **(구현)** | 1.0 |
 | DELETE | `/players/me` | - | `{ ok }` · 캐릭터·탭·점수·글·묘약 삭제, `event`는 유지 **(구현)** | 1.0 |
 | GET | `/me` | - | `{ team, name, nickname, speciesId, emotionToday, growth, potionReady, newsReady }` · 알을 아직 안 골랐으면 `speciesId` -1. `potionReady`는 지금 마실 수 있는 묘약이 있는지(Main 묘약 빨간 점), `newsReady`는 오늘의 소식 담당이고 아직 안 썼는지(Main 확성기 빨간 점). 가입 여부 확인(401이면 서버에 없는 계정)과 설정 창의 현재 정보에도 쓴다 **(구현)** | 1.0 |
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |

@@ -441,6 +441,12 @@ public class MainScene : MonoBehaviour
             EntryRouter.GoToLogin();
             return;
         }
+        // 다시 보내도 같은 400 이라 오류 창(다시 시도) 대신 안내만
+        if (code == 400)
+        {
+            noticePanel.Show("쓸 수 없는 글자가 있어요");
+            return;
+        }
         errorPanel.Show(PatchPlayer);
     }
 

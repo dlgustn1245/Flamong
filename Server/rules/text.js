@@ -8,6 +8,7 @@ const HANGUL = new Set(readFileSync(new URL('./hangul.txt', import.meta.url), 'u
 const BASIC = /^[\x20-\x7eㄱ-ㅣ]$/;
 
 export const NICKNAME_MAX = 12;
+export const PROFILE_MAX = 20;   // 팀 · 이름
 export const POST_MAX = 100;
 
 /** 허용 글자만 있고 1~max 자인지. 허용 글자는 모두 BMP 라 length 가 글자 수다 @param {string} s @param {number} max */
