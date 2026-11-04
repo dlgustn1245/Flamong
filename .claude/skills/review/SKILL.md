@@ -44,7 +44,7 @@ description: 코드 리뷰 — 변경분을 메모리·WebGL 제약·서버 신�
 **에셋**
 - 새 텍스처의 임포트 설정: 압축 · Read/Write 끔 · UI Mipmap 끔 · 크기 상한
 - `Resources/` 폴더에 들어간 것이 있는가
-- 오디오가 `DecompressOnLoad`인가 (BGM은 Streaming)
+- 오디오 가져오기가 규칙대로인가 (BGM은 CompressedInMemory · Web은 Streaming 미지원, 효과음은 DecompressOnLoad)
 
 **서버 신뢰 경계**
 - 애정도·레벨·점수·일일 카운트를 **클라이언트가 계산해서 보내는가** → 서버 계산으로

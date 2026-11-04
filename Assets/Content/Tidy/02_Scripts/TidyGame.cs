@@ -124,6 +124,7 @@ public class TidyGame : MonoBehaviour, IPointerDownHandler
         state = State.Playing;
         countDownText.gameObject.SetActive(true);
         countDownText.SetText("시작!");
+        SoundManager.Instance.PlaySfx(SoundManager.Instance.sparkle);
         startTextAge = 0f;
     }
 
@@ -255,6 +256,7 @@ public class TidyGame : MonoBehaviour, IPointerDownHandler
 
         if (side != sides[sorted])
         {
+            SoundManager.Instance.PlaySfx(SoundManager.Instance.wrong);
             combo = 0;
             lockUntil = clock + rules.lockMs / 1000f;
             comboText.gameObject.SetActive(false);
@@ -264,6 +266,7 @@ public class TidyGame : MonoBehaviour, IPointerDownHandler
             return;
         }
 
+        SoundManager.Instance.PlaySfx(SoundManager.Instance.pop);
         int n = icons.Length;
         Move(sorted % n, drawerPos[side], 0.5f, 0f, flyTime);   // 맨 아래 → 그 쪽 서랍으로 쏙
         score += PointsFor(combo, rules.comboAt);
@@ -542,6 +545,7 @@ public class TidyGame : MonoBehaviour, IPointerDownHandler
         for (int i = delay; i > 0; i--)
         {
             countDownText.SetText("{0}", i);
+            SoundManager.Instance.PlaySfx(SoundManager.Instance.count);
             yield return oneSecond;
         }
         countDownText.gameObject.SetActive(false);

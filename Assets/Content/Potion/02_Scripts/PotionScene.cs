@@ -92,6 +92,8 @@ public class PotionScene : MonoBehaviour
     void OnSuccessClaimPotion(TapBody response)
     {
         print($"Post Potions Success: {JsonUtility.ToJson(response)}");
+        var sound = SoundManager.Instance;
+        sound.PlaySfx(response.levelUp ? sound.levelUp : sound.sparkle);
         noticePanel.Show(response.levelUp
             ? $"묘약을 마셨어요!\n레벨이 올랐어요 (Lv {response.growth.level})"
             : "묘약을 마셨어요!\n애정도가 10 올랐어요");

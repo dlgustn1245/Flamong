@@ -29,7 +29,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 4 | EggSelect | 알 8종 스크롤 목록(화면당 4개, 2페이지) → 확인 팝업 → Hatch | - | 1.0 | 구현. 고른 알은 `SessionState.eggIdx`로 Hatch에 넘긴다 |
 | 5 | Hatch | 알 8개가 원형으로 회전 → 멈춘 뒤 서버가 뽑은 캐릭터 공개 | `POST /characters` | 1.0 | 원형 배치 · 회전 · 「시작」 → 서버 호출 · 고른 알에서 멈춤 → 커짐 · 흔들림 · 번쩍임 → 결과 창(캐릭터 그림) · 오류 창 구현(「캐릭터 › Hatch 연출」) |
 | 6 | Main | 하트 터치(10번 = 하트 1개) · 오늘의 감정 팝업 · 애정도 게이지 · 레벨업 연출. 상단: 꽃(→꽃밭) · 확성기(→소식) · 기어(→설정). 하단: 도감 · 묘약 · 게임. 동작은 「규칙 › 홈화면」 | `GET /me`, `POST /tap`, `POST /emotions` | 1.0 | UI · 하트 파티클 · `/me` · `/tap` 연결 · 캐릭터 그림(`speciesId * 5 + level - 1`번 진화 그림, 레벨업하면 바로 바뀜) · 서버 오류 창 · 하트 아래 상태 문구 · 쓰다 만 터치 수 기기 저장(`HeartsTaps`) · 레벨업/완성 안내(`Panel - Notice`) · 게임 버튼(→ Game 달력) · 오늘의 감정(`Panel - Emotion` → `POST /emotions`, 레벨업이면 안내 창) · 감정 버튼 아이콘(코드로 그린 그림, `Common/03_Resources/Emotion`) · 묘약 버튼 빨간 점(`/me`의 `potionReady`) · 확성기 빨간 점(`/me`의 `newsReady`) |
-| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 · 회원 탈퇴. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset`, `DELETE /players/me` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 회원 탈퇴는 맨 아래 흐린 밑줄 글씨(실수로 누르지 않게) → 되돌릴 수 없다는 확인 창 → `DELETE /players/me` → 로그아웃과 같이 저장값을 지우고 Title, 이미 없는 계정(401)이면 Login 구현. 소리는 배경음 · 효과음 슬라이더 · `SoundManager`(Title) 연결까지, 소리 파일은 아직. 문의하기는 「손편지로 부탁드립니다」 안내 창(`Panel - Contact`, 설정 창 안. 아주 작은 글씨로 주소를 적은 이스터 에그, 화면 아무 곳이나 누르면 닫힘) 구현 |
+| 7 | 설정 (Main 안의 창) | 정보 수정 · 소리 · 로그아웃 · 캐릭터 새로 키우기 · 문의 · 회원 탈퇴. 그림이 거의 없고 Main에서만 열어서 씬이 아니라 `Panel - Setting` 창으로 둔다 | `PATCH /players/me`, `POST /characters/reset`, `DELETE /players/me` | 1.0 | 창 UI · 열기/닫기 · 정보 수정(확인 창 → PATCH) · 로그아웃(확인 창 → `playerId` · `HeartsTaps` 지우고 Title) · 새로 키우기(확인 창 → `/characters/reset` → EggSelect, 완성 전이면 도감에 남지 않는다는 경고 문구) 구현. 회원 탈퇴는 맨 아래 흐린 밑줄 글씨(실수로 누르지 않게) → 되돌릴 수 없다는 확인 창 → `DELETE /players/me` → 로그아웃과 같이 저장값을 지우고 Title, 이미 없는 계정(401)이면 Login 구현. 소리는 배경음 · 효과음 슬라이더 · `SoundManager`(Title) 연결, 배경음 1곡 · 효과음 5개(「에셋 › 배경음 · 효과음」). 문의하기는 「손편지로 부탁드립니다」 안내 창(`Panel - Contact`, 설정 창 안. 아주 작은 글씨로 주소를 적은 이스터 에그, 화면 아무 곳이나 누르면 닫힘) 구현 |
 | 8 | Collection | 알 탭 8개 × (계열 3종 × 진화 5단계). 도달한 레벨까지 그림, 나머지는 검은 실루엣. 상단 뒤로가기 · 완성 개수. 규칙은 「캐릭터」 | `GET /collection` | 1.1 | 구현. 처음엔 지금 키우는 알 탭을 연다. 탭 글로우 이동 · 칸 그림과 실루엣 · 완성 개수 · 알 이름 · 401 · 오류 창 |
 | 9 | Game | 「이달의 게임」 달력 12칸. 이번 달 칸 → 그달 게임, 지난 달 칸 → 그달 랭킹. 규칙 · 화면은 「미니게임 · 랭킹」 | `GET /games/months`, `GET /rankings?month=` | 1.1 | 서버 · 달력 칸 채우기 · 지난 달 랭킹 창(공용 `RankingPanel`) 구현 |
 | 9-1 | Tidy | 미니게임 「마음 정리」. 30초 동안 감정을 서랍에 정리 → 결과 · 이번 달 랭킹 | `POST /games/start`, `POST /scores`, `GET /rankings` | 1.1 | 서버 · 한 판(`TidyGame`) · 멈춤 · 결과 창 · 랭킹 구현. 에디터 봇 · 웹 빌드 · 폰 확인 |
@@ -452,9 +452,10 @@ Assets/Content/Common/
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · NoticePanel · EntryRouter(들어갈 곳)
                                 · GameList(게임 id → 이름 · 씬. 이 빌드가 모르는 게임이면 null) · RankingPanel(한 달 랭킹 창)
+                                · ButtonSound(버튼에 붙이면 누를 때 pop. 모든 버튼에 붙인다, Main 하트 버튼만 뺌)
                                 · WebKeyboard(.cs + .jslib, 웹 빌드 전용. Unity 폰 키보드는 비밀번호 칸이면 NumberPad를 무시하므로, type=password 가 되는 순간 inputmode=numeric 을 붙여 숫자 키패드를 띄운다)
   02_Scripts/Editor/            에디터 전용(빌드에 안 들어감). BuildVersionPrompt: Build 버튼을 누르면 버전 입력 창을 띄우고 그 값을 Player Settings Version 에 넣은 뒤 빌드
-  03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character · Emotion
+  03_Resources/                 Font · Egg · Heart · Icon · UI · Background · Character · Emotion · Sound
   04_Prefabs/                   두 씬 이상에서 쓰는 UI. Panel - Error(서버 오류 안내 창, ErrorPanel.Show(다시 시도할 일))
                                 · Panel - Confirm(네/아니요 확인 창, ConfirmPanel.Show(문구, [네]를 누르면 할 일, [아니요]를 누르면 할 일(없으면 닫기만)))
                                 · Panel - Notice(문구와 [확인]만 있는 안내 창, NoticePanel.Show(문구))
@@ -528,6 +529,26 @@ Server/
     - 입력 중에 잠깐 생기는 글자 중 폰트에 모양이 없는 것(「이해」를 칠 때의 「잏」 등)은 그 순간만 빈칸으로 보인다. 동적 폴백 때도 같았다.
   - 한글 줄바꿈(2026-11-02): `TMP Settings`의 `Use Modern Hangul Line Breaking Rules`를 켜서 칸 끝에서 글자 단위가 아니라 띄어쓰기 단위로 줄을 바꾼다(「키웠 / 어요」 → 「끝까지 / 키웠어요」). 전체 씬 글자를 켜기 전후로 비교해 바뀐 곳은 묘약 히든 미션 설명 3개뿐이었다.
   - 라이선스: SIL OFL 1.1 (`Font/OFL.txt`). 게임에 넣고 수정 · 재배포할 수 있고, 폰트 파일만 따로 파는 것은 금지다. 빌드를 배포할 때 이 파일을 빌드 폴더에 같이 올린다.
+- **배경음** `Sound/bgm_clockwork_ballerina`(2026-11-04): Geoff Harvey 「Clockwork Ballerina」([Pixabay](https://pixabay.com/music/cartoons-clockwork-ballerina-154531/)), 오르골 · 첼레스타, 1분 21초. 「몽글몽글하고 따뜻한」 방향으로 골랐다.
+  - 한 곡을 모든 화면(마음 정리 포함)에 쓴다. 예산이 BGM 1개이고, `SoundManager`가 씬을 넘어 이어 틀어서 화면을 바꿔도 끊기지 않는다.
+  - Title이 열릴 때 `TitleScene.Start`가 튼다. 하지만 브라우저(폰 Chrome · Safari, PC Chrome)는 사용자가 페이지를 한 번 누르기 전에는 소리를 막아서, 폰에서는 Title을 처음 누를 때부터 들린다(2026-11-04 폰 확인). 코드로 피할 수 없는 브라우저 규칙이고, Title을 누르는 것이 곧 게임에 들어가는 것이라 그대로 둔다. 로그아웃으로 Title이 다시 열려도 같은 곡이면 처음으로 돌아가지 않는다.
+  - 가져오기 설정: CompressedInMemory(Web은 Streaming을 지원하지 않고, Unity가 배경음에 권하는 설정), 모노, 품질 0.1. 웹 빌드에서는 AAC로 바뀐다. 원본은 MP3 256kbps 스테레오 2.6MB다.
+    - 빌드에 들어간 크기: 품질 0.5면 1.31MB(약 128kbps), 0.1이면 0.99MB(약 96kbps). AAC는 Brotli로 더 줄지 않아 다운로드에 그대로 더해진다. 폰 스피커로는 차이가 거의 없어 0.1로 둔다.
+  - 라이선스: Pixabay Content License(무료 · 출처 표기 의무 없음). 이 곡은 Content ID가 등록되어 있어, 플레이 영상을 유튜브에 올리면 저작권 표시가 붙을 수 있다. 작곡가는 설명란에 「Geoff Harvey - Pixabay」라고 적으면 표시가 붙지 않는다고 안내한다.
+- **효과음 5개** `Sound/sfx_*`(2026-11-05): 예산 상한 5개. 배경음(오르골)과 어울리는 말랑하고 따뜻한 소리로 골랐다. 모두 Freesound CC0(출처 표기 의무 없음, 아래는 기록용)이다.
+
+  | 파일 | 쓰는 곳 | 길이 | 원본 |
+  |---|---|---|---|
+  | `sfx_pop` | 하트 터치 · 마음 정리 정답 · 모든 버튼 | 0.18초 | arttim 「Bubble_Pop」 [733264](https://freesound.org/people/arttim/sounds/733264/) |
+  | `sfx_sparkle` | 하트 전달(+1) · 오늘의 감정 · 묘약 받기 · 마음 정리 「시작!」 | 1.31초 | ZenithInfinitiveStudios 「Fantasy_ui_Button_3」 [376745](https://freesound.org/people/ZenithInfinitiveStudios/sounds/376745/) |
+  | `sfx_levelup` | 레벨업 · 다 자랐을 때(반짝임 대신) · 마음 정리 결과 창 | 2.53초 | FunWithSound 「Short Success Sound Glockenspiel」 [456965](https://freesound.org/people/FunWithSound/sounds/456965/) |
+  | `sfx_wrong` | 마음 정리 오답 | 0.31초 | ertfelda 「incorrect」 [243700](https://freesound.org/people/ertfelda/sounds/243700/) |
+  | `sfx_count` | 마음 정리 3 · 2 · 1(멈춘 뒤 다시 셀 때도) | 1.10초 | moodyfingers 「Wind Up Music Box [E6 Note]」 [732946](https://freesound.org/people/moodyfingers/sounds/732946/) |
+
+  - `SoundManager`(Title)가 다섯 개를 들고 있고, 각 씬은 `SoundManager.Instance.PlaySfx(SoundManager.Instance.pop)`처럼 부른다. 하나의 `sfxSource`에서 `PlayOneShot`으로 겹쳐 낸다.
+  - 가져오기 설정: **DecompressOnLoad**, 모노, 품질 0.1. Web은 압축된 채 재생하면 늦게 나서, 누르는 순간 나야 하는 소리는 풀어 둔다(다섯 개를 다 풀어도 메모리 약 1MB). 받은 파일은 Freesound 미리듣기 MP3(원본은 로그인이 필요)다.
+  - 레벨업 · 완성이 되는 응답에서는 반짝임을 내지 않고 레벨업 소리만 낸다. 마음 정리의 「그만!」은 곧 결과 창 소리가 나서 따로 소리를 두지 않는다.
+  - **버튼 소리**: 버튼마다 `ButtonSound`(공용 컴포넌트)를 붙여 누르면 pop이 난다. 씬 스크립트는 고치지 않는다. 2026-11-05에 공통 프리팹 4개(버튼 5개)와 씬 12개(버튼 77개)에 붙였다. Main 하트 버튼은 자기 pop이 있어 두 번 나지 않게 뺐다. 감정 고르기 · 묘약 받기는 누를 때 pop, 응답이 오면 반짝임(또는 레벨업)이 난다. 눌리지 않는 버튼(달력의 지난 · 다음 해 칸 등)은 소리도 나지 않는다. **새 버튼을 만들면 `ButtonSound`를 붙인다.**
 
 ---
 
@@ -590,3 +611,4 @@ Server/
 | 2026-11-03 | 1.0.0 닉네임 보강 빌드 (소리 없음) | 12.96 (`.data.br` 6.28 + `.wasm.br` 6.68) | - | 가입 · 로그인 닉네임 공백 정리와 안내 문구(「닉네임」 · 「인증」). 빌드 오류 0, 경고 3은 같은 TMP 안내. 배포 사이트에서 `index.html`이 가리키는 해시 파일 4개가 모두 200. 폰에서 힌트 · 이어진 공백 안내 · 가입 확인 문구 · 대문자와 뒤 공백 로그인 · 로그인 실패 문구를 모두 확인 |
 | 2026-11-03 | 1.0.0 숫자 키패드 빌드 (소리 없음) | 12.96 (`.data.br` 6.29 + `.wasm.br` 6.67) | - | 비밀번호 칸 숫자 키패드(`WebKeyboard.jslib`). `.jslib`가 들어가 `framework.js`가 0.2KB 늘었다. 빌드 오류 0, 경고 3은 같은 TMP 안내. 폰에서 가입 · 로그인 비밀번호 칸에 숫자 키패드가 뜨는 것을 확인 |
 | 2026-11-04 | 1.0.0 이달의 게임 빌드 (소리 없음) | 12.98 (`.data.br` 6.29 + `.wasm.br` 6.69) | - | 씬 12개(Game 달력 · Tidy 마음 정리 추가). 빌드 오류 0, 경고 3은 같은 TMP 안내. `.wasm` +0.02MB는 게임 · 달력 · 랭킹 코드, `.data`는 새 씬 둘(압축 전 97 · 93KB)이고 감정 아이콘은 Main 것을 같이 쓴다. 예산 15MB까지 여유 2.02MB. 배포 사이트에서 `index.html`이 가리키는 해시 파일 4개가 모두 200. 에디터에서 봇 없이 Main → Game → Tidy를 돌 때 텍스처는 Main 145.64 · Game 105.78 · Tidy 142.91MB(에디터 텍스처 포함)로 매번 같고, Mono 힙은 82.5~83.4MB. 봇으로 3바퀴 더 돈 측정도 늘지 않음(Memory Profiler 스냅샷 `Flamong_Tidy_Main_0` · `_4`). 폰에서 Title 버전 글자 · 달력 · 한 판(멈춤 · 이어 하기) · 결과 창 · 랭킹 확인. PC 크로미움(Claude 앱 안 브라우저, Chrome 152) JS 힙: Main → 달력 → 마음 정리 → 달력 → Main 10회 순환 전후 24.15 → 26.2~26.9MB(1.1배, 기준 1.5배 이내). WASM 힙은 `unityInstance`가 전역에 없어 재지 못했다 |
+| 2026-11-04 | 1.0.0 배경음 빌드 | 13.95 (`.data.br` 7.28 + `.wasm.br` 6.67) | - | 배경음 1곡(「Clockwork Ballerina」 81초, 모노 AAC 약 96kbps, 빌드 안 0.99MB). AAC는 Brotli로 줄지 않아 `.data`가 그대로 +0.99MB. 예산 15MB까지 여유 1.05MB. 빌드 오류 0, 경고 3은 같은 TMP 안내. 에디터에서 Title → Intro 전환에도 끊기지 않고, 로그아웃처럼 Title로 돌아와도 처음으로 돌아가지 않으며 `SoundManager`는 하나임을 확인. 폰에서 Title 첫 터치부터 배경음이 나오는 것을 확인(브라우저 자동 재생 차단). 배포 사이트 해시 파일 4개 확인 |

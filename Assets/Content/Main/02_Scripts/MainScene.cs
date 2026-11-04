@@ -393,6 +393,7 @@ public class MainScene : MonoBehaviour
         PlayerPrefs.SetInt(SessionState.HEART_TAPS_KEY, heartTaps);   // 메모리에만 적는다. 파일 쓰기는 화면을 떠날 때
 
         heartParticles.Emit(1);
+        SoundManager.Instance.PlaySfx(SoundManager.Instance.pop);
         if (heartTaps >= 10)
         {
             StartCoroutine(PostTap());
@@ -471,6 +472,8 @@ public class MainScene : MonoBehaviour
     {
         // 완성 뒤에도 오늘의 감정 응답은 completed 가 계속 true 라, 완성 안내는 처음 완성됐을 때 한 번만
         bool justCompleted = body.growth.completed && !isCompleted;
+        var sound = SoundManager.Instance;
+        sound.PlaySfx(body.levelUp || justCompleted ? sound.levelUp : sound.sparkle);   // 겹치지 않게 레벨업이면 반짝임 대신
         float gaugeFrom = gaugeFill.fillAmount;
         Apply(body.growth);
         // Apply 가 바로 맞춘 값을 이전 값에서부터 차오르게 다시 그린다

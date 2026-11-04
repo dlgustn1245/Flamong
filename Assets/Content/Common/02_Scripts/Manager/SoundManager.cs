@@ -7,8 +7,15 @@ public class SoundManager : Singleton<SoundManager>
     const string BGM_VOLUME_KEY = "BgmVolume";
     const string SFX_VOLUME_KEY = "SfxVolume";
 
-    public AudioSource bgmSource;   // 배경음 1곡. Loop, 클립은 Streaming
+    public AudioSource bgmSource;   // 배경음 1곡. Loop, 클립은 CompressedInMemory(Web 은 Streaming 미지원)
     public AudioSource sfxSource;   // 효과음은 PlayOneShot 으로 겹쳐 낸다
+
+    // 효과음 5개(예산 상한). 누르는 순간 나야 해서 DecompressOnLoad
+    public AudioClip pop;       // 하트 터치 · 마음 정리 정답
+    public AudioClip sparkle;   // 하트 전달 · 오늘의 감정 · 묘약 · 「시작!」
+    public AudioClip levelUp;   // 레벨업 · 완성 · 마음 정리 결과
+    public AudioClip wrong;     // 마음 정리 오답
+    public AudioClip count;     // 마음 정리 3 · 2 · 1
 
     public float BgmVolume => bgmSource.volume;
     public float SfxVolume => sfxSource.volume;

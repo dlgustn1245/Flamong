@@ -168,6 +168,7 @@ GameObject:
   - component: {fileID: 50623126}
   - component: {fileID: 50623125}
   - component: {fileID: 50623128}
+  - component: {fileID: 50623129}
   m_Layer: 5
   m_Name: Button - EggGray
   m_TagString: Untagged
@@ -290,6 +291,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &50623129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 50623123}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &90971937
 GameObject:
   m_ObjectHideFlags: 0
@@ -432,6 +445,7 @@ GameObject:
   - component: {fileID: 220641697}
   - component: {fileID: 220641696}
   - component: {fileID: 220641699}
+  - component: {fileID: 220641700}
   m_Layer: 5
   m_Name: Button - EggGreen
   m_TagString: Untagged
@@ -554,6 +568,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &220641700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 220641694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &239471328
 GameObject:
   m_ObjectHideFlags: 0
@@ -567,6 +593,7 @@ GameObject:
   - component: {fileID: 239471331}
   - component: {fileID: 239471330}
   - component: {fileID: 239471333}
+  - component: {fileID: 239471334}
   m_Layer: 5
   m_Name: Button - EggLavender
   m_TagString: Untagged
@@ -689,6 +716,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &239471334
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 239471328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &346768433
 GameObject:
   m_ObjectHideFlags: 0
@@ -1241,6 +1280,7 @@ GameObject:
   - component: {fileID: 600953758}
   - component: {fileID: 600953757}
   - component: {fileID: 600953756}
+  - component: {fileID: 600953759}
   m_Layer: 5
   m_Name: Button - Yes
   m_TagString: Untagged
@@ -1350,6 +1390,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 600953754}
   m_CullTransparentMesh: 1
+--- !u!114 &600953759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600953754}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &605853609
 GameObject:
   m_ObjectHideFlags: 0
@@ -1582,6 +1634,7 @@ GameObject:
   - component: {fileID: 748617022}
   - component: {fileID: 748617021}
   - component: {fileID: 748617024}
+  - component: {fileID: 748617025}
   m_Layer: 5
   m_Name: Button - EggPurple
   m_TagString: Untagged
@@ -1704,6 +1757,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &748617025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 748617019}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &812654429
 GameObject:
   m_ObjectHideFlags: 0
@@ -1716,6 +1781,7 @@ GameObject:
   - component: {fileID: 812654433}
   - component: {fileID: 812654432}
   - component: {fileID: 812654431}
+  - component: {fileID: 812654434}
   m_Layer: 5
   m_Name: Button - No
   m_TagString: Untagged
@@ -1825,6 +1891,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 812654429}
   m_CullTransparentMesh: 1
+--- !u!114 &812654434
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 812654429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &856269776
 GameObject:
   m_ObjectHideFlags: 0
@@ -1838,6 +1916,7 @@ GameObject:
   - component: {fileID: 856269779}
   - component: {fileID: 856269778}
   - component: {fileID: 856269781}
+  - component: {fileID: 856269782}
   m_Layer: 5
   m_Name: Button - EggBlue
   m_TagString: Untagged
@@ -1960,6 +2039,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &856269782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 856269776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &911827003
 GameObject:
   m_ObjectHideFlags: 0
@@ -2146,6 +2237,7 @@ GameObject:
   - component: {fileID: 993170543}
   - component: {fileID: 993170542}
   - component: {fileID: 993170545}
+  - component: {fileID: 993170546}
   m_Layer: 5
   m_Name: Button - EggCream
   m_TagString: Untagged
@@ -2268,6 +2360,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &993170546
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 993170540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &1074874992
 GameObject:
   m_ObjectHideFlags: 0
@@ -2432,6 +2536,7 @@ GameObject:
   - component: {fileID: 1319631297}
   - component: {fileID: 1319631296}
   - component: {fileID: 1319631299}
+  - component: {fileID: 1319631300}
   m_Layer: 5
   m_Name: Button - EggPink
   m_TagString: Untagged
@@ -2554,6 +2659,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &1319631300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319631294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &1392328024
 GameObject:
   m_ObjectHideFlags: 0
@@ -3253,6 +3370,7 @@ GameObject:
   - component: {fileID: 1796112605}
   - component: {fileID: 1796112604}
   - component: {fileID: 1796112607}
+  - component: {fileID: 1796112608}
   m_Layer: 5
   m_Name: Button - EggOrange
   m_TagString: Untagged
@@ -3375,6 +3493,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.AspectRatioFitter
   m_AspectMode: 2
   m_AspectRatio: 1
+--- !u!114 &1796112608
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796112602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &1857110025
 GameObject:
   m_ObjectHideFlags: 0

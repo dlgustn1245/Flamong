@@ -195,6 +195,7 @@ MonoBehaviour:
   screenButton: {fileID: 1426403426}
   errorPanel: {fileID: 1602888070}
   versionText: {fileID: 351567923}
+  bgmClip: {fileID: 8300000, guid: 81392268fac7e3c4995ff8924c3340bf, type: 3}
 --- !u!4 &229802622
 Transform:
   m_ObjectHideFlags: 0
@@ -386,7 +387,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 2163630127
   m_fontColor: {r: 0.18431373, g: 0.3764706, b: 0.9647059, a: 0.5019608}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -399,7 +400,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -644,6 +645,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SoundManager
   bgmSource: {fileID: 346276129}
   sfxSource: {fileID: 1878397843}
+  pop: {fileID: 8300000, guid: e85419989a8cdf7469d596507ba0ba4b, type: 3}
+  sparkle: {fileID: 8300000, guid: 267e9a1c394f52c4c8b9b338d8f711b7, type: 3}
+  levelUp: {fileID: 8300000, guid: bd71c459d379d0947898c51726fb418d, type: 3}
+  wrong: {fileID: 8300000, guid: 315a26e9216f95a40a9aa5b6a2724102, type: 3}
+  count: {fileID: 8300000, guid: 39847edd0a1a0cb49868b34549607624, type: 3}
 --- !u!4 &1297324195
 Transform:
   m_ObjectHideFlags: 0
@@ -673,6 +679,7 @@ GameObject:
   - component: {fileID: 1426403425}
   - component: {fileID: 1426403424}
   - component: {fileID: 1426403426}
+  - component: {fileID: 1426403427}
   m_Layer: 5
   m_Name: Image - BG
   m_TagString: Untagged
@@ -778,6 +785,18 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1426403427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1426403422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &1445178790
 GameObject:
   m_ObjectHideFlags: 0
@@ -1194,6 +1213,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SessionState
   playerId: 
+  speciesId: -1
+  level: 1
   eggIdx: 0
   team: 
   playerName: 

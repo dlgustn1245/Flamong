@@ -62,7 +62,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 | 빌드 다운로드 크기 (.data + .wasm, 압축 후) | **15 MB** |
 | 개별 텍스처 | 배경 1024², UI 스프라이트 512² 이하 |
 | 씬당 동시 로드 텍스처 합 | 48 MB 이하 |
-| 오디오 클립 | BGM 1개 Streaming, 효과음 5개 이하 CompressedInMemory |
+| 오디오 클립 | BGM 1개 CompressedInMemory(Web은 Streaming 미지원) · 효과음 5개 이하 DecompressOnLoad(Web의 압축 재생은 늦어 누르는 순간 나야 하는 소리는 풀어 둔다) |
 
 ## 절대 금지
 
@@ -104,6 +104,7 @@ WebGL은 브라우저 탭 하나의 힙 안에서 돈다. 모바일 브라우저
 -   모든 캔버스는 `Vertex Color Always In Gamma Color Space`를 켠다. 프로젝트가 Linear라서 꺼져 있으면 UI 색을 8비트 Linear로 바꾸며 어두운 색이 뭉개진다.
     코드(`AddComponent<Canvas>`)로 만든 캔버스는 꺼진 채로 생기므로 `SerializedObject`로 `m_VertexColorAlwaysGammaSpace`를 켠다.
 -   누를 것이 없는 캔버스에는 GraphicRaycaster를 붙이지 않는다. 장식 이미지·글자는 Raycast Target을 끈다.
+-   버튼에는 `ButtonSound`(누르면 pop)를 붙인다. 자기 소리가 따로 있는 버튼(Main 하트)만 뺀다.
 -   스크롤 뷰포트는 Mask 대신 RectMask2D. 가장자리 페이드는 RectMask2D Softness로 한다.
 -   UI에 Animator를 붙이지 않는다. 값이 그대로여도 매 프레임 UI를 다시 그리게 만든다. 움직임은 코루틴이나 `Update`로 직접 준다.
 -   레이아웃 그룹은 바뀔 때만 계산되므로 정적 목록에는 써도 된다. 중첩은 하지 않는다.

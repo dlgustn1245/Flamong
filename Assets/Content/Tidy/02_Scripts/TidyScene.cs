@@ -282,6 +282,7 @@ public class TidyScene : MonoBehaviour
         }
 
         resultPanel.SetActive(true);
+        SoundManager.Instance.PlaySfx(SoundManager.Instance.levelUp);
         GetRanking(false);   // 준비 카드의 이번 달 기록을 새로 고친다
     }
 
