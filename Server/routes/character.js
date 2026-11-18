@@ -1,5 +1,6 @@
 import { logEvent, playerOf, tx } from '../db.js';
 import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
+import { linesOf, replyOf } from '../rules/lines.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
 import { missionsOf } from './potion.js';
 import { newsReadyOf } from './posts.js';
@@ -27,13 +28,15 @@ export default async function character(app, { db, now }) {
     if (!p) return reply;
     const today = kstDate(now());
     const c = getActive.get(p.id);
+    const growth = growthOf(rechargeHearts(p.hearts, p.hearts_date, today), c ? c.affection : 0);
     return {
       team: p.team,
       name: p.name,
       nickname: p.nickname,
       speciesId: c ? c.species_id : -1,   // -1: 아직 알을 고르지 않음. JsonUtility 는 int 자리의 null 을 0 으로 읽는다
       emotionToday: Boolean(getEmotion.get(p.id, today)),
-      growth: growthOf(rechargeHearts(p.hearts, p.hearts_date, today), c ? c.affection : 0),
+      growth,
+      lines: c ? linesOf(today, p.id, c.species_id, growth) : [],   // Main 말풍선 「플라몽 한마디」 3줄
       potionReady: missionsOf(db, p.id, c).ready,   // Main 묘약 버튼의 빨간 점
       newsReady: newsReadyOf(db, p.id, today),      // Main 확성기의 빨간 점 (오늘의 소식 담당)
     };
@@ -145,6 +148,7 @@ export default async function character(app, { db, now }) {
     return {
       levelUp: levelOf(affection).level > levelOf(c.affection).level,
       growth: growthOf(rechargeHearts(p.hearts, p.hearts_date, today), affection),
+      reply: replyOf(today, p.id, emotion),   // 고른 감정에 맞장구치는 한 줄
     };
   });
 }

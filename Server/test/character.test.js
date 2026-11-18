@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { buildApp } from '../index.js';
 import { openDb } from '../db.js';
 import { kstDate, levelOf, rechargeHearts } from '../rules/growth.js';
+import { LINES } from '../rules/lines.js';
 import { pickSpecies } from '../rules/species.js';
 
 const DAY_MS = 86_400_000;
@@ -75,11 +76,15 @@ test('가입 → 알 고르기 → 첫날 하트 5개로 Lv2 → 하트 소진 �
   assert.equal(me.body.speciesId, -1);
   assert.equal(me.body.emotionToday, false);
   assert.deepEqual(me.body.growth, growth(5, 0, 1, 0, 5));
+  assert.deepEqual(me.body.lines, []);   // 캐릭터가 없으면 한마디도 없다
   assert.equal((await call(app, 'POST', '/tap', h, {})).body.error, 'no_character');
 
   const hatch = await call(app, 'POST', '/characters', h, { eggId: 2 });
   assert.ok(hatch.body.speciesId >= 6 && hatch.body.speciesId <= 8);
-  assert.equal((await call(app, 'GET', '/me', h)).body.speciesId, hatch.body.speciesId);
+  const hatched = await call(app, 'GET', '/me', h);
+  assert.equal(hatched.body.speciesId, hatch.body.speciesId);
+  assert.equal(hatched.body.lines.length, 3);   // 플라몽 한마디 (rules/lines.js)
+  assert.ok(LINES.weekday[3].includes(hatched.body.lines[0]));   // 2026-09-23 은 수요일
   // 다시 보내면(재시도) 새로 뽑지 않고 같은 캐릭터를 돌려준다
   assert.deepEqual(await call(app, 'POST', '/characters', h, { eggId: 3 }), { code: 200, body: { speciesId: hatch.body.speciesId } });
   assert.equal(db.prepare('SELECT count(*) n FROM character').get().n, 1);
@@ -107,7 +112,9 @@ test('오늘의 감정: +2 · 하루 1회 · 두 번째는 애정도도 오르�
 
   assert.equal((await call(app, 'POST', '/emotions', h, { emotion: 'angry' })).code, 400);
   const first = await call(app, 'POST', '/emotions', h, { emotion: 'calm' });
-  assert.deepEqual(first.body, { levelUp: false, growth: growth(5, 2, 1, 2, 5) });
+  const { reply, ...rest } = first.body;
+  assert.deepEqual(rest, { levelUp: false, growth: growth(5, 2, 1, 2, 5) });
+  assert.ok(LINES.reply.calm.includes(reply));   // 고른 감정의 맞장구 한 줄
   assert.equal((await call(app, 'GET', '/me', h)).body.emotionToday, true);
 
   assert.equal((await call(app, 'POST', '/emotions', h, { emotion: 'focus' })).body.error, 'emotion_done');
