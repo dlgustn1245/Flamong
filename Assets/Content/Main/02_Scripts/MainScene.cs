@@ -72,6 +72,7 @@ public class MainScene : MonoBehaviour
     
     string[] lines;
     int lineIdx;
+    TapBody emotionResult;   // 날씨 창을 닫을 때 화면에 반영할 감정 응답
     
     int heartTaps;
     int speciesId;
@@ -165,10 +166,7 @@ public class MainScene : MonoBehaviour
         
         characterButton.onClick.AddListener(ShowNextLine);
         
-        weatherOkButton.onClick.AddListener(() =>
-        {
-            emotionPanel.SetActive(false);
-        });
+        weatherOkButton.onClick.AddListener(CloseWeather);
         
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
@@ -201,15 +199,22 @@ public class MainScene : MonoBehaviour
         {
             emotionButton.interactable = true;
         }
+        emotionResult = response;
         ShowWeather(response.weather);
-        if (!string.IsNullOrEmpty(response.reply))
+    }
+
+    // 게이지 · 레벨업 안내 · 맞장구는 날씨 창에 가려지지 않게 창을 닫은 뒤에 보여 준다
+    void CloseWeather()
+    {
+        emotionPanel.SetActive(false);
+        if (!string.IsNullOrEmpty(emotionResult.reply))
         {
             bubble.SetActive(true);
-            bubbleText.SetText(response.reply);
+            bubbleText.SetText(emotionResult.reply);
             bubblePageText.SetText(string.Empty);
             lineIdx = -1;
         }
-        ApplyGrowth(response);
+        ApplyGrowth(emotionResult);
     }
 
     void OnFailPostEmotion(long code, string response, string emotion)
@@ -274,7 +279,14 @@ public class MainScene : MonoBehaviour
         }
         
         emotionTitleText.SetText("어제의 마음 날씨");
-        emotionHintText.SetText("어제 {0}명이 마음을 골랐어요", weather.total);
+        if (weather.total == 0)
+        {
+            emotionHintText.SetText("어제는 고른 사람이 없었어요");
+        }
+        else
+        {
+            emotionHintText.SetText("어제 {0}명이 마음을 골랐어요", weather.total);
+        }
 
         if (weather.bars != null && weather.bars.Length == weatherFills.Length)
         {
