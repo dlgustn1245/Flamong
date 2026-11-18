@@ -1,15 +1,21 @@
-// 로컬 개발 DB(Server/flamong.db)의 사용자 목록. 읽기만 한다.
-// 개발용 테스트 계정이라 팀 · 이름까지 보여 준다. 운영 DB 에는 쓰지 않는다(운영은 db-stats.bat).
-// 비밀번호 해시는 찍지 않고, playerId 는 앞 8자만 찍는다
+// 사용자 목록. 읽기만 한다. 로컬 개발 DB 와 운영 DB 에 같이 쓴다
+//   로컬: db-users-local.bat → node deploy/db-users.mjs (Server/flamong.db, 팀 · 이름까지 보임)
+//   운영: db-users.bat → ssh 로 서버의 node 에 이 파일을 넘긴다 (FLAMONG_SERVER · FLAMONG_DB 로 위치를 알려 준다)
+// 팀 · 이름(실명)과 playerId 앞 8자는 SHOW_NAMES=1 일 때만 찍는다. 비밀번호 해시는 어떤 경우에도 찍지 않는다
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
-import { kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
-import { SPECIES_PER_EGG } from '../rules/species.js';
 
-const FILE = fileURLToPath(new URL('../flamong.db', import.meta.url));
+// 운영에서는 stdin 으로 들어와 이 파일의 위치를 알 수 없으므로 환경 변수로 받는다
+const SERVER = process.env.FLAMONG_SERVER ?? fileURLToPath(new URL('..', import.meta.url));
+const FILE = process.env.FLAMONG_DB ?? join(SERVER, 'flamong.db');
+const SHOW_NAMES = process.env.SHOW_NAMES === '1';
+const { kstDate, levelOf, MAX_AFFECTION, rechargeHearts } = await import(pathToFileURL(join(SERVER, 'rules/growth.js')));
+const { SPECIES_PER_EGG } = await import(pathToFileURL(join(SERVER, 'rules/species.js')));
+
 if (!existsSync(FILE)) {
-  console.log(`로컬 DB 가 없습니다: ${FILE}\nServer 폴더에서 npm start 를 한 번 실행하면 만들어집니다.`);
+  console.log(`DB 가 없습니다: ${FILE}\n로컬이라면 Server 폴더에서 npm start 를 한 번 실행하면 만들어집니다.`);
   process.exit(0);
 }
 const db = new DatabaseSync(FILE, { readOnly: true });
@@ -19,7 +25,7 @@ const today = kstDate(new Date());
 const month = today.slice(0, 7);
 
 const players = db.prepare('SELECT id, team, name, nickname, can_post_news, created_at, hearts, hearts_date FROM player ORDER BY created_at').all();
-console.log(`로컬 DB ${FILE}`);
+console.log(`DB ${FILE}`);
 console.log(`오늘 ${today} (KST) · 사용자 ${players.length}명\n`);
 
 players.forEach((p, i) => {
@@ -31,7 +37,9 @@ players.forEach((p, i) => {
   const potions = one('SELECT count(*) n FROM potion WHERE player_id = ?', p.id).n;
   const posts = one('SELECT count(*) n FROM post WHERE player_id = ?', p.id).n;
 
-  console.log(`[${i + 1}] ${p.nickname}  (팀 ${p.team} · 이름 ${p.name})  가입 ${kstDate(new Date(p.created_at))}  id ${p.id.slice(0, 8)}…`);
+  const who = SHOW_NAMES ? `  (팀 ${p.team} · 이름 ${p.name})` : '';
+  const id = SHOW_NAMES ? `  id ${p.id.slice(0, 8)}…` : '';
+  console.log(`[${i + 1}] ${p.nickname}${who}  가입 ${kstDate(new Date(p.created_at))}${id}`);
   const character = c
     ? `종 ${c.species_id}(${EGGS[Math.floor(c.species_id / SPECIES_PER_EGG)]} 알) Lv${levelOf(c.affection).level} 애정도 ${c.affection}/${MAX_AFFECTION}`
     : '없음(알을 고르기 전)';
