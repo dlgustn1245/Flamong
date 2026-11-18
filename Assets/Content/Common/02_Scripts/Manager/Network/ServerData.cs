@@ -242,6 +242,18 @@ namespace ServerData
 		public int total;      // 어제 감정을 고른 사람 수
 		public float[] bars;   // 감정 5종 순서의 막대 길이(0~1). 5명 미만이면 빈 배열
 	}
+	
+	// GET /emotions?month=
+	[Serializable]
+	public class CalendarBody
+	{
+		public string month;        // "2026-11"
+		public int firstWeekday;    // 1일의 요일 (0 = 일요일)
+		public int today;           // 이번 달이면 오늘 날짜, 지난 달이면 0
+		public string prev;         // 넘길 수 있는 앞 달. 없으면 빈 문자열
+		public string next;
+		public string[] emotions;   // [일 - 1] = 그날 고른 감정. 없으면 빈 문자열
+	}
 
 	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)
 	public class EmptyBody { }

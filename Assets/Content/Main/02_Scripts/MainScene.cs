@@ -70,6 +70,8 @@ public class MainScene : MonoBehaviour
     public GameObject weatherEmptyText;
     public Button weatherOkButton;
     
+    public Button calendarButton;
+    
     string[] lines;
     int lineIdx;
     TapBody emotionResult;   // 날씨 창을 닫을 때 화면에 반영할 감정 응답
@@ -165,8 +167,11 @@ public class MainScene : MonoBehaviour
         });
         
         characterButton.onClick.AddListener(ShowNextLine);
-        
         weatherOkButton.onClick.AddListener(CloseWeather);
+        calendarButton.onClick.AddListener(() =>
+        {
+            SceneLoader.Load(SceneName.CalendarScene);
+        });
         
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
@@ -268,6 +273,7 @@ public class MainScene : MonoBehaviour
         contactCloseButton.onClick.RemoveAllListeners();
         characterButton.onClick.RemoveAllListeners();
         weatherOkButton.onClick.RemoveAllListeners();
+        calendarButton.onClick.RemoveAllListeners();
         StopAllCoroutines();
     }
 

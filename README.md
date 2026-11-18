@@ -36,6 +36,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 10 | Potion | 히든 미션 달성 시 묘약 획득 | `GET /missions`, `POST /potions/claim` | 1.2 | 구현. 방문 묘약 카드(병이 7분의 1씩 차오름, 7 / 7이고 마실 수 있을 때만 [받기]) · 히든 미션 카드 3장(숨김 · 받기 · 대기 · 받음) · 받으면 안내 창(레벨업 포함) 뒤 `/missions` 다시 부름 · 409도 다시 부름 · 401 · 오류 창. 상단은 뒤로가기만(홈 아이콘 뺌) |
 | 11 | Garden | 꽃밭: 하루 1회 익명 한마디(대나무숲). 위에 쓰기 카드, 아래에 최신 30개. 규칙 · 화면은 「꽃밭 · 소식」 | `GET /posts?kind=garden`, `POST /posts` | 1.2 | 구현(`Common/02_Scripts/PostScene`). 응답 전엔 쓰기 · 다 씀 카드 둘 다 끔 · 공백만이면 버튼 꺼짐 · 보내는 동안 버튼 꺼짐 · 400 안내 창 · 409 다시 부름 · 401 · 오류 창(다시 보내기) |
 | 12 | News | 소식: 공지 · 소식, 닉네임 표시, 작성권 있는 사람만 하루 1회. 화면은 꽃밭과 같다 | `GET /posts?kind=news`, `POST /posts` | 1.2 | 구현. 꽃밭과 같은 `PostScene`(`kind = news`) |
+| 13 | Calendar | 마음 달력: 내가 날마다 고른 감정을 한 달 치 달력으로. Main 위쪽 달력 아이콘으로 들어간다. 규칙 · 화면은 「규칙 › 홈화면 › 마음 달력」 | `GET /emotions?month=` | 1.2 | 구현(2026-11-18, `CalendarScene`). Main 달력 버튼(`Button - Calendar`, `icon_calendar`) → 달력 · 달 넘기기 · 날짜를 누르면 아래 카드 · 뒤로 가기. 기록이 없는 날 · 아직 오지 않은 날은 흐리고 눌리지 않는다. 에디터 확인. 운영 서버 배포 · 웹 빌드 · 폰 확인 전 |
 
 **들어갈 곳** (`Common/02_Scripts/Util/EntryRouter.cs`, Title · Intro · Login 로그인 성공 후 모두 이 규칙을 쓴다)
 
@@ -143,6 +144,14 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 어제 고른 사람이 없으면 인원 문구를 「어제는 고른 사람이 없었어요」로 바꾼다.
 - **어제 5명 미만이면 막대를 숨기고** 인원과 「5명이 모이면 모두의 마음 날씨가 보여요」만 띄운다(`rules/weather.js` `WEATHER_MIN`, 2.0 대시보드의 「5명 이상」과 같은 기준).
 - 화면: `Panel - Emotion/Image - Window` 아래 `Group - Weather`(`Row - Tired`~`Calm`: 아이콘 · 이름 · `Image - Bar/Image - Fill`), `Text - WeatherEmpty`, `Button - WeatherOk`. 셋 다 기본 꺼짐. 막대 채움은 Main 게이지와 같은 `gauge_fill`(Filled · Horizontal)이라 코드는 `fillAmount`만 넣는다. 새 그림은 없다.
+
+**마음 달력** (2026-11-18 구현 · 에디터 확인. 운영 서버 배포 · 웹 빌드 · 폰 확인 전)
+- 내가 날마다 고른 감정이 달력 칸에 얼굴 아이콘으로 쌓인다. 날짜를 누르면 아래 카드에 날짜 · 요일과 감정 이름이 나온다(칸에는 아이콘만). 기록이 있는 날만 누를 수 있고, 기록이 없는 날과 아직 오지 않은 날은 흐리다. 오늘 칸은 노란색이다. 혼자 하는 사람에게도 기록이 쌓이는 의미를 주려는 것이다.
+- 위 화살표로 달을 넘긴다. **가입한 달부터 이번 달까지만** 볼 수 있다(서버가 `prev` · `next`로 알려 준다).
+- 요일 · 날수 · 오늘 · 앞뒤 달은 모두 서버(`rules/calendar.js`)가 정한다. 클라이언트는 날짜 계산을 하지 않는다.
+- **넣지 않는 것**: 연속 출석 일수 · 다 채우면 주는 배지 · 감정별 칸 색 · 빈 날을 나중에 채우기. 출석 압박이 되거나, 보기 좋은 달력을 만들려고 실제와 다른 감정을 고르게 된다.
+- 화면(`Calendar` 씬, `Canvas - Main/Group - Calendar`): `Text - Month`, `Button - Prev` · `Button - Next`, `Group - Week`(일~토), `Group - Cells/Button - Cell 00`~`41`(7칸 × 6줄, 각 칸에 `Text - Day` · `Image - Icon`), `Image - Info`(`Image - Icon` · `Text - Date` · `Text - Emotion` · `Text - Hint`). 칸 42개를 미리 두고 달이 바뀌면 다시 쓴다. 매 프레임 움직이는 것이 없어 `Canvas - Dynamic`은 없다.
+- 새 그림은 Main 달력 버튼의 `Common/03_Resources/Icon/icon_calendar.png`(164²) 한 장이다. 선은 `icon_mail`의 테두리 픽셀을 윤곽을 따라 옮겨 붙였다. Main 위쪽 줄은 꽃밭 · 소식 · 달력 · 설정 4개(x = −360 · −120 · 120 · 360)가 됐다.
 
 **플라몽 한마디** (2026-11-18 구현 · 웹 빌드 · 폰 확인)
 - 캐릭터 머리 위 말풍선에 오늘의 한 줄이 뜬다. 캐릭터를 누르면 그날 몫 3줄을 차례로 넘겨 본다.
@@ -397,7 +406,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 클라이언트(`NetworkManager`)는 400 이상이면 `onError(상태 코드, 본문)`으로 보낸다(본문이 없는 연결 실패 · 시간 초과는 Unity 오류 문구). 본문의 `error` 값은 로그로 찍기만 하고, 화면 분기는 코드 숫자로만 나눈다.
 - 씬 스크립트는 성공이면 받은 값(`JsonUtility.ToJson`)을, 실패면 코드와 본문을 `print`로 찍는다. 가입 · 로그인 응답의 `playerId`는 웹 빌드 브라우저 콘솔에 남지 않게 앞 6자리만 찍는다.
 
-**1.0 서버 API 10개, 1.1의 `/collection` · 게임 4개, 1.2의 묘약 2개 · 꽃밭 2개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/games.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 47개 통과).
+**1.0 서버 API 10개, 1.1의 `/collection` · 게임 4개, 1.2의 묘약 2개 · 꽃밭 2개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/games.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 50개 통과).
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -412,6 +421,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/characters/reset` | `{}` | `{ ok }` · 지금 캐릭터를 끝내 보관(`ended_at`). 남은 하트는 그대로. 캐릭터가 없으면(재시도) 그대로 ok **(구현)** | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
 | POST | `/emotions` | `{ emotion }` | `{ levelUp, growth, reply, weather }` · `reply`는 고른 감정에 맞장구치는 한 줄 · `weather`는 어제의 마음 날씨 `{ total, bars }`(`bars`는 감정 5종 순서의 막대 길이 0~1, 어제 5명 미만이면 빈 배열) · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
+| GET | `/emotions?month=YYYY-MM` | - | 마음 달력 `{ month, firstWeekday, today, prev, next, emotions }` · `month`를 빼면 이번 달(KST) · `firstWeekday`는 1일의 요일(0 = 일요일) · `today`는 이번 달이면 오늘 날짜, 지난 달이면 0 · `prev` · `next`는 넘길 수 있는 달(없으면 빈 문자열) · `emotions[일 − 1]`은 그날 고른 감정(없으면 빈 문자열, 길이 = 그 달 날수) · 가입한 달 앞이나 이번 달 뒤는 400 `month_range` **(구현)** | 1.2 |
 | GET | `/collection` | - | `{ levels: [24], completed: [speciesId…], speciesId }` · `levels[speciesId]` = 도달한 최고 레벨(0 = 없음, 지금 캐릭터 · 완성한 캐릭터만), `completed` = 완성한 종 오름차순, `speciesId` = 지금 캐릭터(없으면 -1) **(구현)** | 1.1 |
 | POST | `/games/start` | `{ game }` (`tidy`) | `{ rules }` · 한 판의 수치(`durationSec` · `countdownSec` · `minTapMs` · `lockMs` · `changeEvery` · `maxRun` · `comboAt`). `game_play`를 남긴다. 새 시작은 앞의 시작을 덮는다. 모르는 게임 400 **(구현)** | 1.1 |
 | POST | `/scores` | `{ score }` (0~863 정수) | `{ best, rank, gap, gain, levelUp, growth }` · 이번 달(KST) 이 게임의 내 최고 · 등수(동점은 같은 등수) · 다음 등수까지 점수(1등 0) · 오른 애정도(하루 첫 판 +2, 게임 무관). 409: 시작 없음 `not_started` · 시작 뒤 32초 전 `too_fast` · 10분 넘음 `expired`. 이미 받은 판을 다시 보내면 쓰지 않고 200 · `gain` 0 **(구현)** | 1.1 |
@@ -495,6 +505,7 @@ Server/
   rules/species.js              알 → 캐릭터 뽑기
   rules/lines.js                플라몽 한마디 대사 표 · 그날의 3줄(linesOf) · 감정 맞장구(replyOf)
   rules/weather.js              어제의 마음 날씨: 감정별 인원 → 막대 길이(weatherOf) · 최소 인원(WEATHER_MIN)
+  rules/calendar.js             마음 달력: 한 달의 날수 · 1일의 요일 · 넘길 수 있는 달 · 날짜별 감정(calendarOf)
   rules/game.js                 미니게임 수치 단일 출처(TIDY) · 점수 상한 · 최소 시간 · 이달의 게임 표(GAME_OF_MONTH)
   rules/rateLimit.js            IP당 횟수 제한 (가입 · 닉네임 확인 · 로그인)
   deploy/                       Oracle VM 설정: setup.sh(처음 한 번) · flamong.service(systemd) · Caddyfile(HTTPS · /api · 웹 빌드)

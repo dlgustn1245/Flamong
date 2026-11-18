@@ -1,4 +1,5 @@
 import { logEvent, playerOf, tx } from '../db.js';
+import { calendarOf, MONTH_PATTERN } from '../rules/calendar.js';
 import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
 import { linesOf, replyOf } from '../rules/lines.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
@@ -21,6 +22,9 @@ export default async function character(app, { db, now }) {
   const insertEmotion = db.prepare('INSERT INTO emotion_log (player_id, date, emotion) VALUES (?, ?, ?)');
   // ponytail: 날짜 인덱스 없이 표를 훑는다(하루 한 사람당 한 번). 행이 수십만이 되면 emotion_log(date) 인덱스
   const getWeather = db.prepare('SELECT emotion, count(*) AS n FROM emotion_log WHERE date = ? GROUP BY emotion');
+  // UNIQUE(player_id, date) 인덱스로 한 달 치를 바로 찾는다
+  const getMonthEmotions = db.prepare('SELECT date, emotion FROM emotion_log WHERE player_id = ? AND date >= ? AND date <= ?');
+  const getCreatedAt = db.prepare('SELECT created_at FROM player WHERE id = ?');
   const setHearts = db.prepare('UPDATE player SET hearts = ?, hearts_date = ? WHERE id = ?');
   const setAffection = db.prepare('UPDATE character SET affection = ? WHERE id = ?');
   const endCharacter = db.prepare('UPDATE character SET ended_at = ? WHERE id = ?');
@@ -157,5 +161,18 @@ export default async function character(app, { db, now }) {
       // 어제의 마음 날씨. 고른 뒤에만 보여 준다 (먼저 보면 남을 따라 고른다)
       weather: weatherOf(getWeather.all(kstDate(new Date(now().getTime() - DAY_MS)))),
     };
+  });
+
+  // 마음 달력. month 를 빼면 이번 달(KST). 가입한 달부터 이번 달까지만 볼 수 있다
+  app.get('/emotions', {
+    schema: { querystring: { type: 'object', properties: { month: { type: 'string', pattern: MONTH_PATTERN } } } },
+  }, (req, reply) => {
+    const p = playerOf(db, req, reply);
+    if (!p) return reply;
+    const today = kstDate(now());
+    const firstMonth = kstDate(new Date(getCreatedAt.get(p.id).created_at)).slice(0, 7);
+    const month = req.query.month ?? today.slice(0, 7);
+    if (month < firstMonth || month > today.slice(0, 7)) return reply.code(400).send({ error: 'month_range' });
+    return calendarOf(month, getMonthEmotions.all(p.id, `${month}-01`, `${month}-31`), firstMonth, today);
   });
 }
