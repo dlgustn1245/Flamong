@@ -509,7 +509,8 @@ Server/
   rules/game.js                 미니게임 수치 단일 출처(TIDY) · 점수 상한 · 최소 시간 · 이달의 게임 표(GAME_OF_MONTH)
   rules/rateLimit.js            IP당 횟수 제한 (가입 · 닉네임 확인 · 로그인)
   deploy/                       Oracle VM 설정: setup.sh(처음 한 번) · flamong.service(systemd) · Caddyfile(HTTPS · /api · 웹 빌드)
-                                deploy-server.bat(더블클릭: 테스트 → 서버 코드 올리기 · 재시작 → 응답 확인. 테스트가 실패하면 올리지 않는다)
+                                deploy-server.bat(서버 코드 올리기) · deploy-web.bat(웹 빌드 올리기, 빌드 폴더에 deploy.bat 으로 복사해 씀)
+                                db-stats.bat · db-stats.mjs(운영 DB 현황, 읽기만). 사용법은 「배포」
   test/*.test.js                node:test
   requests.http                 수동 테스트 (gitignore, 로컬 전용)
 ```
@@ -586,6 +587,38 @@ Server/
 
 ---
 
+## 배포
+
+주소는 `https://flamong.lhsdev.info`다. Oracle Cloud 도쿄 리전의 Always Free VM 한 대(`VM.Standard.E2.1.Micro`, 1GB, Ubuntu 24.04)에서 돈다.
+
+| 무엇 | 어디 | 비고 |
+|---|---|---|
+| HTTPS · 정적 파일 | Caddy (`/etc/caddy/Caddyfile`) | `/api/*` → Node `127.0.0.1:3000`, 나머지는 웹 빌드. 인증서는 Caddy가 알아서 받는다 |
+| 서버 코드 | `/opt/flamong/server` | systemd `flamong`(`flamong` 계정, 읽기 전용 시스템). 로그는 `journalctl -u flamong` |
+| DB | `/var/lib/flamong/flamong.db` | 실명 · 팀이 있어 `flamong` 계정만 읽는다. 배포는 이 파일을 건드리지 않는다 |
+| 웹 빌드 | `/var/www/flamong` | `/Build/*`는 1년 캐시(파일 이름이 해시), `index.html`은 `no-cache` |
+| 백업 | `/var/backups/flamong/flamong-날짜.db` | 매일 한 번(`/etc/cron.daily/flamong-backup`), 14일 지난 것은 지운다 |
+| DNS | 가비아 `flamong.lhsdev.info` A 레코드 | `lhsdev.info` · `www`는 포트폴리오(GitHub Pages)라 건드리지 않는다 |
+
+**올리는 순서는 서버 → 웹 빌드다.** 새 화면이 아직 없는 API를 부르지 않게 한다. 서버 응답에 필드가 늘어나는 것은 예전 화면이 무시하므로 서버를 먼저 올려도 안전하다.
+
+| 할 일 | 방법 |
+|---|---|
+| 서버 코드 올리기 | `Server/deploy/deploy-server.bat` 더블클릭. 테스트 → (아무 키) → 올리기 · 재시작(2초쯤 끊김) → `/api/me`가 401로 답하는지 확인. 테스트가 실패하면 올리지 않는다 |
+| 웹 빌드 올리기 | Unity에서 Build(`Web - Mobile`, 버전 입력) → 빌드 폴더의 `deploy.bat` 더블클릭. 크기 표시 → (아무 키) → 새 폴더에 풀어 한 번에 바꿔 끼움 → 사이트가 내주는 해시 파일 4개가 방금 빌드와 같은지 확인. 폰트 라이선스(`OFL.txt`)도 함께 올린다. `deploy.bat`의 원본은 `Server/deploy/deploy-web.bat`이고, 빌드 폴더에 복사해 둔 것이다(Unity 빌드에도 지워지지 않는다) |
+| 운영 DB 현황 보기 | `Server/deploy/db-stats.bat` 더블클릭. 읽기만 한다. 가입자 · 레벨 분포 · 오늘/어제 감정 · 이번 달 게임 · 글 · 소식 작성권 · 백업 파일을 보여 주고, 실명 · playerId는 찍지 않는다 |
+| 닉네임 찾기 · 비밀번호 새로 정하기 · 소식 작성권 · 점수 지우기 | 「규칙 › 인증 › 운영자 복구」의 명령을 SSH로 실행 |
+| 처음 설치(새 VM) | `Server/deploy/` 를 VM에 올리고 `sudo bash setup.sh` → 서버 코드 · 웹 빌드를 위 방법으로 올림 → 가비아 A 레코드를 새 IP로 |
+
+- 배치 파일은 Git Bash(`C:\Program Files\Git\bin\bash.exe`)와 SSH 키 `~/.ssh/flamong_oci`를 쓴다. 접속 계정은 `ubuntu`다.
+- 서버 배포는 `npm install`을 하지 않는다. 의존성(`package.json`)이 바뀌면 서버에서 `cd /opt/flamong/server && sudo npm ci --omit=dev`를 따로 한다. 지금까지는 그런 적이 없다.
+- **되돌리기**는 따로 없다. 이전 커밋으로 돌아가 같은 방법으로 다시 올린다. DB는 배포와 상관없이 그대로다. DB를 되돌려야 하면 서비스를 멈추고 백업 파일을 `flamong.db`로 덮어쓴다(그 뒤의 기록은 사라진다).
+- 재시작할 때 「unit file changed on disk, run daemon-reload」 경고가 뜨는데, 서버의 `flamong.service`는 저장소 것과 같고 돌고 있는 서비스에도 같은 설정이 적용돼 있다(2026-11-18 확인). 무시해도 된다.
+- **고정 IP(예약 공개 IP)는 쓰지 않는다**(2026-11-18 결정). 지금 IP는 VM을 껐다 켜도 그대로이고 VM을 지울 때만 바뀐다. VM을 새로 만들면 어차피 설치부터 다시 하므로 그때 A 레코드 한 줄을 고친다. 붙이지 않은 예약 IP에 요금이 붙는지는 공식 가격표에서 확인하지 못했다.
+- Oracle 계정은 Pay As You Go다(2026-11-18 전환 완료, 유휴 VM 회수 방지). 지금 구성은 Always Free 범위라 요금이 나오지 않아야 한다. 실수에 대비해 Billing → Budgets의 root 예산($1 · 월)에 「실제 사용액 1%」 메일 알림을 걸어 두었다. root를 대상으로 하는 예산은 하나만 만들 수 있어 있던 것을 고쳐 썼다. 알림일 뿐 요금을 막지는 않는다.
+
+---
+
 ## 로드맵
 
 | 버전 | 내용 |
@@ -622,7 +655,7 @@ Server/
 - **입력 설정은 「둘 다」(`activeInputHandler: 2`) 유지(2026-11-03 결정).**
   - 코드에는 옛 `Input`이 없다. 하지만 이 설정으로 **폰 브라우저 한글 입력이 되는 것을 확인했다**(배포 빌드 `v1.2.0`). 새 Input System 하나로 바꾸면 얻는 것은 작고, 바꿀 때마다 폰 확인을 다시 해야 해서 그대로 둔다.
   - **PC 브라우저에서는 한글이 입력되지 않는다.** Unity 웹 빌드가 데스크톱 IME를 지원하지 않는 한계다(Unity 6 매뉴얼 「IME Input」에서 Web은 미지원). 주 대상이 폰이라 받아들이고, Login 화면에 PC 안내를 띄운다. PC 지원이 필요해지면 입력칸 위에 브라우저 입력칸을 겹치는 방식(WebGLInput 패키지 또는 직접 만든 `.jslib`)을 검토한다.
-- **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 12.98MB(여유 2.02MB)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 배경음을 넣은 뒤 15MB를 넘으면 Crunch 압축 → 어드레서블(플레이어당 5장만 받음) 순으로 줄인다.
+- **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 14.03MB(여유 0.97MB, 2026-11-18)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 15MB를 넘으면 안 쓰는 것 빼기(URP SMAA 텍스처 등) → 진화 그림 ASTC 블록 6×6 → 8×8(약 −1.5MB, 폰에서 윤곽선 확인) → 어드레서블 순으로 줄인다. Crunch 압축은 DXT · ETC 전용이라 ASTC에는 쓸 수 없다.
 
 ---
 
