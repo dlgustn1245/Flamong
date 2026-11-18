@@ -512,6 +512,7 @@ Server/
                                 deploy-server.bat(서버 코드 올리기) · deploy-web.bat(웹 빌드 올리기, 빌드 폴더에 deploy.bat 으로 복사해 씀)
                                 db-stats.bat · db-stats.mjs(운영 DB 현황, 읽기만). 사용법은 「배포」
                                 reset-password.bat · .sh · .mjs(운영 계정의 비밀번호 새로 정해 주기)
+                                make-qr.mjs(접속 주소의 QR 코드 PNG 만들기, 의존성 없음) · flamong-qr.png(배포용 QR, 888²)
                                 db-users.bat(운영 DB 사용자 목록) · db-users-local.bat(로컬 개발 DB 사용자 목록) · db-users.mjs(둘이 같이 쓰는 조회 스크립트, 읽기만)
   test/*.test.js                node:test
   requests.http                 수동 테스트 (gitignore, 로컬 전용)
@@ -611,6 +612,7 @@ Server/
 | 운영 DB 현황 보기 | `Server/deploy/db-stats.bat` 더블클릭. 읽기만 한다. 가입자 · 레벨 분포 · 오늘/어제 감정 · 이번 달 게임 · 글 · 소식 작성권 · 백업 파일을 보여 주고, 실명 · playerId는 찍지 않는다 |
 | 운영 DB 사용자 보기 | `Server/deploy/db-users.bat` 더블클릭. 읽기만 한다. 사용자마다 닉네임 · 가입일 · 캐릭터(종 · 레벨 · 애정도) · 하트 · 감정 기록 일수 · 이번 달 게임 최고 점수 · 묘약 · 글 · 소식 작성권을 보여 준다. **팀 · 이름(실명)은 기본으로 가리고**, 물음에 `y`를 넣었을 때만 팀 · 이름 · playerId 앞 8자를 함께 찍는다(닉네임 찾아 주기처럼 필요할 때만). 비밀번호 해시는 찍지 않는다 |
 | 로컬 개발 DB 사용자 보기 | `Server/deploy/db-users-local.bat` 더블클릭. 이 PC의 `Server/flamong.db`를 같은 형식으로 보여 준다. 테스트 계정이라 팀 · 이름 · playerId 앞 8자를 늘 찍는다. 조회 스크립트는 운영과 같은 `db-users.mjs`다 |
+| 접속용 QR 코드 | `Server/deploy/flamong-qr.png`(`https://flamong.lhsdev.info`, 888×888, 흰 바탕에 검정). 주소가 바뀌면 `Server`에서 `node deploy/make-qr.mjs [주소] [출력.png]`로 다시 만든다. 패키지 없이 직접 그린다(QR 버전 3 · 오류 정정 M, 주소 42바이트까지). 인쇄할 때는 둘레 흰 여백을 자르지 않는다 |
 | 비밀번호 새로 정해 주기 | `Server/deploy/reset-password.bat` 더블클릭. 닉네임 입력 → 운영 서버에서 계정을 찾아 보여 줌 → 새 비밀번호(숫자 4~6자리) 입력 → (아무 키) → 바꾸고 로그인 잠금을 푼다. 없는 닉네임이거나 규칙에 안 맞는 비밀번호면 아무것도 바꾸지 않는다. 비밀번호는 원문을 저장하지 않아 「알아내는」 방법은 없고 새로 정할 수만 있다. 본인 확인을 한 뒤에만 쓴다 |
 | 닉네임 찾기 · 비밀번호 새로 정하기 · 소식 작성권 · 점수 지우기 | 「규칙 › 인증 › 운영자 복구」의 명령을 SSH로 실행 |
 | 처음 설치(새 VM) | `Server/deploy/` 를 VM에 올리고 `sudo bash setup.sh` → 서버 코드 · 웹 빌드를 위 방법으로 올림 → 가비아 A 레코드를 새 IP로 |
