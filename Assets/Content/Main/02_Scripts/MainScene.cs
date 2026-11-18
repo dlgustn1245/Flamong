@@ -56,7 +56,14 @@ public class MainScene : MonoBehaviour
     public Button gameButton;
     
     public GameObject emotionPanel;
-    public Button[] emotionButtons; 
+    public Button[] emotionButtons;
+    
+    public Button characterButton;
+    public GameObject bubble;
+    public TextMeshProUGUI bubbleText;
+    public TextMeshProUGUI bubblePageText;
+    string[] lines;
+    int lineIdx;
     
     int heartTaps;
     int speciesId;
@@ -148,6 +155,8 @@ public class MainScene : MonoBehaviour
             contactPanel.SetActive(false);
         });
         
+        characterButton.onClick.AddListener(ShowNextLine);
+        
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
     }
@@ -180,6 +189,13 @@ public class MainScene : MonoBehaviour
             emotionButton.interactable = true;
         }
         emotionPanel.SetActive(false);
+        if (!string.IsNullOrEmpty(response.reply))
+        {
+            bubble.SetActive(true);
+            bubbleText.SetText(response.reply);
+            bubblePageText.SetText(string.Empty);
+            lineIdx = -1;
+        }
         ApplyGrowth(response);
     }
 
@@ -232,6 +248,7 @@ public class MainScene : MonoBehaviour
             emotionButton.onClick.RemoveAllListeners();
         }
         contactCloseButton.onClick.RemoveAllListeners();
+        characterButton.onClick.RemoveAllListeners();
         StopAllCoroutines();
     }
 
@@ -317,6 +334,28 @@ public class MainScene : MonoBehaviour
         if (!response.emotionToday)
         {
             emotionPanel.SetActive(true);
+        }
+        lines = response.lines;
+        lineIdx = 0;
+        ShowLine();
+    }
+
+    void ShowLine()
+    {
+        if (lines != null && lines.Length > 0)
+        {
+            bubble.SetActive(true);
+            bubbleText.text = lines[lineIdx];
+            bubblePageText.text = $"{lineIdx + 1} / {lines.Length}";
+        }
+    }
+
+    void ShowNextLine()
+    {
+        if (lines != null && lines.Length > 0)
+        {
+            lineIdx = ++lineIdx % lines.Length;
+            ShowLine();
         }
     }
 

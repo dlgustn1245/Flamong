@@ -75,6 +75,7 @@ namespace ServerData
 	public class TapBody
 	{
 		public bool levelUp;
+		public string reply;
 		public Growth growth;
 	}
 
@@ -88,7 +89,8 @@ namespace ServerData
 		public int speciesId;
 		public bool emotionToday;
 		public bool potionReady;
-		public bool newsReady;   // 오늘의 소식 담당이고 아직 안 씀 (확성기 빨간 점)
+		public bool newsReady;
+		public string[] lines;
 		public Growth growth;
 	}
 	
