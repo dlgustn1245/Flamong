@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -17,13 +16,11 @@ public class GameScene : MonoBehaviour
     public TextMeshProUGUI[] recordTexts;
     public GameObject[] nowMarks;
     
-    Dictionary<string, string> header;
     int nowMonth = -1;
     MonthItem[] months;
 
     void Start()
     {
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         GetMonths();
         
         backButton.onClick.AddListener(() =>
@@ -55,7 +52,7 @@ public class GameScene : MonoBehaviour
     {
         StartCoroutine(NetworkManager.Instance.GetRequest<MonthsBody>(
             $"{NetworkManager.BASE_URL}/games/months", 
-            OnSuccessGetMonths, OnFailGetMonths, header));
+            OnSuccessGetMonths, OnFailGetMonths));
     }
 
     void OnSuccessGetMonths(MonthsBody response)
@@ -137,7 +134,7 @@ public class GameScene : MonoBehaviour
             (code, error) =>
             {
                 OnFailGetBoard(code, error, idx);
-            }, header, 5));
+            }, 5));
     }
 
     void OnSuccessGetBoard(Board response)

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -30,13 +29,11 @@ public class CalendarScene : MonoBehaviour
     public Sprite[] emotionSprites;
     public Color todayColor = new Color32(0xFF, 0xFE, 0xB1, 0xFF);
     
-    Dictionary<string, string> header;
     CalendarBody calendar;
     string month = string.Empty;
 
     void Start()
     {
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         BindButtonEvents();
         GetCalendar();
     }
@@ -87,7 +84,7 @@ public class CalendarScene : MonoBehaviour
         string query = string.IsNullOrEmpty(month) ? string.Empty : $"?month={month}";
         StartCoroutine(NetworkManager.Instance.GetRequest<CalendarBody>(
             $"{NetworkManager.BASE_URL}/emotions{query}", 
-            OnSuccessGetCalendar, OnFailGetCalendar, header));
+            OnSuccessGetCalendar, OnFailGetCalendar));
     }
 
     void OnSuccessGetCalendar(CalendarBody response)

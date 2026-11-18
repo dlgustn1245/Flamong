@@ -108,7 +108,6 @@ public class LoginScene : MonoBehaviour
             $"{NetworkManager.BASE_URL}/players/check?nickname={UnityWebRequest.EscapeURL(checkedNickName)}",
             OnSuccessCheckNickName,
             OnFailCheckNickName,
-            null,
             3));
     }
 
@@ -170,7 +169,7 @@ public class LoginScene : MonoBehaviour
         };
 
         StartCoroutine(NetworkManager.Instance.PostRequest<PostPlayerRequestBody, PostPlayerResponseBody>(
-            $"{NetworkManager.BASE_URL}/players", player, OnSuccessPostPlayer, OnFailPostPlayer, null, 10));
+            $"{NetworkManager.BASE_URL}/players", player, OnSuccessPostPlayer, OnFailPostPlayer, 10));
     }
 
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다
@@ -219,7 +218,7 @@ public class LoginScene : MonoBehaviour
         };
         StartCoroutine(
             NetworkManager.Instance.PostRequest<LoginRequestBody, PostPlayerResponseBody>(
-            $"{NetworkManager.BASE_URL}/players/login", body, OnSuccessLogin, OnFailLogin, null, 10));
+            $"{NetworkManager.BASE_URL}/players/login", body, OnSuccessLogin, OnFailLogin, 10));
     }
 
     void OnSuccessLogin(PostPlayerResponseBody response)

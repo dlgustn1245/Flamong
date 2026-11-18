@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -79,13 +78,11 @@ public class MainScene : MonoBehaviour
     int heartTaps;
     int speciesId;
     Coroutine gaugeRoutine;
-    Dictionary<string, string> header;
     bool isSending;
     bool isCompleted;
 
     void Start()
     {
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         heartButton.interactable = false;
         characterImage.enabled = false;   // /me 응답 전에 씬의 기본 그림이 잠깐 보이지 않게
         heartTaps = PlayerPrefs.GetInt(SessionState.HEART_TAPS_KEY);
@@ -194,7 +191,7 @@ public class MainScene : MonoBehaviour
             request, OnSuccessPostEmotion, (code, error) =>
             {
                 OnFailPostEmotion(code, error, emotion);
-            }, header));
+            }));
     }
 
     void OnSuccessPostEmotion(TapBody response)
@@ -326,8 +323,7 @@ public class MainScene : MonoBehaviour
             $"{NetworkManager.BASE_URL}/characters/reset",
             new EmptyBody(),
             OnSuccessResetCharacter,
-            OnFailResetCharacter,
-            header));
+            OnFailResetCharacter));
     }
 
     void WithdrawCharacter()
@@ -335,8 +331,7 @@ public class MainScene : MonoBehaviour
         StartCoroutine(NetworkManager.Instance.DeleteRequest<OkBody>(
             $"{NetworkManager.BASE_URL}/players/me", 
             OnSuccessDeleteMe, 
-            OnFailDeleteMe, 
-            header));
+            OnFailDeleteMe));
     }
 
     void OnSuccessDeleteMe(OkBody response)
@@ -377,7 +372,7 @@ public class MainScene : MonoBehaviour
     void Init()
     {
         StartCoroutine(NetworkManager.Instance.GetRequest<MeBody>(
-            $"{NetworkManager.BASE_URL}/me", OnSuccessGetMe, OnFailGetMe, header));
+            $"{NetworkManager.BASE_URL}/me", OnSuccessGetMe, OnFailGetMe));
     }
 
     void OnSuccessGetMe(MeBody response)
@@ -510,8 +505,7 @@ public class MainScene : MonoBehaviour
             $"{NetworkManager.BASE_URL}/players/me", 
             body, 
             OnSuccessPatchPlayer, 
-            OnFailPatchPlayer,
-            header
+            OnFailPatchPlayer
             ));
     }
 
@@ -550,7 +544,7 @@ public class MainScene : MonoBehaviour
     {
         isSending = true;
         yield return NetworkManager.Instance.PostRequest<EmptyBody, TapBody>(
-            $"{NetworkManager.BASE_URL}/tap", new EmptyBody(), OnSuccessTap, OnFailTap, header);
+            $"{NetworkManager.BASE_URL}/tap", new EmptyBody(), OnSuccessTap, OnFailTap);
         isSending = false;
     }
 

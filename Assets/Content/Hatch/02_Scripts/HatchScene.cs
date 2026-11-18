@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using ServerData;
 using UnityEngine;
 using UnityEngine.UI;
@@ -53,9 +52,8 @@ public class HatchScene : MonoBehaviour
         {
             eggId = SessionState.Instance.eggIdx
         };
-        var header = new Dictionary<string, string>{{"X-Player-Id",  SessionState.Instance.playerId}};
         StartCoroutine(NetworkManager.Instance.PostRequest<PostCharacterRequestBody, PostCharacterResponseBody>(
-            $"{NetworkManager.BASE_URL}/characters", request, OnSuccessPostCharacter, OnFailPostCharacter, header, 5));
+            $"{NetworkManager.BASE_URL}/characters", request, OnSuccessPostCharacter, OnFailPostCharacter, 5));
     }
 
     // 실패(2xx 아님 · 응답을 못 읽음)는 NetworkManager 가 OnFail 로 보낸다

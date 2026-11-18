@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -27,13 +26,11 @@ public class PotionScene : MonoBehaviour
     public string visitMissionId;
     public string[] hiddenMissionIds;
     
-    Dictionary<string, string> header;
 
     void Start()
     {
         BindButtonEvents();
         
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         GetMissions();
     }
 
@@ -85,8 +82,7 @@ public class PotionScene : MonoBehaviour
             (code, error) =>
             {
                 OnFailClaimPotion(code, error, missionId);
-            },
-            header));
+            }));
     }
 
     void OnSuccessClaimPotion(TapBody response)
@@ -125,8 +121,7 @@ public class PotionScene : MonoBehaviour
         StartCoroutine(NetworkManager.Instance.GetRequest<MissionsBody>(
             $"{NetworkManager.BASE_URL}/missions", 
             OnSuccessGetMissions, 
-            OnFailedGetMissions, 
-            header));   
+            OnFailedGetMissions));
     }
 
     void OnSuccessGetMissions(MissionsBody response)

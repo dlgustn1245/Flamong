@@ -27,7 +27,7 @@ export function visitStatus(visitDays, claimed) {
   return { progress: Math.min(VISIT_PER_POTION, visitDays - claimed * VISIT_PER_POTION), need: VISIT_PER_POTION };
 }
 
-const DAY_MS = 86_400_000;
+export const DAY_MS = 86_400_000;
 const KST_MS = 9 * 3_600_000;
 
 /** KST 기준 날짜 'YYYY-MM-DD'. 하루는 KST 0시에 바뀐다 @param {Date} d */

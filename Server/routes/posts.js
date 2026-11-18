@@ -1,11 +1,10 @@
 import { createHash } from 'node:crypto';
 import { logEvent, playerOf, tx } from '../db.js';
-import { kstDate } from '../rules/growth.js';
+import { DAY_MS, kstDate } from '../rules/growth.js';
 import { isValidText, POST_MAX } from '../rules/text.js';
 
 const KINDS = ['garden', 'news'];
 const POST_LIST = 30;   // 탭마다 최신 글 수. 넘기기는 없다
-const DAY_MS = 86_400_000;
 
 /**
  * 오늘의 소식 담당 1명. 저장하지 않고 날짜로 계산한다.

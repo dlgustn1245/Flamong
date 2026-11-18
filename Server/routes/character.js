@@ -1,13 +1,11 @@
 import { logEvent, playerOf, tx } from '../db.js';
 import { calendarOf, MONTH_PATTERN } from '../rules/calendar.js';
-import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
+import { addAffection, DAY_MS, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
 import { linesOf, replyOf } from '../rules/lines.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
 import { weatherOf } from '../rules/weather.js';
 import { missionsOf } from './potion.js';
 import { newsReadyOf } from './posts.js';
-
-const DAY_MS = 86_400_000;
 
 /**
  * 내 캐릭터 · 하트 · 오늘의 감정. 모든 경로가 X-Player-Id 헤더를 요구한다.

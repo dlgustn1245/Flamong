@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using ServerData;
 using UnityEngine;
 
@@ -29,7 +28,6 @@ public static class EntryRouter
     public static IEnumerator Go(Action<long, string> onFail)
     {
         var session = SessionState.Instance;
-        var header = new Dictionary<string, string> { { "X-Player-Id", session.playerId } };
         yield return NetworkManager.Instance.GetRequest<MeBody>(
             $"{NetworkManager.BASE_URL}/me",
             me =>
@@ -49,8 +47,7 @@ public static class EntryRouter
                     return;
                 }
                 onFail?.Invoke(code, error);
-            },
-            header);
+            });
     }
 
     public static void GoToLogin()

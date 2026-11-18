@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -17,7 +16,6 @@ public class CollectionScene : MonoBehaviour
 
     public ErrorPanel errorPanel;
     
-    Dictionary<string, string> header;
     string[] eggNames = {"핑크 알", "퍼플 알", "블루 알", "그린 알", "그레이 알", "오렌지 알", "라벤더 알", "크림 알"};
     int[] completed;
     int[] levels;
@@ -25,7 +23,6 @@ public class CollectionScene : MonoBehaviour
 
     void Start()
     {
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         GetCollection();
         
         backButton.onClick.AddListener(() =>
@@ -82,7 +79,7 @@ public class CollectionScene : MonoBehaviour
     void GetCollection()
     {
         StartCoroutine(NetworkManager.Instance.GetRequest<CollectionBody>(
-            $"{NetworkManager.BASE_URL}/collection", OnSuccessGetCollection, OnFailGetCollection, header));
+            $"{NetworkManager.BASE_URL}/collection", OnSuccessGetCollection, OnFailGetCollection));
     }
 
     void OnSuccessGetCollection(CollectionBody response)

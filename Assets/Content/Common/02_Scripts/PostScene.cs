@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -27,11 +26,9 @@ public class PostScene : MonoBehaviour
     public TextMeshProUGUI[] dateTexts;
     public GameObject emptyText;
     
-    Dictionary<string, string> header;
 
     void Start()
     {
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         GetPost();
         
         inputField.onValueChanged.AddListener(body =>
@@ -67,7 +64,7 @@ public class PostScene : MonoBehaviour
         
         StartCoroutine(NetworkManager.Instance.PostRequest<PostRequestBody, OkBody>(
             $"{NetworkManager.BASE_URL}/posts", request,
-            OnSuccessPostMessage, OnFailPostMessage, header));
+            OnSuccessPostMessage, OnFailPostMessage));
     }
 
     void OnSuccessPostMessage(OkBody response)
@@ -105,8 +102,7 @@ public class PostScene : MonoBehaviour
         StartCoroutine(NetworkManager.Instance.GetRequest<PostsBody>(
             $"{NetworkManager.BASE_URL}/posts?kind={kind}",
             OnSuccessGetPost,
-            OnFailGetPost, 
-            header));
+            OnFailGetPost));
     }
 
     void OnSuccessGetPost(PostsBody response)

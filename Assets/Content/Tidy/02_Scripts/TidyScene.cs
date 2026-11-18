@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using ServerData;
 using TMPro;
 using UnityEngine;
@@ -38,7 +37,6 @@ public class TidyScene : MonoBehaviour
     public Button resultRankingButton;
     public Button retryButton;
 
-    Dictionary<string, string> header;
     int lastScore;   // 연결 실패로 다시 보낼 때 같은 점수를 쓴다
     bool isPlaying;
     bool isPaused;   // 멈춘 뒤 다시 3 · 2 · 1 을 다 셀 때까지. 그 사이 [뒤로]를 또 누르면 세기가 겹친다
@@ -102,7 +100,6 @@ public class TidyScene : MonoBehaviour
             GetRanking(true);
         });
 
-        header = new Dictionary<string, string> { { "X-Player-Id", SessionState.Instance.playerId } };
         GetRanking(false);
     }
 
@@ -145,7 +142,7 @@ public class TidyScene : MonoBehaviour
             (code, error) =>
             {
                 OnFailGetBoard(code, error, openBoard);
-            }, header, 5));
+            }, 5));
     }
 
     void OnSuccessGetBoard(Board response, bool openBoard)
@@ -197,7 +194,7 @@ public class TidyScene : MonoBehaviour
         
         StartCoroutine(NetworkManager.Instance.PostRequest<GameStartRequestBody, GameStartBody>(
             $"{NetworkManager.BASE_URL}/games/start", request,
-            OnSuccessPostGame, OnFailPostGame, header, 5));
+            OnSuccessPostGame, OnFailPostGame, 5));
     }
 
     void OnSuccessPostGame(GameStartBody response)
@@ -251,7 +248,7 @@ public class TidyScene : MonoBehaviour
 
         StartCoroutine(NetworkManager.Instance.PostRequest<ScoreRequestBody, ScoreBody>(
             $"{NetworkManager.BASE_URL}/scores", request,
-            OnSuccessPostScore, OnFailPostScore, header, 10));
+            OnSuccessPostScore, OnFailPostScore, 10));
     }
 
     void OnSuccessPostScore(ScoreBody response)

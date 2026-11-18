@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -20,10 +19,9 @@ public class NetworkManager : Singleton<NetworkManager>
 		string url,
 		Action<TResponse> onSuccess,
 		Action<long, string> onError,
-		Dictionary<string, string> headers = null,
 		int timeout = 10)
 	{
-		return Send("GET", url, null, onSuccess, onError, headers, timeout);
+		return Send("GET", url, null, onSuccess, onError, timeout);
 	}
 
 	public IEnumerator PostRequest<TRequest, TResponse>(
@@ -31,10 +29,9 @@ public class NetworkManager : Singleton<NetworkManager>
 		TRequest jsonData,
 		Action<TResponse> onSuccess,
 		Action<long, string> onError,
-		Dictionary<string, string> headers = null,
 		int timeout = 60)
 	{
-		return Send("POST", url, ToJsonBytes(jsonData), onSuccess, onError, headers, timeout);
+		return Send("POST", url, ToJsonBytes(jsonData), onSuccess, onError, timeout);
 	}
 
 	// 일부만 고치는 요청 (PATCH /players/me). 형식은 POST 와 같다
@@ -43,15 +40,14 @@ public class NetworkManager : Singleton<NetworkManager>
 		TRequest jsonData,
 		Action<TResponse> onSuccess,
 		Action<long, string> onError,
-		Dictionary<string, string> headers = null,
 		int timeout = 60)
 	{
-		return Send("PATCH", url, ToJsonBytes(jsonData), onSuccess, onError, headers, timeout);
+		return Send("PATCH", url, ToJsonBytes(jsonData), onSuccess, onError, timeout);
 	}
-	
-	public IEnumerator DeleteRequest<TResponse>(string url, Action<TResponse> onSuccess, Action<long, string> onError, Dictionary<string, string> headers = null, int timeout = 10)
+
+	public IEnumerator DeleteRequest<TResponse>(string url, Action<TResponse> onSuccess, Action<long, string> onError, int timeout = 10)
 	{
-		return Send("DELETE", url, null, onSuccess, onError, headers, timeout);
+		return Send("DELETE", url, null, onSuccess, onError, timeout);
 	}
 
 	static byte[] ToJsonBytes<T>(T data)
@@ -66,7 +62,6 @@ public class NetworkManager : Singleton<NetworkManager>
 		byte[] body,
 		Action<TResponse> onSuccess,
 		Action<long, string> onError,
-		Dictionary<string, string> headers,
 		int timeout)
 	{
 		// 본문은 찍지 않는다. 가입 · 로그인 요청에 비밀번호가 원문으로 들어 있고, 웹 빌드에서는 브라우저 콘솔에 그대로 남는다
@@ -80,12 +75,11 @@ public class NetworkManager : Singleton<NetworkManager>
 				request.uploadHandler = new UploadHandlerRaw(body);
 				request.SetRequestHeader("Content-Type", "application/json");
 			}
-			if (headers != null)
+			// 로그인한 뒤의 모든 요청에 붙인다. 씬마다 헤더를 만들지 않는다. 가입 · 로그인 전에는 비어 있어 붙지 않는다
+			string playerId = SessionState.Instance.playerId;
+			if (!string.IsNullOrEmpty(playerId))
 			{
-				foreach (var header in headers)
-				{
-					request.SetRequestHeader(header.Key, header.Value);
-				}
+				request.SetRequestHeader("X-Player-Id", playerId);
 			}
 
 			request.timeout = timeout;
