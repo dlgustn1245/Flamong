@@ -62,6 +62,14 @@ public class MainScene : MonoBehaviour
     public GameObject bubble;
     public TextMeshProUGUI bubbleText;
     public TextMeshProUGUI bubblePageText;
+    
+    public TextMeshProUGUI emotionTitleText;
+    public TextMeshProUGUI emotionHintText;
+    public GameObject weatherGroup;
+    public Image[] weatherFills; // 피로 · 스트레스 · 성취감 · 몰입 · 평온 순서
+    public GameObject weatherEmptyText;
+    public Button weatherOkButton;
+    
     string[] lines;
     int lineIdx;
     
@@ -157,6 +165,11 @@ public class MainScene : MonoBehaviour
         
         characterButton.onClick.AddListener(ShowNextLine);
         
+        weatherOkButton.onClick.AddListener(() =>
+        {
+            emotionPanel.SetActive(false);
+        });
+        
         bgmSlider.onValueChanged.AddListener(SoundManager.Instance.SetBgmVolume);
         sfxSlider.onValueChanged.AddListener(SoundManager.Instance.SetSfxVolume);
     }
@@ -188,7 +201,7 @@ public class MainScene : MonoBehaviour
         {
             emotionButton.interactable = true;
         }
-        emotionPanel.SetActive(false);
+        ShowWeather(response.weather);
         if (!string.IsNullOrEmpty(response.reply))
         {
             bubble.SetActive(true);
@@ -249,7 +262,33 @@ public class MainScene : MonoBehaviour
         }
         contactCloseButton.onClick.RemoveAllListeners();
         characterButton.onClick.RemoveAllListeners();
+        weatherOkButton.onClick.RemoveAllListeners();
         StopAllCoroutines();
+    }
+
+    void ShowWeather(Weather weather)
+    {
+        foreach (var emotionButton in emotionButtons)
+        {
+            emotionButton.gameObject.SetActive(false);
+        }
+        
+        emotionTitleText.SetText("어제의 마음 날씨");
+        emotionHintText.SetText("어제 {0}명이 마음을 골랐어요", weather.total);
+
+        if (weather.bars != null && weather.bars.Length == weatherFills.Length)
+        {
+            weatherGroup.SetActive(true);
+            for (int i = 0; i < weatherFills.Length; i++)
+            {
+                weatherFills[i].fillAmount = weather.bars[i];
+            }
+        }
+        else
+        {
+            weatherEmptyText.SetActive(true);
+        }
+        weatherOkButton.gameObject.SetActive(true);
     }
 
     void LogOut()

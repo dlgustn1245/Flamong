@@ -76,6 +76,7 @@ namespace ServerData
 	{
 		public bool levelUp;
 		public string reply;
+		public Weather weather;
 		public Growth growth;
 	}
 
@@ -233,6 +234,13 @@ namespace ServerData
 		public string game;    // 출시 전 달 · 다음 달 이후는 ""
 		public int best;
 		public int rank;       // 기록이 없으면 0. 0점 판도 기록이라 best 로 판단하지 않는다
+	}
+	
+	[Serializable]
+	public class Weather
+	{
+		public int total;      // 어제 감정을 고른 사람 수
+		public float[] bars;   // 감정 5종 순서의 막대 길이(0~1). 5명 미만이면 빈 배열
 	}
 
 	// 본문 없는 POST 용. JsonUtility 로 "{}" 가 된다 (빈 본문이면 서버가 400)

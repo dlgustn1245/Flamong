@@ -2,8 +2,11 @@ import { logEvent, playerOf, tx } from '../db.js';
 import { addAffection, EMOTION_AFFECTION, EMOTIONS, growthOf, kstDate, levelOf, MAX_AFFECTION, rechargeHearts } from '../rules/growth.js';
 import { linesOf, replyOf } from '../rules/lines.js';
 import { EGG_COUNT, pickSpecies, SPECIES_PER_EGG } from '../rules/species.js';
+import { weatherOf } from '../rules/weather.js';
 import { missionsOf } from './potion.js';
 import { newsReadyOf } from './posts.js';
+
+const DAY_MS = 86_400_000;
 
 /**
  * 내 캐릭터 · 하트 · 오늘의 감정. 모든 경로가 X-Player-Id 헤더를 요구한다.
@@ -16,6 +19,8 @@ export default async function character(app, { db, now }) {
   const getEmotion = db.prepare('SELECT 1 FROM emotion_log WHERE player_id = ? AND date = ?');
   const insertCharacter = db.prepare('INSERT INTO character (player_id, species_id, started_at) VALUES (?, ?, ?)');
   const insertEmotion = db.prepare('INSERT INTO emotion_log (player_id, date, emotion) VALUES (?, ?, ?)');
+  // ponytail: 날짜 인덱스 없이 표를 훑는다(하루 한 사람당 한 번). 행이 수십만이 되면 emotion_log(date) 인덱스
+  const getWeather = db.prepare('SELECT emotion, count(*) AS n FROM emotion_log WHERE date = ? GROUP BY emotion');
   const setHearts = db.prepare('UPDATE player SET hearts = ?, hearts_date = ? WHERE id = ?');
   const setAffection = db.prepare('UPDATE character SET affection = ? WHERE id = ?');
   const endCharacter = db.prepare('UPDATE character SET ended_at = ? WHERE id = ?');
@@ -149,6 +154,8 @@ export default async function character(app, { db, now }) {
       levelUp: levelOf(affection).level > levelOf(c.affection).level,
       growth: growthOf(rechargeHearts(p.hearts, p.hearts_date, today), affection),
       reply: replyOf(today, p.id, emotion),   // 고른 감정에 맞장구치는 한 줄
+      // 어제의 마음 날씨. 고른 뒤에만 보여 준다 (먼저 보면 남을 따라 고른다)
+      weather: weatherOf(getWeather.all(kstDate(new Date(now().getTime() - DAY_MS)))),
     };
   });
 }

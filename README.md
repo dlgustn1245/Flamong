@@ -134,6 +134,14 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 고른 뒤 응답이 올 때까지 버튼 5개를 잠근다(연타 방지). 409 `emotion_done`(다른 기기에서 먼저 고름 · 응답을 못 받고 다시 보냄)이면 창을 닫고 「오늘은 이미 골랐어요.」만 띄운다. 연결 실패는 오류 창 → 같은 감정으로 다시 시도.
 - 개인 응답은 본인 외에는 보지 않는다. 2.0 대시보드는 **5명 이상 모인 묶음만** 익명 집계로 보여준다. 작은 팀에서 개인이 드러나지 않게 하기 위해서다.
 
+**어제의 마음 날씨** (2026-11-18 구현 · 에디터 확인. 웹 빌드 · 폰 확인 전)
+- 오늘의 감정을 고르면 같은 창이 「어제의 마음 날씨」로 바뀐다. 어제 모두가 고른 감정이 막대 5개로 보이고, [확인]을 누르면 닫힌다. 「나만 그런 게 아니구나」를 주려는 것이고 보상은 없다.
+- **어제 것만** 보여 준다. 오늘 집계는 하루 중에 계속 바뀌고, 아침에는 누가 골랐는지 짐작될 수 있다.
+- **고른 뒤에만** 보여 준다(`POST /emotions`의 `weather`). 먼저 보면 남을 따라 고른다. 그래서 다시 보는 버튼도 두지 않는다.
+- **숫자 · 퍼센트 없이 막대만.** 가장 많이 고른 감정이 꽉 찬 막대(1)이고 나머지는 그에 대한 비율이다. 인원은 전체(「어제 23명이 마음을 골랐어요」)만 적는다.
+- **어제 5명 미만이면 막대를 숨기고** 인원과 「5명이 모이면 모두의 마음 날씨가 보여요」만 띄운다(`rules/weather.js` `WEATHER_MIN`, 2.0 대시보드의 「5명 이상」과 같은 기준).
+- 화면: `Panel - Emotion/Image - Window` 아래 `Group - Weather`(`Row - Tired`~`Calm`: 아이콘 · 이름 · `Image - Bar/Image - Fill`), `Text - WeatherEmpty`, `Button - WeatherOk`. 셋 다 기본 꺼짐. 막대 채움은 Main 게이지와 같은 `gauge_fill`(Filled · Horizontal)이라 코드는 `fillAmount`만 넣는다. 새 그림은 없다.
+
 **플라몽 한마디** (2026-11-18 구현 · 웹 빌드 · 폰 확인)
 - 캐릭터 머리 위 말풍선에 오늘의 한 줄이 뜬다. 캐릭터를 누르면 그날 몫 3줄을 차례로 넘겨 본다.
 - 3줄은 **요일 → 레벨 또는 알 계열(완성 뒤에는 완성 대사) → 공통** 순서다. 서버가 `sha256(날짜 + playerId)`로 골라 같은 날에는 몇 번 들어와도 같은 줄이다(`/me`의 `lines`). 레벨이 오르면 둘째 줄은 다음에 들어올 때 바뀐다.
@@ -387,7 +395,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 클라이언트(`NetworkManager`)는 400 이상이면 `onError(상태 코드, 본문)`으로 보낸다(본문이 없는 연결 실패 · 시간 초과는 Unity 오류 문구). 본문의 `error` 값은 로그로 찍기만 하고, 화면 분기는 코드 숫자로만 나눈다.
 - 씬 스크립트는 성공이면 받은 값(`JsonUtility.ToJson`)을, 실패면 코드와 본문을 `print`로 찍는다. 가입 · 로그인 응답의 `playerId`는 웹 빌드 브라우저 콘솔에 남지 않게 앞 6자리만 찍는다.
 
-**1.0 서버 API 10개, 1.1의 `/collection` · 게임 4개, 1.2의 묘약 2개 · 꽃밭 2개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/games.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 45개 통과).
+**1.0 서버 API 10개, 1.1의 `/collection` · 게임 4개, 1.2의 묘약 2개 · 꽃밭 2개가 모두 구현되어 있다** (`routes/players.js` · `routes/character.js` · `routes/games.js` · `routes/potion.js` · `routes/posts.js`, `npm test` 47개 통과).
 수동 테스트용 요청은 `Server/requests.http`(VS Code REST Client)에 있다. 이 파일은 gitignore 대상이라 로컬에만 있다.
 
 | 메서드 | 경로 | 요청 | 응답 | 버전 |
@@ -401,7 +409,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 | POST | `/characters` | `{ eggId }` (0~7) | `{ speciesId }` · 활성 캐릭터가 이미 있으면 새로 뽑지 않고 그 `speciesId`를 200으로 돌려준다(시간 초과 후 재시도해도 같은 결과) **(구현)** | 1.0 |
 | POST | `/characters/reset` | `{}` | `{ ok }` · 지금 캐릭터를 끝내 보관(`ended_at`). 남은 하트는 그대로. 캐릭터가 없으면(재시도) 그대로 ok **(구현)** | 1.0 |
 | POST | `/tap` | `{}` | `{ levelUp, growth }` · 하트 1개 사용. 캐릭터 없음 409 `no_character`, 완성 409 `completed`, 하트 0 409 `no_hearts` **(구현)** | 1.0 |
-| POST | `/emotions` | `{ emotion }` | `{ levelUp, growth, reply }` · `reply`는 고른 감정에 맞장구치는 한 줄 · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
+| POST | `/emotions` | `{ emotion }` | `{ levelUp, growth, reply, weather }` · `reply`는 고른 감정에 맞장구치는 한 줄 · `weather`는 어제의 마음 날씨 `{ total, bars }`(`bars`는 감정 5종 순서의 막대 길이 0~1, 어제 5명 미만이면 빈 배열) · 하루 2번째는 409 `emotion_done`, 캐릭터 없음 409 `no_character` **(구현)** | 1.0 |
 | GET | `/collection` | - | `{ levels: [24], completed: [speciesId…], speciesId }` · `levels[speciesId]` = 도달한 최고 레벨(0 = 없음, 지금 캐릭터 · 완성한 캐릭터만), `completed` = 완성한 종 오름차순, `speciesId` = 지금 캐릭터(없으면 -1) **(구현)** | 1.1 |
 | POST | `/games/start` | `{ game }` (`tidy`) | `{ rules }` · 한 판의 수치(`durationSec` · `countdownSec` · `minTapMs` · `lockMs` · `changeEvery` · `maxRun` · `comboAt`). `game_play`를 남긴다. 새 시작은 앞의 시작을 덮는다. 모르는 게임 400 **(구현)** | 1.1 |
 | POST | `/scores` | `{ score }` (0~863 정수) | `{ best, rank, gap, gain, levelUp, growth }` · 이번 달(KST) 이 게임의 내 최고 · 등수(동점은 같은 등수) · 다음 등수까지 점수(1등 0) · 오른 애정도(하루 첫 판 +2, 게임 무관). 409: 시작 없음 `not_started` · 시작 뒤 32초 전 `too_fast` · 10분 넘음 `expired`. 이미 받은 판을 다시 보내면 쓰지 않고 200 · `gain` 0 **(구현)** | 1.1 |
@@ -484,6 +492,7 @@ Server/
   rules/growth.js               성장 수치 단일 출처 · 레벨 · 하트 충전 · KST 날짜
   rules/species.js              알 → 캐릭터 뽑기
   rules/lines.js                플라몽 한마디 대사 표 · 그날의 3줄(linesOf) · 감정 맞장구(replyOf)
+  rules/weather.js              어제의 마음 날씨: 감정별 인원 → 막대 길이(weatherOf) · 최소 인원(WEATHER_MIN)
   rules/game.js                 미니게임 수치 단일 출처(TIDY) · 점수 상한 · 최소 시간 · 이달의 게임 표(GAME_OF_MONTH)
   rules/rateLimit.js            IP당 횟수 제한 (가입 · 닉네임 확인 · 로그인)
   deploy/                       Oracle VM 설정: setup.sh(처음 한 번) · flamong.service(systemd) · Caddyfile(HTTPS · /api · 웹 빌드)

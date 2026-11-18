@@ -112,8 +112,9 @@ test('오늘의 감정: +2 · 하루 1회 · 두 번째는 애정도도 오르�
 
   assert.equal((await call(app, 'POST', '/emotions', h, { emotion: 'angry' })).code, 400);
   const first = await call(app, 'POST', '/emotions', h, { emotion: 'calm' });
-  const { reply, ...rest } = first.body;
+  const { reply, weather, ...rest } = first.body;
   assert.deepEqual(rest, { levelUp: false, growth: growth(5, 2, 1, 2, 5) });
+  assert.deepEqual(weather, { total: 0, bars: [] });   // 어제 고른 사람이 없다
   assert.ok(LINES.reply.calm.includes(reply));   // 고른 감정의 맞장구 한 줄
   assert.equal((await call(app, 'GET', '/me', h)).body.emotionToday, true);
 
