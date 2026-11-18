@@ -509,6 +509,7 @@ Server/
   rules/game.js                 미니게임 수치 단일 출처(TIDY) · 점수 상한 · 최소 시간 · 이달의 게임 표(GAME_OF_MONTH)
   rules/rateLimit.js            IP당 횟수 제한 (가입 · 닉네임 확인 · 로그인)
   deploy/                       Oracle VM 설정: setup.sh(처음 한 번) · flamong.service(systemd) · Caddyfile(HTTPS · /api · 웹 빌드)
+                                deploy-server.bat(더블클릭: 테스트 → 서버 코드 올리기 · 재시작 → 응답 확인. 테스트가 실패하면 올리지 않는다)
   test/*.test.js                node:test
   requests.http                 수동 테스트 (gitignore, 로컬 전용)
 ```
