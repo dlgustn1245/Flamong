@@ -150,7 +150,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - 위 화살표로 달을 넘긴다. **가입한 달부터 이번 달까지만** 볼 수 있다(서버가 `prev` · `next`로 알려 준다).
 - 요일 · 날수 · 오늘 · 앞뒤 달은 모두 서버(`rules/calendar.js`)가 정한다. 클라이언트는 날짜 계산을 하지 않는다.
 - **넣지 않는 것**: 연속 출석 일수 · 다 채우면 주는 배지 · 감정별 칸 색 · 빈 날을 나중에 채우기. 출석 압박이 되거나, 보기 좋은 달력을 만들려고 실제와 다른 감정을 고르게 된다.
-- 화면(`Calendar` 씬, `Canvas - Main/Group - Calendar`): `Text - Month`, `Button - Prev` · `Button - Next`, `Group - Week`(일~토), `Group - Cells/Button - Cell 00`~`41`(7칸 × 6줄, 각 칸에 `Text - Day` · `Image - Icon`), `Image - Info`(`Image - Icon` · `Text - Date` · `Text - Emotion` · `Text - Hint`). 칸 42개를 미리 두고 달이 바뀌면 다시 쓴다. 매 프레임 움직이는 것이 없어 `Canvas - Dynamic`은 없다.
+- 화면(`Calendar` 씬, `Canvas - Main/Group - Calendar`): `Text - Month`, `Button - Prev` · `Button - Next`, `Group - Week`(일~토), `Group - Cells/Button - Cell 00`~`41`(7칸 × 6줄, 각 칸에 `Text - Day` · `Image - Icon`), `Image - Info`(`Image - Icon` · `Text - Date` · `Text - Emotion` · `Text - Hint`). 칸 42개를 미리 두고 달이 바뀌면 다시 쓴다. 6줄을 쓰는 달(31일이고 금 · 토요일에 시작, 예: 2026년 5월 · 8월)도 여섯째 줄과 아래 카드가 30만큼 떨어져 겹치지 않는다(에디터에서 로컬 계정의 가입일을 앞당겨 확인). 매 프레임 움직이는 것이 없어 `Canvas - Dynamic`은 없다.
 - 새 그림은 Main 달력 버튼의 `Common/03_Resources/Icon/icon_calendar.png`(164²) 한 장이다. 선은 `icon_mail`의 테두리 픽셀을 윤곽을 따라 옮겨 붙였다. Main 위쪽 줄은 꽃밭 · 소식 · 달력 · 설정 4개(x = −360 · −120 · 120 · 360)가 됐다.
 
 **플라몽 한마디** (2026-11-18 구현 · 웹 빌드 · 폰 확인)
