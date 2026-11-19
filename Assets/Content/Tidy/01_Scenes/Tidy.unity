@@ -4133,7 +4133,7 @@ GameObject:
   - component: {fileID: 1647086404}
   - component: {fileID: 1647086405}
   m_Layer: 0
-  m_Name: TidyScene
+  m_Name: MiniGameScene
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6482,6 +6482,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8174af4fd0b398f469298d66a12e8af7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TidyGame
+  countDownGroup: {fileID: 1292575197}
   countDownText: {fileID: 1292575199}
   icons:
   - {fileID: 1854117364}

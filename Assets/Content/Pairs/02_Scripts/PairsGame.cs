@@ -10,13 +10,8 @@ using Random = UnityEngine.Random;   // using System 의 System.Random 과 겹�
 // 판 시계는 Time.deltaTime 을 더한 값이라 MiniGameScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
 public class PairsGame : MiniGame
 {
-    readonly WaitForSecondsRealtime oneSecond = new WaitForSecondsRealtime(1f);
-
     public override string GameId => GameList.Pairs;
     
-    public GameObject countDownGroup;      // 빛 + 글자 묶음. 글자가 아니라 이 묶음을 켜고 끈다
-    public TextMeshProUGUI countDownText;
-
     public Button[] cardButtons;           // 12장. 왼쪽 위부터 가로로
     public CanvasGroup[] cardGroups;       // 맞춘 카드를 흐리게
     public Image[] backs;                  // 뒷면(알)
@@ -41,7 +36,6 @@ public class PairsGame : MiniGame
 
     GameRules rules;
     Action<int> onEnd;
-    int delay;
 
     State state;
     Phase phase;
@@ -343,18 +337,5 @@ public class PairsGame : MiniGame
         countDownGroup.SetActive(true);
         countDownText.SetText("그만!");
         onEnd?.Invoke(score);
-    }
-
-    public override IEnumerator CountDown(Action timerAction = null)
-    {
-        countDownGroup.SetActive(true);
-        for (int i = delay; i > 0; i--)
-        {
-            countDownText.SetText("{0}", i);
-            SoundManager.Instance.PlaySfx(SoundManager.Instance.count);
-            yield return oneSecond;
-        }
-        countDownGroup.SetActive(false);
-        timerAction?.Invoke();
     }
 }

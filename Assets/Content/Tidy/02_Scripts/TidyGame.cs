@@ -10,12 +10,8 @@ using Random = UnityEngine.Random;   // using System 의 System.Random 과 겹�
 // 마음 정리 한 판. Canvas - Main/Area - Tap(화면 전체 누름 영역)에 붙는다.
 // 판 시계는 Time.deltaTime 을 더한 값이라 MiniGameScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
 public class TidyGame : MiniGame, IPointerDownHandler
-{
-    readonly WaitForSecondsRealtime oneSecond = new WaitForSecondsRealtime(1f);
-
+{ 
     public override string GameId => GameList.Tidy;
-
-    public TextMeshProUGUI countDownText;
 
     public Image[] icons;                  // 줄 아이콘 6개를 돌려 쓴다. 5칸이 보이고 1개는 서랍으로 날아가는 중
     public Image[] drawerIcons;            // [0] 왼쪽 · [1] 오른쪽
@@ -45,7 +41,6 @@ public class TidyGame : MiniGame, IPointerDownHandler
 
     GameRules rules;
     Action<int> onEnd;
-    int delay;
 
     State state;
     int score;
@@ -539,18 +534,5 @@ public class TidyGame : MiniGame, IPointerDownHandler
             return 1 - prevSide;
         }
         return random < 0.5f ? 0 : 1;
-    }
-
-    public override IEnumerator CountDown(Action timerAction = null)
-    {
-        countDownText.gameObject.SetActive(true);
-        for (int i = delay; i > 0; i--)
-        {
-            countDownText.SetText("{0}", i);
-            SoundManager.Instance.PlaySfx(SoundManager.Instance.count);
-            yield return oneSecond;
-        }
-        countDownText.gameObject.SetActive(false);
-        timerAction?.Invoke();
     }
 }

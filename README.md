@@ -504,7 +504,7 @@ Assets/Content/<씬>/
 Assets/Content/Common/
   02_Scripts/                   두 씬 이상이 같이 쓰는 씬 컨트롤러. PostScene(꽃밭 · 소식, `kind`로 구분)
                                 · MiniGameScene(미니게임 씬의 준비 → 시작 → 점수 보내기 → 결과 · 멈춤. Tidy · Pairs 씬이 같이 쓰고, 게임은 `miniGame` 칸으로 받는다)
-                                · MiniGame(게임 한 판의 부모: `GameId` · `StartGame` · `CountDown`. TidyGame · PairsGame 이 상속. 새 게임은 이것만 상속해 쓰면 된다)
+                                · MiniGame(게임 한 판의 부모. 자식이 `GameId` · `StartGame`을 정하고, 3 · 2 · 1 세기 `CountDown`은 부모가 한다: `countDownGroup`을 켜고 `countDownText`에 숫자를 쓴다. TidyGame · PairsGame 이 상속)
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장 · 터치 수 저장 열쇠 `HEART_TAPS_KEY`, 싱글톤)
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
