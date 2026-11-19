@@ -34,6 +34,8 @@ public class BuildVersionPrompt : EditorWindow
         PlayerSettings.bundleVersion = window.version;
         AssetDatabase.SaveAssets();
         var startedAt = DateTime.UtcNow;
+        // 빌드가 끝나면 Unity 가 빌드 폴더를 탐색기로 여는데, 그 창이 에디터와 배포 창을 가린다. 열지 않게 한다
+        options.options &= ~BuildOptions.ShowBuiltPlayer;
         BuildPlayerWindow.DefaultBuildMethods.BuildPlayer(options);
         AskDeploy(options, startedAt);
     }
@@ -83,7 +85,8 @@ public class BuildVersionPrompt : EditorWindow
         }
         // 창에는 끝부분만. 전체는 콘솔에 있다
         string tail = text.Length > 900 ? "...\n" + text.Substring(text.Length - 900) : text;
-        EditorUtility.DisplayDialog(ok ? "배포 끝" : "배포 실패", tail, "확인");
+        // 기본 대화 상자는 느낌표 아이콘이라 성공도 실패처럼 보인다. 성공은 정보, 실패는 오류 아이콘으로
+        EditorDialog.DisplayAlertDialog(ok ? "배포 끝" : "배포 실패", tail, "확인", ok ? DialogIconType.Info : DialogIconType.Error);
     }
 
     // 배치 파일을 창 없이 /y 로 돌리고 끝날 때까지 기다린다. 출력은 log 에 모으고, 종료 코드 0 이면 true.
