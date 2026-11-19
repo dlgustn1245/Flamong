@@ -4,9 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PairsScene : MonoBehaviour
+public class MiniGameScene : MonoBehaviour
 {
-    public PairsGame pairsGame;
+    public MiniGame miniGame;
     
     public ErrorPanel errorPanel;
     public NoticePanel noticePanel;
@@ -40,7 +40,7 @@ public class PairsScene : MonoBehaviour
     int lastScore;   // 연결 실패로 다시 보낼 때 같은 점수를 쓴다
     bool isPlaying;
     bool isPaused;   // 멈춘 뒤 다시 3 · 2 · 1 을 다 셀 때까지. 그 사이 [뒤로]를 또 누르면 세기가 겹친다
-
+    
     void Start()
     {
         ShowCharacter();
@@ -60,13 +60,13 @@ public class PairsScene : MonoBehaviour
                     () =>
                     {
                         // 씬이 넘어가는 몇 프레임 사이에 판이 끝나 점수가 가지 않게 먼저 끈다
-                        pairsGame.enabled = false;
+                        miniGame.enabled = false;
                         Time.timeScale = 1;
                         SceneLoader.Load(SceneName.GameScene);
                     },
                     () =>
                     {
-                        StartCoroutine(pairsGame.CountDown(() =>
+                        StartCoroutine(miniGame.CountDown(() =>
                         {
                             fieldPanel.SetActive(true);
                             Time.timeScale = 1;
@@ -189,7 +189,7 @@ public class PairsScene : MonoBehaviour
         rankingButton.gameObject.SetActive(false);   // 응답 전에 랭킹 창을 열면 그 아래에서 판이 시작된다
         var request = new GameStartRequestBody
         {
-            game = GameList.Pairs
+            game = miniGame.GameId
         };
         
         StartCoroutine(NetworkManager.Instance.PostRequest<GameStartRequestBody, GameStartBody>(
@@ -200,7 +200,7 @@ public class PairsScene : MonoBehaviour
     void OnSuccessPostGame(GameStartBody response)
     {
         print($"OnSuccessPostGame: {JsonUtility.ToJson(response)}");
-        PlayPairsGame(response.rules);
+        PlayGame(response.rules);
     }
 
     void OnFailPostGame(long code, string error)
@@ -215,7 +215,7 @@ public class PairsScene : MonoBehaviour
         errorPanel.Show(PostGame);
     }
 
-    void PlayPairsGame(GameRules rules)
+    void PlayGame(GameRules rules)
     {
         readyPanel.SetActive(false);
         playPanel.SetActive(true);
@@ -228,7 +228,7 @@ public class PairsScene : MonoBehaviour
     // 처음 3 · 2 · 1 동안은 아직 누른 것이 없어 [뒤로]가 바로 달력으로 간다. 멈춤은 다 센 뒤부터
     IEnumerator StartGame(GameRules rules)
     {
-        yield return StartCoroutine(pairsGame.StartGame(rules, OnGameEnd));
+        yield return StartCoroutine(miniGame.StartGame(rules, OnGameEnd));
         isPlaying = true;
     }
 

@@ -7,11 +7,13 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;   // using System 의 System.Random 과 겹친다
 
 // 짝꿍 찾기 한 판. 루트의 빈 오브젝트 PairsGame 에 붙는다(멈출 때 꺼지는 Group - Field 아래에 두면 다시 세기가 돌지 않는다).
-// 판 시계는 Time.deltaTime 을 더한 값이라 PairsScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
-public class PairsGame : MonoBehaviour
+// 판 시계는 Time.deltaTime 을 더한 값이라 MiniGameScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
+public class PairsGame : MiniGame
 {
     readonly WaitForSecondsRealtime oneSecond = new WaitForSecondsRealtime(1f);
 
+    public override string GameId => GameList.Pairs;
+    
     public GameObject countDownGroup;      // 빛 + 글자 묶음. 글자가 아니라 이 묶음을 켜고 끈다
     public TextMeshProUGUI countDownText;
 
@@ -89,7 +91,7 @@ public class PairsGame : MonoBehaviour
     }
 
     // 세는 동안은 모두 뒷면. 다 세면 첫 판을 깔고 미리 보기부터 판 시계가 흐른다
-    public IEnumerator StartGame(GameRules rules, Action<int> onEnd)
+    public override IEnumerator StartGame(GameRules rules, Action<int> onEnd)
     {
         this.rules = rules;
         this.onEnd = onEnd;
@@ -343,7 +345,7 @@ public class PairsGame : MonoBehaviour
         onEnd?.Invoke(score);
     }
 
-    public IEnumerator CountDown(Action timerAction = null)
+    public override IEnumerator CountDown(Action timerAction = null)
     {
         countDownGroup.SetActive(true);
         for (int i = delay; i > 0; i--)

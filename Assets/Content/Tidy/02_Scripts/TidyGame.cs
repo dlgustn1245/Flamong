@@ -8,10 +8,12 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random;   // using System 의 System.Random 과 겹친다
 
 // 마음 정리 한 판. Canvas - Main/Area - Tap(화면 전체 누름 영역)에 붙는다.
-// 판 시계는 Time.deltaTime 을 더한 값이라 TidyScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
-public class TidyGame : MonoBehaviour, IPointerDownHandler
+// 판 시계는 Time.deltaTime 을 더한 값이라 MiniGameScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
+public class TidyGame : MiniGame, IPointerDownHandler
 {
     readonly WaitForSecondsRealtime oneSecond = new WaitForSecondsRealtime(1f);
+
+    public override string GameId => GameList.Tidy;
 
     public TextMeshProUGUI countDownText;
 
@@ -113,7 +115,7 @@ public class TidyGame : MonoBehaviour, IPointerDownHandler
         multRect = multText.rectTransform;
     }
 
-    public IEnumerator StartGame(GameRules rules, Action<int> onEnd)
+    public override IEnumerator StartGame(GameRules rules, Action<int> onEnd)
     {
         this.rules = rules;
         this.onEnd = onEnd;
@@ -539,7 +541,7 @@ public class TidyGame : MonoBehaviour, IPointerDownHandler
         return random < 0.5f ? 0 : 1;
     }
 
-    public IEnumerator CountDown(Action timerAction = null)
+    public override IEnumerator CountDown(Action timerAction = null)
     {
         countDownText.gameObject.SetActive(true);
         for (int i = delay; i > 0; i--)

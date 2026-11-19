@@ -4163,10 +4163,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1647086403}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36ae4f4e5722cc44b974dce806f2ceaf, type: 3}
+  m_Script: {fileID: 11500000, guid: 94691b821eae1cf4b89ba2afd0242ce5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TidyScene
-  tidyGame: {fileID: 1992412360}
+  m_EditorClassIdentifier: Assembly-CSharp::MiniGameScene
+  miniGame: {fileID: 1992412360}
   errorPanel: {fileID: 1727067454}
   noticePanel: {fileID: 362580288}
   rankingPanel: {fileID: 5770509668968598309}

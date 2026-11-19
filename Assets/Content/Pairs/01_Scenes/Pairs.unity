@@ -6097,10 +6097,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 1647086403}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0ad3f17dff6e4c342a675490e4b5e827, type: 3}
+  m_Script: {fileID: 11500000, guid: 94691b821eae1cf4b89ba2afd0242ce5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PairScene
-  pairsGame: {fileID: 511504840}
+  m_EditorClassIdentifier: Assembly-CSharp::MiniGameScene
+  miniGame: {fileID: 511504840}
   errorPanel: {fileID: 1727067454}
   noticePanel: {fileID: 362580288}
   rankingPanel: {fileID: 5770509668968598309}
