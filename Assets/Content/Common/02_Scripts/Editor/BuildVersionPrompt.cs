@@ -50,10 +50,11 @@ public class BuildVersionPrompt : EditorWindow
         {
             return;
         }
-        int choice = EditorUtility.DisplayDialogComplex("배포",
+        // 창을 그냥 닫으면 「안 함」(Cancel)이다
+        var choice = EditorDialog.DisplayComplexDecisionDialog("배포",
             "빌드가 끝났습니다. 운영(flamong.lhsdev.info)에 올릴까요?\n고르면 더 묻지 않고 끝까지 올립니다.",
-            "웹만", "안 함", "서버 + 웹");
-        if (choice == 1)
+            defaultButtonText: "웹만", altButtonText: "서버 + 웹", cancelButtonText: "안 함", iconType: DialogIconType.Info);
+        if (choice == DialogResult.Cancel)
         {
             return;
         }
@@ -64,7 +65,7 @@ public class BuildVersionPrompt : EditorWindow
 
         var log = new StringBuilder();
         bool ok = true;
-        if (choice == 2)
+        if (choice == DialogResult.AlternateAction)
         {
             ok = RunBat(Path.GetFullPath("Server/deploy/deploy-server.bat"), "서버를 올리는 중...", log);
         }
