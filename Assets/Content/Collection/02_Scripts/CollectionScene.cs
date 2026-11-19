@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class CollectionScene : MonoBehaviour
 {
-    public Sprite[] characterSprites;  // speciesId * 5 + level - 1 (Main 과 같은 순서)
+    public CharacterSprites characterSprites;
     public Button backButton;
     public TextMeshProUGUI countText;
     public TextMeshProUGUI eggNameText;
@@ -63,7 +63,7 @@ public class CollectionScene : MonoBehaviour
             int species = idx * 3 + r;
             for (int c = 0; c < 5; c++)
             {
-                cells[r * 5 + c].sprite = characterSprites[species * 5 + c];
+                cells[r * 5 + c].sprite = characterSprites.Get(species, c + 1);
                 cells[r * 5 + c].color = levels[species] >= c + 1 ? Color.white : Color.black;
             }
         }

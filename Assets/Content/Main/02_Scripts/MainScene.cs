@@ -20,7 +20,7 @@ public class MainScene : MonoBehaviour
     public HeartParticles heartParticles;
 
     public Image characterImage;
-    public Sprite[] characterSprites;
+    public CharacterSprites characterSprites;
     
     public ErrorPanel errorPanel;
     public ConfirmPanel confirmPanel;
@@ -426,10 +426,10 @@ public class MainScene : MonoBehaviour
     
     void ShowCharacter(int speciesId, int level)
     {
-        int idx = speciesId * 5 + level - 1;
-        if (idx >= 0 && idx < characterSprites.Length)
+        var sprite = characterSprites.Get(speciesId, level);
+        if (sprite != null)
         {
-            characterImage.sprite = characterSprites[idx];
+            characterImage.sprite = sprite;
         }
         characterImage.enabled = true;
     }

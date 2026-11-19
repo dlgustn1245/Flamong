@@ -510,6 +510,7 @@ Assets/Content/Common/
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)
   02_Scripts/Util/              SceneLoader(SceneName 상수 · 중복 로드 방지) · SceneFader · Singleton · ErrorPanel · ConfirmPanel · NoticePanel · EntryRouter(들어갈 곳)
                                 · GameList(게임 id → 이름 · 씬. 이 빌드가 모르는 게임이면 null) · RankingPanel(한 달 랭킹 창)
+                                · CharacterSprites(진화 그림 120장과 「종 · 레벨 → 그림」 `Get(speciesId, level)`. 에셋은 `Common/03_Resources/Character/CharacterSprites.asset` 하나이고 Main · Collection · Tidy · Pairs 가 가리킨다. 순서는 `speciesId * 5 + level - 1`. Lv1 만 쓰는 Hatch 는 가리키지 않고 자기 24장을 갖는다: 가리키면 120장이 모두 올라온다)
                                 · ButtonSound(버튼에 붙이면 누를 때 pop. 모든 버튼에 붙인다, Main 하트 버튼만 뺌)
                                 · WebKeyboard(.cs + .jslib, 웹 빌드 전용. Unity 폰 키보드는 비밀번호 칸이면 NumberPad를 무시하므로, type=password 가 되는 순간 inputmode=numeric 을 붙여 숫자 키패드를 띄운다)
   02_Scripts/Editor/            에디터 전용(빌드에 안 들어감). BuildVersionPrompt: Build 버튼을 누르면 버전 입력 창을 띄우고(빌드가 성공하면 운영에 올릴지 묻는 「배포」 창도 띄운다. 「배포」 절) 그 값을 Player Settings Version 에 넣은 뒤 빌드
@@ -691,7 +692,7 @@ Server/
 - **입력 설정은 「둘 다」(`activeInputHandler: 2`) 유지(2026-11-03 결정).**
   - 코드에는 옛 `Input`이 없다. 하지만 이 설정으로 **폰 브라우저 한글 입력이 되는 것을 확인했다**(배포 빌드 `v1.2.0`). 새 Input System 하나로 바꾸면 얻는 것은 작고, 바꿀 때마다 폰 확인을 다시 해야 해서 그대로 둔다.
   - **PC 브라우저에서는 한글이 입력되지 않는다.** Unity 웹 빌드가 데스크톱 IME를 지원하지 않는 한계다(Unity 6 매뉴얼 「IME Input」에서 Web은 미지원). 주 대상이 폰이라 받아들이고, Login 화면에 PC 안내를 띄운다. PC 지원이 필요해지면 입력칸 위에 브라우저 입력칸을 겹치는 방식(WebGLInput 패키지 또는 직접 만든 `.jslib`)을 검토한다.
-- **진화 그림 크기.** Main의 `characterSprites`가 120장(웹 빌드 약 3.5MB)을 모두 참조하고, WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 최근 빌드 다운로드는 14.03MB(여유 0.97MB, 2026-11-18)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 15MB를 넘으면 안 쓰는 것 빼기(URP SMAA 텍스처 등) → 진화 그림 ASTC 블록 6×6 → 8×8(약 −1.5MB, 폰에서 윤곽선 확인) → 어드레서블 순으로 줄인다. Crunch 압축은 DXT · ETC 전용이라 ASTC에는 쓸 수 없다.
+- **진화 그림 크기.** `CharacterSprites` 에셋이 120장(웹 빌드 약 3.5MB)을 모두 참조하고, Main · Collection · Tidy · Pairs 가 이 에셋을 가리킨다. WebGL은 `.data`를 통째로 메모리에 둔다. 씬 예산(48MB) 안이라 어드레서블 없이 두었다. 에디터에서는 한 번 꺼낸 120장이 에셋을 가리키지 않는 씬(Game 등)으로 넘어가도 내려가지 않는다(에셋의 C# 쪽 참조가 붙잡는다. `EditorUtility.UnloadUnusedAssetsImmediate(false)`로는 내려간다. 2026-11-20 확인). 씬마다 배열을 따로 둘 때는 내려갔다. 전환마다 늘지는 않고 120장에서 멈춘다. **웹 빌드에서는 내려간다**: 씬 전환 뒤 캐릭터 텍스처 수를 콘솔에 찍는 임시 빌드로 Intro 0 → Login 0 → Main 120 → Game 0 → Tidy 120 → Game 0 → Main 120 을 확인했다(에셋도 Game 에서 0개. 2026-11-20, PC Chrome, 로컬에서 띄운 빌드). 에디터의 텍스처 수치로 「씬을 떠나면 내려간다」를 볼 때는 이 차이를 감안한다. 최근 빌드 다운로드는 14.03MB(여유 0.97MB, 2026-11-18)다. 11-03에 한글 동적 폰트 폴백(TTF)을 정적 아틀라스로 바꿔 1.18MB 줄였다. Unity 스플래시와 쓰지 않던 TMP 기본 폰트 LiberationSans는 뺐다. 15MB를 넘으면 안 쓰는 것 빼기(URP SMAA 텍스처 등) → 진화 그림 ASTC 블록 6×6 → 8×8(약 −1.5MB, 폰에서 윤곽선 확인) → 어드레서블 순으로 줄인다. Crunch 압축은 DXT · ETC 전용이라 ASTC에는 쓸 수 없다.
 
 ---
 

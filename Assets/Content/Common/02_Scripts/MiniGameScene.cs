@@ -20,7 +20,7 @@ public class MiniGameScene : MonoBehaviour
     public Button startButton;
     
     public Image characterImage;
-    public Sprite[] characterSprites;
+    public CharacterSprites characterSprites;
 
     public GameObject readyPanel;
     public GameObject playPanel;
@@ -116,19 +116,15 @@ public class MiniGameScene : MonoBehaviour
         StopAllCoroutines();
     }
 
-    // 캐릭터 번호 = speciesId * 5 + level - 1 (Main 과 같은 순서). 캐릭터가 없으면 그림을 끈다
+    // 캐릭터가 없으면 그림을 끈다
     void ShowCharacter()
     {
-        int idx = SessionState.Instance.speciesId * 5 + SessionState.Instance.level - 1;
-        if (idx >= 0 && idx < characterSprites.Length)
+        var sprite = characterSprites.Get(SessionState.Instance.speciesId, SessionState.Instance.level);
+        if (sprite != null)
         {
-            characterImage.sprite = characterSprites[idx];
-            characterImage.enabled = true;
+            characterImage.sprite = sprite;
         }
-        else
-        {
-            characterImage.enabled = false;
-        }
+        characterImage.enabled = sprite != null;
     }
 
     void GetRanking(bool openBoard)

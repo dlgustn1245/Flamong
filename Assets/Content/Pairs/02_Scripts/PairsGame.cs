@@ -16,7 +16,7 @@ public class PairsGame : MiniGame
     public CanvasGroup[] cardGroups;       // 맞춘 카드를 흐리게
     public Image[] backs;                  // 뒷면(알)
     public Image[] faces;                  // 앞면(아기 플라몽)
-    public Sprite[] faceSprites;           // [speciesId] = Lv1 그림 24장. 알 하나에 3종씩 이어진다
+    public CharacterSprites characterSprites;   // 앞면은 Lv1 그림. 종 번호는 알 하나에 3종씩 이어진다
 
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI streakText;
@@ -65,7 +65,7 @@ public class PairsGame : MiniGame
         matched = new bool[n];
         popAge = new float[n];
         cardRects = new RectTransform[n];
-        eggOrder = new int[faceSprites.Length / speciesPerEgg];
+        eggOrder = new int[characterSprites.SpeciesCount / speciesPerEgg];
         for (int i = 0; i < n; i++)
         {
             int card = i;
@@ -166,7 +166,7 @@ public class PairsGame : MiniGame
         {
             matched[i] = false;
             cardGroups[i].alpha = 1f;
-            faces[i].sprite = faceSprites[deck[i]];
+            faces[i].sprite = characterSprites.Get(deck[i], 1);
             Show(i, true);
         }
         first = -1;
