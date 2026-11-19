@@ -47,7 +47,7 @@ echo [3/3] 서버가 응답하는지 확인하는 중...
 "C:\Program Files\Git\bin\bash.exe" -c "code=$(curl -s -m 15 -o /dev/null -w '%%{http_code}' -H 'X-Player-Id: deploy-check' https://flamong.lhsdev.info/api/me); printf '  /api/me: %%s\n' $code; test x$code = x401"
 if errorlevel 1 (
   echo.
-  echo [확인 필요] 기대한 응답(401)이 아닙니다. 서버 로그를 확인해 주세요.
+  echo [확인 필요] 기대한 응답 401 이 아닙니다. 서버 로그를 확인해 주세요.
   if defined ASK pause
   exit /b 1
 )
