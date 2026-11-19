@@ -2,6 +2,9 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
+rem /y 를 주면 묻지 않고 끝까지 간다(Unity 빌드 뒤 배포가 이렇게 부른다). 없으면 지금처럼 단계마다 멈춘다
+set "ASK=1"
+if /i "%~1"=="/y" set "ASK="
 
 echo ============================================
 echo  Flamong 서버 배포
@@ -10,7 +13,7 @@ echo  DB 와 웹 빌드는 건드리지 않습니다.
 echo ============================================
 if not exist "index.js" (
   echo [오류] index.js 가 없습니다. Server\deploy 폴더 안에서 실행해 주세요.
-  pause
+  if defined ASK pause
   exit /b 1
 )
 
@@ -20,14 +23,14 @@ echo [1/3] 테스트 중...
 if errorlevel 1 (
   echo.
   echo [중단] 테스트가 실패했습니다. 올리지 않았습니다. npm test 로 실패한 항목을 확인해 주세요.
-  pause
+  if defined ASK pause
   exit /b 1
 )
 
 echo.
 echo 테스트를 통과했습니다. 실제 서비스에 올리고 서버를 다시 켭니다(2초쯤 끊깁니다).
-echo 계속하려면 아무 키나 누르고, 그만두려면 창을 닫으세요.
-pause >nul
+if defined ASK echo 계속하려면 아무 키나 누르고, 그만두려면 창을 닫으세요.
+if defined ASK pause >nul
 
 echo.
 echo [2/3] 올리고 다시 켜는 중...
@@ -35,7 +38,7 @@ echo [2/3] 올리고 다시 켜는 중...
 if errorlevel 1 (
   echo.
   echo [실패] 올리지 못했거나 서버가 켜지지 않았습니다. 위의 오류를 확인해 주세요.
-  pause
+  if defined ASK pause
   exit /b 1
 )
 
@@ -45,11 +48,12 @@ echo [3/3] 서버가 응답하는지 확인하는 중...
 if errorlevel 1 (
   echo.
   echo [확인 필요] 기대한 응답(401)이 아닙니다. 서버 로그를 확인해 주세요.
-  pause
+  if defined ASK pause
   exit /b 1
 )
 
 echo.
 echo 끝났습니다. 서버가 새 코드로 켜져 있습니다. (없는 계정으로 물어 401 이 오면 정상입니다)
 echo 화면도 바뀌었다면 웹 빌드를 따로 올려 주세요(빌드 폴더의 deploy.bat).
-pause
+if defined ASK pause
+exit /b 0
