@@ -1,6 +1,7 @@
 public static class GameList
 {
     public const string Tidy = "tidy";
+    public const string Pairs = "pairs";
 
     public static string NameOf(string game)
     {
@@ -8,6 +9,8 @@ public static class GameList
         {
             case Tidy:
                 return "마음 정리";
+            case Pairs:
+                return "짝꿍 찾기";
             default:
                 return "새 게임";
         }
@@ -20,6 +23,8 @@ public static class GameList
         {
             case Tidy:
                 return SceneName.TidyGameScene;
+            case Pairs:
+                return SceneName.PairsGameScene;
             default:
                 return null;
         }

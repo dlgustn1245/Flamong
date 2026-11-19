@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildApp } from '../index.js';
 import { openDb } from '../db.js';
-import { GAMES, GAME_OF_MONTH, gameOfMonth, maxScore, minPlayMs, TIDY, streakScore } from '../rules/game.js';
+import { GAMES, GAME_OF_MONTH, gameOfMonth, maxScore, minPlayMs, PAIRS, pairsMaxScore, TIDY, streakScore } from '../rules/game.js';
 
 const DAY_MS = 86_400_000;
 
@@ -27,8 +27,8 @@ async function signup(app) {
 }
 
 // 한 판: 시작 → wait 뒤 점수
-async function play(app, h, advance, score, wait = 40_000) {
-  assert.equal((await call(app, 'POST', '/games/start', h, { game: 'tidy' })).code, 200);
+async function play(app, h, advance, score, game = 'tidy', wait = 40_000) {
+  assert.equal((await call(app, 'POST', '/games/start', h, { game })).code, 200);
   advance(wait);
   return call(app, 'POST', '/scores', h, { score });
 }
@@ -47,7 +47,10 @@ test('규칙 함수: 연속 점수 · 상한 863 · 최소 32초 · 이달의 �
   assert.equal(minPlayMs(TIDY), 32_000);
   assert.equal(gameOfMonth('2026-10'), null);   // 출시 전
   assert.equal(gameOfMonth('2026-11'), 'tidy');
-  assert.equal(gameOfMonth('2027-05'), 'tidy');   // 새 게임이 없으면 같은 게임을 잇는다
+  assert.equal(gameOfMonth('2026-12'), 'pairs');
+  assert.equal(gameOfMonth('2027-05'), 'pairs');   // 새 게임이 없으면 같은 게임을 잇는다
+  assert.equal(pairsMaxScore(PAIRS), 2150);   // 11판 66쌍: 10 + 15 + 20 + 25 + 62 × 30, 판 완성 11 × 20
+  assert.equal(minPlayMs(PAIRS), 32_000);
   const table = [['2026-11', 'tidy'], ['2027-02', 'next']];
   assert.deepEqual(['2027-01', '2027-02', '2027-09'].map((m) => gameOfMonth(m, table)), ['tidy', 'next', 'next']);
   for (const [, game] of GAME_OF_MONTH) assert.ok(GAMES[game], `${game} 는 GAMES 에 있어야 한다`);
@@ -134,10 +137,10 @@ test('이번 달 최고만 남기고 KST 1일 0시에 새 달, 지난달 랭킹�
   assert.equal((await play(app, h, advance, 200)).body.best, 300);
   assert.equal((await play(app, h, advance, 400)).body.best, 400);
   advance(60 * 60_000);   // KST 12월 1일 0:02
-  assert.equal((await play(app, h, advance, 50)).body.best, 50);
+  assert.equal((await play(app, h, advance, 50, 'pairs')).body.best, 50);   // 12월의 게임은 짝꿍 찾기
   const dec = (await call(app, 'GET', '/rankings', h)).body;
   const nov = (await call(app, 'GET', '/rankings?month=2026-11', h)).body;
-  assert.deepEqual([dec.month, dec.best, nov.month, nov.best, nov.rank], ['2026-12', 50, '2026-11', 400, 1]);
+  assert.deepEqual([dec.month, dec.game, dec.best, nov.month, nov.game, nov.best, nov.rank], ['2026-12', 'pairs', 50, '2026-11', 'tidy', 400, 1]);
   assert.equal(db.prepare('SELECT count(*) n FROM score').get().n, 2);
 });
 
@@ -199,12 +202,12 @@ test('달력 12칸: 올해 1~12월 · 출시 전과 다음 달 이후는 게임 
   assert.deepEqual(months.map((m) => m.month), Array.from({ length: 12 }, (_, i) => `2026-${String(i + 1).padStart(2, '0')}`));
   assert.deepEqual(months[9], { month: '2026-10', game: '', best: 0, rank: 0 });
   assert.deepEqual(months[10], { month: '2026-11', game: 'tidy', best: 120, rank: 2 });
-  assert.deepEqual(months[11], { month: '2026-12', game: 'tidy', best: 0, rank: 0 });   // 이번 달, 아직 안 함
+  assert.deepEqual(months[11], { month: '2026-12', game: 'pairs', best: 0, rank: 0 });   // 이번 달, 아직 안 함
 
   advance(31 * DAY_MS);   // KST 2027년 1월
   const next = (await call(app, 'GET', '/games/months', h)).body;
   assert.equal(next.current, '2027-01');
-  assert.deepEqual([next.months[0].game, next.months[1].game], ['tidy', '']);
+  assert.deepEqual([next.months[0].game, next.months[1].game], ['pairs', '']);
 });
 
 test('첫 점수(0점 판도)를 받으면 묘약 히든 미션 first_game 달성 · Main 빨간 점, 시작만으로는 아님', async () => {
@@ -216,4 +219,16 @@ test('첫 점수(0점 판도)를 받으면 묘약 히든 미션 first_game 달�
   assert.equal((await call(app, 'POST', '/scores', h, { score: 0 })).code, 200);
   assert.equal((await call(app, 'GET', '/missions', h)).body.hidden.find((m) => m.id === 'first_game').done, true);
   assert.equal((await call(app, 'GET', '/me', h)).body.potionReady, true);
+});
+
+test('짝꿍 찾기: 시작 응답은 PAIRS · 상한은 게임마다(2150) · 마음 정리 상한을 넘는 점수도 받음', async () => {
+  const { app, advance } = setup('2026-12-05T03:00:00Z');
+  const h = await signup(app);
+  assert.deepEqual(await call(app, 'POST', '/games/start', h, { game: 'pairs' }), { code: 200, body: { rules: PAIRS } });
+  advance(40_000);
+  assert.deepEqual(await call(app, 'POST', '/scores', h, { score: 2151 }), { code: 400, body: { error: 'score_range' } });
+  const ok = await call(app, 'POST', '/scores', h, { score: 2150 });   // 마음 정리 상한 863 보다 크다
+  assert.deepEqual([ok.code, ok.body.best, ok.body.rank, ok.body.gain], [200, 2150, 1, 2]);
+  const r = (await call(app, 'GET', '/rankings', h)).body;
+  assert.deepEqual([r.month, r.game, r.top], ['2026-12', 'pairs', [{ rank: 1, nickname: 'max', best: 2150 }]]);
 });

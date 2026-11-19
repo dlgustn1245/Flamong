@@ -17,6 +17,7 @@ public static class SceneName
 	public const string GameScene = "Game";
 	public const string TidyGameScene = "Tidy";
 	public const string CalendarScene = "Calendar";
+	public const string PairsGameScene = "Pairs";
 }
 
 public static class SceneLoader

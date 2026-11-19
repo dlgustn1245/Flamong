@@ -1,6 +1,6 @@
 import { logEvent, playerOf, tx } from '../db.js';
 import { addAffection, GAME_AFFECTION, growthOf, kstDate, levelOf, rechargeHearts } from '../rules/growth.js';
-import { GAMES, gameOfMonth, MAX_PLAY_MS, maxScore, minPlayMs, RANKING_TOP, TIDY } from '../rules/game.js';
+import { GAMES, gameOfMonth, MAX_PLAY_MS, MAX_SCORE, minPlayMs, RANKING_TOP } from '../rules/game.js';
 
 const MONTH = '^\\d{4}-(0[1-9]|1[0-2])$';
 
@@ -59,8 +59,8 @@ export default async function games(app, { db, now }) {
       body: {
         type: 'object',
         required: ['score'],
-        // 게임이 하나라 스키마로 막는다. 두 번째 게임 때 핸들러에서 게임별 maxScore 로
-        properties: { score: { type: 'integer', minimum: 0, maximum: maxScore(TIDY) } },
+        // 상한은 게임마다 달라 핸들러에서 MAX_SCORE 로 본다
+        properties: { score: { type: 'integer', minimum: 0 } },
       },
     },
   }, (req, reply) => {
@@ -78,6 +78,8 @@ export default async function games(app, { db, now }) {
     const { game } = JSON.parse(last.payload);
     // 응답을 못 받고 다시 보낸 점수. 첫 요청이 이미 기록했으니 쓰지 않고 그 기록이 들어간 달의 기록을 돌려준다(그 사이 달이 바뀌어도)
     if (last.type === 'game_score') return { ...standingOf(p.id, game, kstDate(new Date(last.ts)).slice(0, 7)), gain: 0, levelUp: false, growth: growthOf(hearts, before) };
+    const { score } = req.body;
+    if (score > MAX_SCORE[game]) return reply.code(400).send({ error: 'score_range' });
     const ms = t.getTime() - Date.parse(last.ts);
     if (ms < minPlayMs(GAMES[game])) return reply.code(409).send({ error: 'too_fast' });
     if (ms > MAX_PLAY_MS) return reply.code(409).send({ error: 'expired' });
@@ -86,7 +88,6 @@ export default async function games(app, { db, now }) {
     const prev = getLastScore.get(p.id);
     const first = !prev || kstDate(new Date(prev.ts)) !== today;
     const affection = c && first ? addAffection(before, GAME_AFFECTION) : before;
-    const { score } = req.body;
     tx(db, () => {
       upsertScore.run(p.id, game, month, score);
       if (affection !== before) setAffection.run(affection, c.id);

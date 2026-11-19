@@ -160,7 +160,7 @@ namespace ServerData
 	// POST /games/start
 	public class GameStartRequestBody
 	{
-		public string game;   // GameList.Tidy
+		public string game;   // GameList.Tidy · GameList.Pairs
 	}
 
 	[Serializable]
@@ -169,17 +169,30 @@ namespace ServerData
 		public GameRules rules;
 	}
 
-	// 한 판의 수치. 서버 rules/game.js 가 정해 내려 준다(클라이언트에 적어 두지 않는다)
+	// 한 판의 수치. 서버 rules/game.js 가 정해 내려 준다(클라이언트에 적어 두지 않는다).
+	// 두 게임이 한 클래스를 쓴다. 그 게임에 없는 값은 0 · null 로 온다
 	[Serializable]
 	public class GameRules
 	{
 		public int durationSec;    // 판 길이 (초)
 		public int countdownSec;   // 카운트다운 (초)
 		public int minTapMs;       // 받아들이는 입력 사이 최소 간격
+
+		// 마음 정리
 		public int lockMs;         // 틀린 뒤 입력 잠금
 		public int changeEvery;    // 맞힌 개수가 이 수의 배수가 될 때마다 서랍 한쪽이 바뀐다
 		public int maxRun;         // 같은 쪽 연속 최대
 		public int[] comboAt;      // 맞히기 전 콤보가 이 값 이상이면 1점씩 더한다
+
+		// 짝꿍 찾기
+		public int cards;          // 한 판의 카드 수
+		public int previewMs;      // 새 판마다 모두 보여 주는 시간. 판 시계는 흐른다
+		public int missMs;         // 틀린 두 장을 보여 주는 시간. 그동안 누르지 못한다
+		public int pairScore;      // 짝 하나의 점수
+		public int streakStep;     // 안 틀리고 이어 맞출 때마다 더해지는 점수
+		public int streakMax;      // 짝 하나의 최고 점수
+		public int clearBonus;     // 한 판을 다 맞췄을 때
+		public int[] similarAt;    // 판 번호(0부터)가 이 값 이상이면 같은 알의 2종 묶음이 하나씩 는다
 	}
 
 	// POST /scores

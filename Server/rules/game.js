@@ -3,11 +3,14 @@
 
 // 마음 정리. comboAt: 맞히기 전 콤보가 이 값 이상이면 1점씩 더한다(0~9 1점 · 10~29 2점 · 30 이상 3점)
 export const TIDY = { durationSec: 30, countdownSec: 3, minTapMs: 100, lockMs: 600, changeEvery: 10, maxRun: 4, comboAt: [10, 30] };
-export const GAMES = { tidy: TIDY };
+// 짝꿍 찾기. 짝 하나 pairScore, 안 틀리고 이어 맞추면 streakStep 씩 늘어 streakMax 까지(10 · 15 · 20 · 25 · 30). 틀리면 missMs 동안 보여 주고 뒤집는다.
+// 새 판마다 previewMs 동안 모두 보여 준다(판 시계는 흐른다). similarAt: 판 번호(0부터)가 이 값 이상이면 같은 알의 2종 묶음이 하나씩 는다
+export const PAIRS = { durationSec: 30, countdownSec: 3, minTapMs: 150, cards: 12, previewMs: 1000, missMs: 600, pairScore: 10, streakStep: 5, streakMax: 30, clearBonus: 20, similarAt: [2, 4] };
+export const GAMES = { tidy: TIDY, pairs: PAIRS };
 
 // 이달의 게임 [시작 달, 게임]. 표에 없는 달은 바로 앞 줄의 게임을 잇고, 첫 줄보다 앞선 달(출시 전)은 게임이 없다.
 // 새 게임을 그달의 게임으로 올릴 때 한 줄을 더한다
-export const GAME_OF_MONTH = [['2026-11', 'tidy']];
+export const GAME_OF_MONTH = [['2026-11', 'tidy'], ['2026-12', 'pairs']];
 
 /** @param {string} month YYYY-MM @param {string[][]} table @returns {string | null} */
 export function gameOfMonth(month, table = GAME_OF_MONTH) {
@@ -34,6 +37,19 @@ export function streakScore(n, comboAt) {
  * @param {typeof TIDY} g
  */
 export const maxScore = (g) => streakScore(Math.floor(g.durationSec * 1000 / g.minTapMs) + 1, g.comboAt);
+
+/**
+ * 짝꿍 찾기의 규칙상 최고 점수. 한 판을 미리 보기 + 카드 수 × 입력 간격 하한에 끝내고 한 번도 틀리지 않았을 때. +1 판은 여유
+ * @param {typeof PAIRS} g
+ */
+export function pairsMaxScore(g) {
+  const boards = Math.floor(g.durationSec * 1000 / (g.previewMs + g.cards * g.minTapMs)) + 1;
+  let s = boards * g.clearBonus;
+  for (let k = 0; k < boards * g.cards / 2; k++) s += Math.min(g.streakMax, g.pairScore + k * g.streakStep);
+  return s;
+}
+
+export const MAX_SCORE = { tidy: maxScore(TIDY), pairs: pairsMaxScore(PAIRS) };
 
 /**
  * 시작에서 점수까지 최소 시간. 클라이언트는 시작 응답을 받은 뒤 카운트다운을 시작하므로 서버가 잰 시간이 늘 더 길다.
