@@ -9386,6 +9386,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainScene
   heartButton: {fileID: 2055289944}
+  heartHold: {fileID: 2055289947}
   heartFill: {fileID: 1611403063}
   touchCountText: {fileID: 572663066}
   heartHintText: {fileID: 52333375}
@@ -9428,7 +9429,7 @@ MonoBehaviour:
   - {fileID: 340358148}
   - {fileID: 1146013795}
   characterButton: {fileID: 1607938092}
-  bubble: {fileID: 1158184018}
+  bubble: {fileID: 1158184022}
   bubbleText: {fileID: 2045550011}
   bubblePageText: {fileID: 1135692804}
   emotionTitleText: {fileID: 3184729}
@@ -9816,6 +9817,8 @@ GameObject:
   - component: {fileID: 1158184019}
   - component: {fileID: 1158184021}
   - component: {fileID: 1158184020}
+  - component: {fileID: 1158184022}
+  - component: {fileID: 1158184023}
   m_Layer: 5
   m_Name: Image - Bubble
   m_TagString: Untagged
@@ -9858,7 +9861,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -9882,6 +9885,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1158184018}
   m_CullTransparentMesh: 1
+--- !u!114 &1158184022
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1158184018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 0
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1158184020}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1158184023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1158184018}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3f86a2ae5f46da4492bdb294179dc84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
 --- !u!1 &1163313818
 GameObject:
   m_ObjectHideFlags: 0
@@ -16097,6 +16156,7 @@ GameObject:
   - component: {fileID: 2055289946}
   - component: {fileID: 2055289945}
   - component: {fileID: 2055289944}
+  - component: {fileID: 2055289947}
   m_Layer: 5
   m_Name: Button - Heart
   m_TagString: Untagged
@@ -16206,6 +16266,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2055289942}
   m_CullTransparentMesh: 1
+--- !u!114 &2055289947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2055289942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: effcd929119659444898c70102648b23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::HoldRepeat
+  holdDelay: 0.4
+  repeatInterval: 0.05
 --- !u!1 &2082804513
 GameObject:
   m_ObjectHideFlags: 0

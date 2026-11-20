@@ -9,6 +9,8 @@ public class MainScene : MonoBehaviour
     readonly string[] emotions = { "tired", "stress", "achievement", "focus", "calm" };
     
     public Button heartButton;
+    public HoldRepeat heartHold;
+    
     public Image heartFill;
     public TextMeshProUGUI touchCountText;
     public TextMeshProUGUI heartHintText;
@@ -58,7 +60,7 @@ public class MainScene : MonoBehaviour
     public Button[] emotionButtons;
     
     public Button characterButton;
-    public GameObject bubble;
+    public Button bubble;
     public TextMeshProUGUI bubbleText;
     public TextMeshProUGUI bubblePageText;
     
@@ -92,7 +94,7 @@ public class MainScene : MonoBehaviour
 
     void BindButtonEvents()
     {
-        heartButton.onClick.AddListener(OnClickHeartButton);
+        heartHold.onPress = OnClickHeartButton;
         settingButton.onClick.AddListener(OpenSetting);
         settingCloseButton.onClick.AddListener(() =>
         {
@@ -163,6 +165,7 @@ public class MainScene : MonoBehaviour
             contactPanel.SetActive(false);
         });
         
+        bubble.onClick.AddListener(ShowNextLine);
         characterButton.onClick.AddListener(ShowNextLine);
         weatherOkButton.onClick.AddListener(CloseWeather);
         calendarButton.onClick.AddListener(() =>
@@ -211,7 +214,7 @@ public class MainScene : MonoBehaviour
         emotionPanel.SetActive(false);
         if (!string.IsNullOrEmpty(emotionResult.reply))
         {
-            bubble.SetActive(true);
+            bubble.gameObject.SetActive(true);
             bubbleText.SetText(emotionResult.reply);
             bubblePageText.SetText(string.Empty);
             lineIdx = -1;
@@ -263,8 +266,10 @@ public class MainScene : MonoBehaviour
         }
         contactCloseButton.onClick.RemoveAllListeners();
         characterButton.onClick.RemoveAllListeners();
+        bubble.onClick.RemoveAllListeners();
         weatherOkButton.onClick.RemoveAllListeners();
         calendarButton.onClick.RemoveAllListeners();
+        heartHold.onPress = null;
         StopAllCoroutines();
     }
 
@@ -380,7 +385,7 @@ public class MainScene : MonoBehaviour
     {
         if (lines != null && lines.Length > 0)
         {
-            bubble.SetActive(true);
+            bubble.gameObject.SetActive(true);
             bubbleText.text = lines[lineIdx];
             bubblePageText.text = $"{lineIdx + 1} / {lines.Length}";
         }
