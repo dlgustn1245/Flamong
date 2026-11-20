@@ -132,11 +132,6 @@ public class CalendarScene : MonoBehaviour
     void OnFailGetCalendar(long code, string error)
     {
         print($"Get Calendar Failed: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(GetCalendar);
     }
 

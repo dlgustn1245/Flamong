@@ -46,7 +46,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 | 기기에 저장된 `playerId` 없음 | Login |
 | `/me` 200, `speciesId` -1 (가입만 하고 알을 안 고름) | EggSelect |
 | `/me` 200 | Main (팀 · 이름 · 닉네임을 `SessionState`에. `speciesId` · `level`은 Main이 `/me`로 넣는다) |
-| `/me` 401 (서버가 모르는 계정: DB 초기화 · 탈퇴) | 저장된 `playerId`와 쓰다 만 터치 수(`HeartsTaps`)를 지우고 Login. Main · Hatch에서 요청이 401이어도 같다(`EntryRouter.GoToLogin`) |
+| `/me` 401 (서버가 모르는 계정: DB 초기화 · 탈퇴) | 저장된 `playerId`와 쓰다 만 터치 수(`HeartsTaps`)를 지우고 Login. 로그인한 뒤의 어느 요청이 401이어도 같다. `NetworkManager`가 한 곳에서 처리하고(`X-Player-Id`를 붙여 보낸 요청의 401만, `EntryRouter.GoToLogin`), 씬의 실패 콜백까지 가지 않는다. 로그인 요청의 401(`login_failed`)은 playerId 없이 보낸 것이라 여기 걸리지 않고 로그인 화면이 안내한다 |
 | `/me` 404 (없는 주소: `BASE_URL` 실수 등) | 오류 창 → 다시 시도. 계정 문제가 아니므로 `playerId`는 지우지 않는다 |
 | 서버에 닿지 못함 (응답 코드 0 등) | 오류 창 → 다시 시도. **`playerId`는 지우지 않는다**(서버가 잠깐 꺼졌을 뿐일 수 있음) |
 
@@ -283,7 +283,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
 - **판 시계는 `Time.deltaTime`을 더한 값**이다(timeScale을 따른다). 남은 시간 · 입력 잠금 · 연타 간격 · 연출이 모두 이 시계를 써서 멈춤 한 줄로 판 전체가 멈춘다. 카운트다운만 실제 시간(`WaitForSecondsRealtime`)이다(멈춘 중에 다시 세야 해서).
   - 판 시계는 실제 시간보다 빨라질 일이 없어(렉에도 `deltaTime`은 0.333초에서 잘린다) 서버의 「시작 뒤 32초 이상」 검사는 그대로 성립한다.
   - 브라우저 탭을 숨기면 Unity가 멈춰 판도 멈춘다. 화면이 안 보이니 미리 읽을 수도 없다.
-- **한 판 흐름**(`TidyGame`): `StartGame(rules, onEnd)` → 판 만들기 → 3 · 2 · 1(줄은 보임) → 「시작!」 0.5초 → 30초 → 「그만!」 · `onEnd(점수)` 한 번. `MiniGameScene`이 `POST /scores` → 결과 창. [다시 하기]는 결과 창만 닫고 준비 화면을 거치지 않고 바로 시작을 보내며, 같은 판 배열을 다시 써서 새 판을 만든다. 날기 시간은 `minTapMs` 이하여야 한다(날던 아이콘이 도착 전에 맨 위 칸으로 다시 쓰이지 않게).
+- **한 판 흐름**(`TidyGame`, 시계 · 세기 · 「그만!」은 부모 `MiniGame`): `StartGame(rules, onEnd)` → 판 만들기(`OnReset`) → 3 · 2 · 1(줄은 보임) → 「시작!」 0.5초 → 30초 → 「그만!」 · `onEnd(점수)` 한 번. `MiniGameScene`이 `POST /scores` → 결과 창. [다시 하기]는 결과 창만 닫고 준비 화면을 거치지 않고 바로 시작을 보내며, 같은 판 배열을 다시 써서 새 판을 만든다. 날기 시간은 `minTapMs` 이하여야 한다(날던 아이콘이 도착 전에 맨 위 칸으로 다시 쓰이지 않게).
   - 연출(날기 0.1초 · 내려오기 0.08초 · 서랍 팝 · 누른 쪽 서랍 눌림 · 오답 흔들기 · 바뀔 서랍 깜빡임 · 배율 팝)은 모두 `Update`의 float 타이머로 하고, 탭마다 코루틴을 만들지 않는다.
   - 2026-11-04 에디터에서 테스트 봇으로 확인:
     - 점수: 화면 점수가 봇이 따로 계산한 점수와 같다(193개 정답 · 517점).
@@ -292,7 +292,7 @@ Unity 6 (6000.6.0f1) · URP 2D · **WebGL** · 세로 1080x1920 · 모바일 브
     - 버튼 순서: [시작] 직후 [랭킹]은 숨겨진다. [랭킹] 직후 [시작]을 누르면 랭킹 창이 열리지 않는다.
     - 나가기: 멈춤 → [네]로 나가면 `TidyGame`이 꺼진다. 서버에는 `game_play`만 남고 점수는 없다.
   - 할당: Profiler의 `BehaviourUpdate`(스크립트 `Update` 전체)로 판 한 번(2,392프레임)을 쟀다.
-    - `TidyGame.Update`는 1초에 한 번 62B만 할당한다. TMP `SetText(형식, 값)`이 에디터에서만 인스펙터용 문자열을 만들기 때문이다(`TMP_Text.cs`의 `#if UNITY_EDITOR`). 그래서 빌드에서는 0이다.
+    - `TidyGame.Update`(지금은 부모 `MiniGame.Update`)는 1초에 한 번 62B만 할당한다. TMP `SetText(형식, 값)`이 에디터에서만 인스펙터용 문자열을 만들기 때문이다(`TMP_Text.cs`의 `#if UNITY_EDITOR`). 그래서 빌드에서는 0이다.
     - 판 끝(점수 보내기 · 로그)에서 한 번 약 5KB를 할당한다. 누름 경로의 `new`는 구조체뿐이다.
   - 봇이 Profiler 분석으로 에디터를 멈춘 직후 같은 프레임에 두 번 누르면, 둘째 누름은 0.1초 연타 제한에 막힌다(정상). 그래서 봇으로 점수를 맞출 때는 분석을 멈춤 중에만 한다.
 - 예상 점수(시뮬레이션 2,000판): 처음 약 30 · 보통 70 · 잘함 120 · 고수 210 · 사람 한계 약 320.
@@ -424,7 +424,7 @@ event      (id INTEGER PK, player_id, type, ts, payload TEXT)
 
 ## API
 
-모든 요청: `X-Player-Id` 헤더 (players 생성 · check · login 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트는 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400. 가입 · 닉네임 확인 · 로그인은 IP당 횟수를 넘으면 429 `rate_limited`(「인증」).
+모든 요청: `X-Player-Id` 헤더 (players 생성 · check · login 제외). 헤더가 없으면 401 `no_player`, 모르는 id면 401 `unknown_player`. **404 `not_found`는 없는 주소에만** 쓴다. 클라이언트(`NetworkManager`)는 헤더를 붙여 보낸 요청의 401을 「계정 없음」으로 보고 기기의 `playerId`를 지우므로, 주소 실수(404)와 섞이지 않게 나눴다. 규칙 위반은 409, 검증 실패 400. 가입 · 닉네임 확인 · 로그인은 IP당 횟수를 넘으면 429 `rate_limited`(「인증」).
 본문이 없는 POST(`/tap` 등)도 `{}`를 보낸다. `Content-Type: application/json`에 빈 본문이면 Fastify가 400 `FST_ERR_CTP_EMPTY_JSON_BODY`로 거절한다.
 
 응답 본문은 아래 표의 「응답」 그대로다. 성공은 200, 에러는 HTTP 상태 코드와 `{ error, message? }`. 500은 메시지를 감추고 서버 로그에만 남긴다.
@@ -504,7 +504,7 @@ Assets/Content/<씬>/
 Assets/Content/Common/
   02_Scripts/                   두 씬 이상이 같이 쓰는 씬 컨트롤러. PostScene(꽃밭 · 소식, `kind`로 구분)
                                 · MiniGameScene(미니게임 씬의 준비 → 시작 → 점수 보내기 → 결과 · 멈춤. Tidy · Pairs 씬이 같이 쓰고, 게임은 `miniGame` 칸으로 받는다)
-                                · MiniGame(게임 한 판의 부모. 자식이 `GameId` · `StartGame`을 정하고, 3 · 2 · 1 세기 `CountDown`은 부모가 한다: `countDownGroup`을 켜고 `countDownText`에 숫자를 쓴다. TidyGame · PairsGame 이 상속)
+                                · MiniGame(게임 한 판의 부모. `StartGame` · 3 · 2 · 1 세기 `CountDown` · 판 시계 · 남은 시간 글자와 게이지 · 5초 경고색 · 점수 글자 · 「그만!」 · `onEnd(점수)`를 부모가 한다. 자식은 `GameId`와 판 규칙만 쓴다: `OnReset`(판을 처음 모습으로) → `OnPlay`(다 센 직후) → `OnTick(dt)`(매 프레임) → `OnFinish`(시간이 다 됨). 누름은 `AcceptTap()`(멈춤 · 끝난 뒤 · `minTapMs` 안의 연타를 버림)으로 거르고 점수는 `AddScore`. TidyGame · PairsGame 이 상속)
   02_Scripts/Manager/           SessionState(씬 간 데이터 · playerId 저장 · 터치 수 저장 열쇠 `HEART_TAPS_KEY`, 싱글톤)
                                 · SoundManager(배경음 · 효과음 볼륨과 재생, 싱글톤. 볼륨은 PlayerPrefs `BgmVolume` · `SfxVolume`)
   02_Scripts/Manager/Network/   NetworkManager(UnityWebRequest GET·POST·PATCH, 싱글톤, 서버 주소 `BASE_URL`은 여기 한 곳) · ServerData(요청·응답 DTO)

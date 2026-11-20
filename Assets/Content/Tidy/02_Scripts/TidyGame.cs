@@ -1,14 +1,10 @@
-using System;
-using System.Collections;
-using ServerData;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;   // using System 의 System.Random 과 겹친다
 
 // 마음 정리 한 판. Canvas - Main/Area - Tap(화면 전체 누름 영역)에 붙는다.
-// 판 시계는 Time.deltaTime 을 더한 값이라 MiniGameScene 이 timeScale 을 0 으로 두면 판 전체가 멈춘다
+// 세기 · 판 시계 · 남은 시간 · 점수 · 「그만!」은 부모 MiniGame 이 맡는다
 public class TidyGame : MiniGame, IPointerDownHandler
 { 
     public override string GameId => GameList.Tidy;
@@ -19,11 +15,8 @@ public class TidyGame : MiniGame, IPointerDownHandler
     public Sprite[] emotionSprites;        // tired · stress · achievement · focus · calm 순서
     public string[] emotionNames = { "피로", "스트레스", "성취감", "몰입", "평온" };
 
-    public TextMeshProUGUI scoreText;
     public TextMeshProUGUI comboText;
     public TextMeshProUGUI multText;
-    public TextMeshProUGUI timeText;
-    public Image timeFill;
 
     // 보이는 것만 여기서 정한다. 판 규칙(시간 · 잠금 · 배율)은 서버 rules
     public float[] slotY = { 330, 530, 680, 830, 980 };   // 줄 칸, 맨 아래가 0번
@@ -35,20 +28,10 @@ public class TidyGame : MiniGame, IPointerDownHandler
     public float popTime = 0.2f;        // 서랍이 바뀔 때 · 배율이 오를 때 1.3 → 1
     public float pressTime = 0.1f;      // 누른 쪽 서랍 0.9 → 1
     public float shakeAmount = 12f;     // 틀렸을 때 맨 아래 흔들기
-    public Color warnColor = new Color32(0xE8, 0x46, 0x5F, 0xFF);   // 남은 5초 글자색
 
-    enum State { Idle, Countdown, Playing, Done }
-
-    GameRules rules;
-    Action<int> onEnd;
-
-    State state;
-    int score;
     int combo;
     int sorted;          // 지금까지 맞힌 수 = 맨 아래 아이콘의 순번
-    float clock;         // 판 시계. timeScale 을 따라 멈춘 동안은 흐르지 않는다
     float lockUntil;
-    float lastTapAt;
 
     int[] stageL;        // 단계(순번 / changeEvery)마다 왼쪽 서랍 감정
     int[] stageR;
@@ -56,7 +39,6 @@ public class TidyGame : MiniGame, IPointerDownHandler
     int[] sides;         // 순번마다 정답 쪽 (0 왼쪽 · 1 오른쪽)
 
     RectTransform[] iconRects;
-    Color timeColor;
 
     // 연출. 모두 Update 에서 float 타이머로 진행한다(탭마다 코루틴을 만들지 않는다). 나이가 음수면 꺼짐
     Vector2[] fromPos;
@@ -77,20 +59,19 @@ public class TidyGame : MiniGame, IPointerDownHandler
     RectTransform multRect;
     float multPopAge = -1f;
     int shownMult;
-    int shownSec;
     float startTextAge = -1f;
 
     const float startTextTime = 0.5f;   // 처음 세기 뒤 「시작!」
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         int n = icons.Length;
         iconRects = new RectTransform[n];
         for (int i = 0; i < n; i++)
         {
             iconRects[i] = icons[i].rectTransform;
         }
-        timeColor = timeText.color;
 
         fromPos = new Vector2[n];
         toPos = new Vector2[n];
@@ -110,30 +91,20 @@ public class TidyGame : MiniGame, IPointerDownHandler
         multRect = multText.rectTransform;
     }
 
-    public override IEnumerator StartGame(GameRules rules, Action<int> onEnd)
+    // 다 센 직후 「시작!」을 잠깐 띄운다
+    protected override void OnPlay()
     {
-        this.rules = rules;
-        this.onEnd = onEnd;
-        delay = rules.countdownSec;
-        BuildBoard();
-        state = State.Countdown;
-        yield return StartCoroutine(CountDown());   // 세는 동안 줄이 보여 첫 감정을 미리 읽을 수 있다
-        state = State.Playing;
-        countDownText.gameObject.SetActive(true);
+        countDownGroup.SetActive(true);
         countDownText.SetText("시작!");
-        SoundManager.Instance.PlaySfx(SoundManager.Instance.sparkle);
         startTextAge = 0f;
     }
 
-    // 판 만들기. 다시 하기에서는 배열을 새로 만들지 않고 다시 쓴다
-    void BuildBoard()
+    // 판 만들기. 세는 동안 줄이 보여 첫 감정을 미리 읽을 수 있다. 다시 하기에서는 배열을 새로 만들지 않고 다시 쓴다
+    protected override void OnReset()
     {
-        score = 0;
         combo = 0;
         sorted = 0;
-        clock = 0f;
         lockUntil = -1f;
-        lastTapAt = -1f;
 
         int maxTaps = rules.durationSec * 1000 / rules.minTapMs + 1;   // 한 판에 받아들일 수 있는 최대 입력
         int stages = maxTaps / rules.changeEvery + 2;
@@ -203,14 +174,9 @@ public class TidyGame : MiniGame, IPointerDownHandler
         }
         SetDrawers(0);
 
-        scoreText.SetText("{0}점", 0f);
         comboText.gameObject.SetActive(false);
         multText.gameObject.SetActive(false);
-        timeText.color = timeColor;
-        timeText.SetText("{0}", (float)rules.durationSec);
-        timeFill.fillAmount = 1f;
 
-        shownSec = rules.durationSec;
         shownMult = 1;
         shakeAge = -1f;
         blinkSide = -1;
@@ -238,17 +204,11 @@ public class TidyGame : MiniGame, IPointerDownHandler
 
     void Tap(int side)
     {
-        // 멈춤 · 다시 세는 중(timeScale 0), 끝난 프레임에 늦게 들어온 누름은 버린다
-        if (state != State.Playing || Time.timeScale == 0f || clock >= rules.durationSec)
+        // 틀린 뒤 잠금 동안은 연타 시계도 건드리지 않는다
+        if (clock < lockUntil || !AcceptTap())
         {
             return;
         }
-        // 틀린 뒤 잠금 · 연타 간격. 한 프레임에 두 번 눌리면 clock 이 같아 두 번째가 여기서 걸린다
-        if (clock < lockUntil || clock - lastTapAt < rules.minTapMs / 1000f)
-        {
-            return;
-        }
-        lastTapAt = clock;
         pressAge[side] = 0f;
 
         if (side != sides[sorted])
@@ -266,7 +226,7 @@ public class TidyGame : MiniGame, IPointerDownHandler
         SoundManager.Instance.PlaySfx(SoundManager.Instance.pop);
         int n = icons.Length;
         Move(sorted % n, drawerPos[side], 0.5f, 0f, flyTime);   // 맨 아래 → 그 쪽 서랍으로 쏙
-        score += PointsFor(combo, rules.comboAt);
+        AddScore(PointsFor(combo, rules.comboAt));
         combo++;
         sorted++;
         shakeAge = -1f;
@@ -299,7 +259,6 @@ public class TidyGame : MiniGame, IPointerDownHandler
             blinkAge = 0f;
         }
 
-        scoreText.SetText("{0}점", (float)score);
         comboText.gameObject.SetActive(true);
         comboText.SetText("콤보 {0}", (float)combo);
         int mult = PointsFor(combo, rules.comboAt);   // 다음 정답에 붙을 점수
@@ -315,50 +274,23 @@ public class TidyGame : MiniGame, IPointerDownHandler
         shownMult = mult;
     }
 
-    void OnDestroy()
+    protected override void OnTick(float dt)
     {
-        StopAllCoroutines();
-    }
-
-    void Update()
-    {
-        // timeScale 0 이어도 멈춘 그 프레임의 deltaTime 은 0 이 아닐 수 있어 따로 막는다
-        if (state != State.Playing || Time.timeScale == 0f)
-        {
-            return;
-        }
-        float dt = Time.deltaTime;   // 멈추면(timeScale 0) 0 이라 판 시계 · 연출이 함께 멈춘다
-        clock += dt;
-        float remain = rules.durationSec - clock;
-        timeFill.fillAmount = Mathf.Max(0f, remain / rules.durationSec);
-        int sec = Mathf.Max(0, Mathf.CeilToInt(remain));
-        if (sec != shownSec)
-        {
-            shownSec = sec;
-            timeText.SetText("{0}", (float)sec);
-            timeText.color = sec <= 5 ? warnColor : timeColor;
-        }
-
         if (startTextAge >= 0f)
         {
             startTextAge += dt;
             if (startTextAge >= startTextTime)
             {
                 startTextAge = -1f;
-                countDownText.gameObject.SetActive(false);
+                countDownGroup.SetActive(false);
             }
         }
 
         Animate(dt);
-        if (remain <= 0f)
-        {
-            Finish();
-        }
     }
 
-    void Finish()
+    protected override void OnFinish()
     {
-        state = State.Done;
         Animate(10f);   // 날던 아이콘 · 흔들기 · 팝을 끝 모습으로
         blinkSide = -1;
         for (int i = 0; i < drawerIcons.Length; i++)
@@ -366,9 +298,6 @@ public class TidyGame : MiniGame, IPointerDownHandler
             drawerIcons[i].color = Color.white;
         }
         startTextAge = -1f;
-        countDownText.gameObject.SetActive(true);
-        countDownText.SetText("그만!");
-        onEnd?.Invoke(score);
     }
 
     // 아이콘 k 를 지금 모습에서 목표 모습으로 time 동안 옮긴다

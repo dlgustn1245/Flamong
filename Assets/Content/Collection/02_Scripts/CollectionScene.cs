@@ -95,11 +95,6 @@ public class CollectionScene : MonoBehaviour
     void OnFailGetCollection(long code, string error)
     {
         print($"Get Collection Failed: {code} {error}");
-        if (code == 401)   // 서버가 모르는 계정
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(GetCollection);
     }
 }

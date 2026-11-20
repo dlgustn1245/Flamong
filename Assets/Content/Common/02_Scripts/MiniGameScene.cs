@@ -163,11 +163,6 @@ public class MiniGameScene : MonoBehaviour
     void OnFailGetBoard(long code, string error, bool openBoard)
     {
         print($"OnFailGetBoard: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         // [시작]을 누른 뒤(응답 대기 · 판 · 결과 창)에는 띄우지 않는다. 오류 창이 판을 가리거나 [시작]의 다시 시도를 덮는다
         if (!startButton.interactable)
         {
@@ -203,11 +198,6 @@ public class MiniGameScene : MonoBehaviour
     {
         print($"OnFailPostGame: {code} {error}");
         
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(PostGame);
     }
 
@@ -282,11 +272,6 @@ public class MiniGameScene : MonoBehaviour
     void OnFailPostScore(long code, string error)
     {
         print($"OnFailPostScore: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         // 시작 없음 · 너무 빠름 · 10분 넘음(409), 범위 밖(400): 다시 보내도 같다
         if (code == 400 || code == 409)
         {

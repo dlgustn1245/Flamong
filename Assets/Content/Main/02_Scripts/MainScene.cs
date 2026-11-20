@@ -233,12 +233,6 @@ public class MainScene : MonoBehaviour
             return;
         }
 
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
-
         errorPanel.Show(() =>
         {
             PostEmotion(emotion);
@@ -343,11 +337,6 @@ public class MainScene : MonoBehaviour
     void OnFailDeleteMe(long code, string error)
     {
         print($"Delete Me Failed: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(WithdrawCharacter);
     }
 
@@ -361,11 +350,6 @@ public class MainScene : MonoBehaviour
     void OnFailResetCharacter(long code, string error)
     {
         print($"Reset Character Failed: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(ResetCharacter);
     }
 
@@ -437,11 +421,6 @@ public class MainScene : MonoBehaviour
     void OnFailGetMe(long code, string error)
     {
         print($"Get Me Failed: {code} {error}");
-        if (code == 401)   // 서버가 모르는 계정
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(Init);
     }
     
@@ -526,11 +505,6 @@ public class MainScene : MonoBehaviour
     void OnFailPatchPlayer(long code, string error)
     {
         print($"Patch Player Failed: {code} {error}");
-        if (code == 401)   // 서버가 모르는 계정
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         // 다시 보내도 같은 400 이라 오류 창(다시 시도) 대신 안내만
         if (code == 400)
         {

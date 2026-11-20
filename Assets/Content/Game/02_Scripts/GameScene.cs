@@ -112,11 +112,6 @@ public class GameScene : MonoBehaviour
     void OnFailGetMonths(long code, string error)
     {
         print($"OnFailGetMonths: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(GetMonths);
     }
 
@@ -146,11 +141,6 @@ public class GameScene : MonoBehaviour
     void OnFailGetBoard(long code, string error, int idx)
     {
         print($"OnFailGetRanking: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(() =>
         {
             OnClickCalendar(idx);

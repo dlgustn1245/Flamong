@@ -71,11 +71,6 @@ public class HatchScene : MonoBehaviour
     void OnFailPostCharacter(long code, string error)
     {
         print($"Post Character Failed: {code} {error}");
-        if (code == 401)   // 서버가 모르는 계정
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(SendRequest);
     }
 

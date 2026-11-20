@@ -78,11 +78,6 @@ public class PostScene : MonoBehaviour
     {
         print($"OnFailPostMessage: {code} {error}");
         
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         if (code == 409)
         {
             GetPost();
@@ -117,11 +112,6 @@ public class PostScene : MonoBehaviour
     void OnFailGetPost(long code, string error)
     {
         print($"OnFailGetPost: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(GetPost);
     }
 

@@ -6,6 +6,7 @@ using UnityEngine.Networking;
 
 // onError(responseCode, error): responseCode 는 서버가 돌려준 HTTP 상태 코드(401 · 404 · 409 · 429 …).
 // 서버에 닿지도 못했으면(꺼짐 · 네트워크 끊김 · 시간 초과) 0 이다.
+// 로그인한 요청의 401(서버가 모르는 계정)은 onError 로 가지 않고 여기서 Login 으로 보낸다.
 public class NetworkManager : Singleton<NetworkManager>
 {
 	// 서버 주소는 여기 한 곳에만. 배포할 때 이 줄만 바꾼다
@@ -87,6 +88,15 @@ public class NetworkManager : Singleton<NetworkManager>
 
 			if (request.result != UnityWebRequest.Result.Success)
 			{
+				// 로그인한 요청에 401(서버가 모르는 계정: DB 초기화 · 탈퇴)이 오면 저장값을 지우고 Login 으로 보낸다. 씬마다 다루지 않는다.
+				// 로그인 요청의 401(닉네임 · 비밀번호 틀림)은 playerId 없이 보낸 것이라 여기 걸리지 않고 onError 로 간다.
+				// 0(서버에 닿지 못함)이나 404(없는 주소, BASE_URL 실수 등)에는 지우지 않는다. 계정과 상관없는 문제로 저장값을 잃는다
+				if (request.responseCode == 401 && !string.IsNullOrEmpty(playerId))
+				{
+					print($"401 → Login [ url: {url} ]");
+					EntryRouter.GoToLogin();
+					yield break;
+				}
 				// 서버가 본문({"error":"posted"} 등)을 보냈으면 그것을, 연결 실패 · 시간 초과면 Unity 오류 문구를 넘긴다
 				string errorBody = request.downloadHandler.text;
 				onError?.Invoke(request.responseCode, string.IsNullOrEmpty(errorBody) ? request.error : errorBody);

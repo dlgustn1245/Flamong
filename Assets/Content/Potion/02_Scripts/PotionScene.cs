@@ -99,11 +99,6 @@ public class PotionScene : MonoBehaviour
     void OnFailClaimPotion(long code, string error, string missionId)
     {
         print($"Post Potions Failed: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         if (code == 409)
         {
             GetMissions();
@@ -174,11 +169,6 @@ public class PotionScene : MonoBehaviour
     void OnFailedGetMissions(long code, string error)
     {
         print($"Get Missions Failed: {code} {error}");
-        if (code == 401)
-        {
-            EntryRouter.GoToLogin();
-            return;
-        }
         errorPanel.Show(GetMissions);
     }
 }
